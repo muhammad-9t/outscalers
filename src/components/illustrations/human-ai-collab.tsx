@@ -1,6 +1,10 @@
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
 
+// Side profile facing right: neck, skull, forehead, brow, nose, lips, chin, jaw.
+export const HEAD_PATH =
+  "M112 320C110 296 104 278 102 262C80 246 68 214 68 180C68 120 112 84 166 84C212 84 240 112 244 150C245 160 246 168 246 172L262 202C265 207 264 211 259 212L249 214C252 220 253 224 250 228C248 230 248 232 251 236C252 244 250 254 244 260C236 268 222 270 208 270C202 280 200 300 204 320";
+
 /**
  * Human profile (judgment) and a neural cluster (AI capability) exchanging work,
  * converging on one reviewed solution.
@@ -25,13 +29,21 @@ export function HumanAiCollab({ className }: { className?: string }) {
     >
       <title id="hac-title">Human and AI collaboration</title>
       <desc id="hac-desc">
-        An engineer&apos;s profile and an AI network exchange ideas and code, and both feed into a single reviewed
-        software solution.
+        An engineer&apos;s profile, with a human brain traced as circuitry, and an AI network exchange ideas and
+        code. Both feed into a single reviewed software solution.
       </desc>
       <defs>
         <radialGradient id="hac-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ff700e" stopOpacity="0.35" />
           <stop offset="100%" stopColor="#ff700e" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="hac-head" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#1a2433" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#0b111b" stopOpacity="0.6" />
+        </linearGradient>
+        <radialGradient id="hac-mind" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#7cc4ff" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#7cc4ff" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="hac-out" x1="0" x2="1">
           <stop offset="0%" stopColor="#7cc4ff" />
@@ -46,32 +58,58 @@ export function HumanAiCollab({ className }: { className?: string }) {
         )}
       </g>
 
-      {/* Human profile */}
+      {/* Human profile: soft silhouette fill, then the outline drawn on reveal */}
+      <path d={HEAD_PATH} fill="url(#hac-head)" />
       <path
-        d="M120 302c-30 0-50-20-50-50v-50c0-60 40-106 96-106 50 0 86 34 88 80l15 30c3 6 0 10-6 11l-8 1v21c0 12-8 20-20 20h-20v43"
-        className="draw-path fill-none stroke-fg/80"
+        d={HEAD_PATH}
+        className="draw-path fill-none stroke-fg/85"
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ "--path-length": 640 } as CSSProperties}
+        style={{ "--path-length": 780 } as CSSProperties}
         data-reveal
       />
-      {/* Thought nodes inside the head */}
-      <g className="fill-none stroke-human-accent/70" strokeWidth={1.4}>
-        <path d="M128 160 156 142 188 160 170 192 138 194z" />
-        <path d="M156 142 170 192M128 160 188 160" opacity={0.5} />
+      {/* Ear */}
+      <path
+        d="M120 176c-8-3-14 4-13 13 1 8 6 14 13 13"
+        className="fill-none stroke-fg/35"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+
+      {/* Brain: lobes, folds traced as circuitry, cerebellum and stem */}
+      <circle cx={164} cy={142} r={70} fill="url(#hac-mind)" />
+      <path
+        d="M110 160C98 150 100 126 118 118C122 102 144 96 158 102C170 92 196 94 204 108C220 110 228 126 222 140C230 152 222 170 206 170C200 180 184 182 176 174C166 182 148 182 142 172C130 178 114 172 110 160Z"
+        className="fill-human-accent/[0.07] stroke-human-accent"
+        strokeWidth={1.6}
+        strokeLinejoin="round"
+      />
+      <g className="fill-none stroke-human-accent/60" strokeWidth={1.3} strokeLinecap="round">
+        <path d="M120 141C132 133 140 147 152 139" />
+        <path d="M158 112C160 126 172 128 176 118" />
+        <path d="M186 110C184 124 196 132 206 126" />
+        <path d="M197 147C187 141 177 151 185 161" />
+        <path d="M138 159C148 151 160 161 168 153" />
+        <path d="M166 137C176 133 184 139 190 133" />
+        <path d="M138 120C142 128 136 134 128 132" />
       </g>
+      <path d="M128 174C124 186 138 192 148 185" className="fill-none stroke-human-accent/70" strokeWidth={1.4} strokeLinecap="round" />
+      <path d="M160 180C162 192 164 200 166 212" className="fill-none stroke-human-accent/50" strokeWidth={1.6} strokeLinecap="round" />
       <g className="fill-human-accent">
         {[
-          [128, 160],
-          [156, 142],
-          [188, 160],
-          [170, 192],
-          [138, 194],
+          [152, 139],
+          [176, 118],
+          [206, 126],
+          [185, 161],
+          [168, 153],
+          [190, 133],
+          [128, 132],
         ].map(([x, y]) => (
-          <circle key={`${x}${y}`} cx={x} cy={y} r={3.2} />
+          <circle key={`${x}-${y}`} cx={x} cy={y} r={2.6} />
         ))}
       </g>
+      <circle cx={222} cy={140} r={3.4} className="animate-pulse-soft fill-human-accent" />
 
       {/* AI network */}
       <circle cx={hub[0]} cy={hub[1]} r={90} fill="url(#hac-glow)" />
@@ -104,7 +142,7 @@ export function HumanAiCollab({ className }: { className?: string }) {
       </g>
 
       {/* Convergence to the reviewed solution */}
-      <path d="M150 302C150 330 190 344 214 352" className="flow-dash fill-none stroke-human-accent/60" strokeWidth={1.4} />
+      <path d="M158 322C158 334 166 338 176 340" className="flow-dash fill-none stroke-human-accent/60" strokeWidth={1.4} />
       <path d="M380 278C380 320 320 344 300 352" className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.4} />
       <rect x={160} y={340} width={196} height={52} rx={12} className="fill-ink-850" stroke="url(#hac-out)" strokeWidth={1.5} />
       <circle cx={186} cy={366} r={11} className="fill-brand-400" />

@@ -100,7 +100,7 @@ const END = T.loop - 1;
 
 export const STAGES = [
   { label: "Human idea", short: "Human idea", detail: "An engineer defines the problem" },
-  { label: "AI-assisted implementation", short: "AI implementation", detail: "AI drafts code from the brief" },
+  { label: "AI-assisted implementation", short: "AI drafting", detail: "AI drafts code from the brief" },
   { label: "Human review", short: "Human review", detail: "An engineer reviews and approves" },
   { label: "Tested solution", short: "Tested solution", detail: "Automated tests confirm behaviour" },
 ] as const;

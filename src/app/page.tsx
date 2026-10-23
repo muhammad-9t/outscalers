@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { HeroScene } from "@/components/hero/hero-scene";
 import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
+import { HeroDuo } from "@/components/illustrations/hero-duo";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { ServiceCard } from "@/components/sections/service-cards";
 import { DeliveryModel } from "@/components/sections/delivery-model";
@@ -103,17 +104,15 @@ export default function HomePage() {
           <div className="glow-brand absolute -top-60 left-1/2 size-[60rem] -translate-x-1/2 animate-drift opacity-50" />
         </div>
         <div className="container-site relative">
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
-            <div className="lg:col-span-7">
+          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
+            <div className="lg:col-span-6">
               <p className="eyebrow mb-6">Human + AI engineering company</p>
               <h1 id="hero-title" className="text-display-xl font-semibold">
                 Human Intelligence.
                 <br />
                 <span className="text-gradient">AI-Powered Engineering.</span>
               </h1>
-            </div>
-            <div className="lg:col-span-5 lg:pb-2">
-              <p className="text-lead text-fg-muted">
+              <p className="mt-7 max-w-xl text-lead text-fg-muted">
                 We combine experienced engineers with artificial intelligence to build intelligent software, automate
                 complex workflows, and help businesses move from ideas to real-world solutions.
               </p>
@@ -125,19 +124,21 @@ export default function HomePage() {
                   Explore Our Services
                 </ButtonLink>
               </div>
+              <ul aria-label="What we do" className="mt-9 flex flex-wrap gap-2">
+                {services.map((s) => (
+                  <li key={s.slug}>
+                    <Link href={serviceHref(s.slug)} className="chip transition-colors hover:border-brand-500/50 hover:text-fg">
+                      <ServiceGlyph slug={s.slug} className="size-3.5 text-brand-400" />
+                      {s.shortTitle}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div data-reveal className="mx-auto w-full max-w-xl lg:col-span-6 lg:max-w-none">
+              <HeroDuo />
             </div>
           </div>
-
-          <ul aria-label="What we do" className="mt-10 flex flex-wrap gap-2">
-            {services.map((s) => (
-              <li key={s.slug}>
-                <Link href={serviceHref(s.slug)} className="chip transition-colors hover:border-brand-500/50 hover:text-fg">
-                  <ServiceGlyph slug={s.slug} className="size-3.5 text-brand-400" />
-                  {s.shortTitle}
-                </Link>
-              </li>
-            ))}
-          </ul>
 
           <div className="mt-12 sm:mt-14">
             <HeroScene />
