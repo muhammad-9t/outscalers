@@ -32,7 +32,7 @@ export function ServiceHero({ service }: { service: Service }) {
         </>
       }
       visual={
-        <div className="card p-4 sm:p-6">
+        <div className="mx-auto w-full max-w-xl lg:max-w-none lg:scale-105">
           <ServiceIllustration slug={service.slug} />
         </div>
       }
@@ -226,37 +226,57 @@ export function ProcessBlock({
   return (
     <Section tone={tone} labelledBy="process-title">
       <div className="container-site">
-        <SectionHeading id="process-title" eyebrow="Delivery process" title="How an engagement runs" />
         {variant === "steps" ? (
-          <ol
-            className={cn(
-              "relative mt-12 grid gap-8 sm:grid-cols-2",
-              service.process.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4",
-            )}
-          >
-            <span aria-hidden className="absolute left-0 right-0 top-4 hidden h-px bg-gradient-to-r from-brand-500/60 via-line-strong to-transparent lg:block" />
-            {service.process.map((p, i) => (
-              <li key={p.title} data-reveal style={delay(i * 90)} className="relative">
-                <span className="relative grid size-8 place-items-center rounded-full border border-brand-500/50 bg-ink-900 font-mono text-xs text-brand-300">
-                  {i + 1}
-                </span>
-                <h3 className="mt-5 font-semibold">{p.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
-              </li>
-            ))}
-          </ol>
+          <>
+            <SectionHeading id="process-title" eyebrow="Delivery process" title="How an engagement runs" />
+            <ol
+              className={cn(
+                "relative mt-12 grid gap-8 sm:grid-cols-2",
+                service.process.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4",
+              )}
+            >
+              <span aria-hidden className="absolute left-0 right-0 top-4 hidden h-px bg-gradient-to-r from-brand-500/60 via-line-strong to-transparent lg:block" />
+              {service.process.map((p, i) => (
+                <li key={p.title} data-reveal style={delay(i * 90)} className="relative">
+                  <span className="relative grid size-8 place-items-center rounded-full border border-brand-500/50 bg-ink-900 font-mono text-xs text-brand-300">
+                    {i + 1}
+                  </span>
+                  <h3 className="mt-5 font-semibold">{p.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
+                </li>
+              ))}
+            </ol>
+          </>
         ) : (
-          <ol className="relative mt-12 max-w-3xl border-l border-line-strong pl-8">
-            {service.process.map((p, i) => (
-              <li key={p.title} data-reveal style={delay(i * 80)} className="relative pb-10 last:pb-0">
-                <span className="absolute -left-[2.55rem] top-0 grid size-8 place-items-center rounded-full border border-brand-500/50 bg-ink-900 font-mono text-xs text-brand-300">
-                  {i + 1}
-                </span>
-                <h3 className="text-lg font-semibold">{p.title}</h3>
-                <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-fg-muted">{p.body}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.35fr] lg:gap-16">
+            <SectionHeading
+              id="process-title"
+              eyebrow="Delivery process"
+              title="How an engagement runs"
+              lead="A staged path from first review to a running system, so you see progress early and can adjust at every step."
+              className="lg:sticky lg:top-28 lg:self-start"
+            />
+            <ol className="relative">
+              <span
+                aria-hidden
+                className="absolute bottom-8 left-5 top-8 w-px bg-linear-to-b from-brand-500/70 via-line-strong to-line"
+              />
+              {service.process.map((p, i) => (
+                <li key={p.title} data-reveal style={delay(i * 80)} className="relative flex gap-5 pb-5 last:pb-0">
+                  <span className="relative z-10 mt-5 grid size-10 shrink-0 place-items-center rounded-full border border-brand-500/60 bg-ink-900 font-mono text-sm text-brand-300">
+                    {i + 1}
+                  </span>
+                  <div className="card flex-1 p-5 sm:p-6">
+                    <p className="font-mono text-[0.6875rem] uppercase tracking-wider text-fg-subtle">
+                      Step {String(i + 1).padStart(2, "0")} / {String(service.process.length).padStart(2, "0")}
+                    </p>
+                    <h3 className="mt-2 text-lg font-semibold">{p.title}</h3>
+                    <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-fg-muted">{p.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         )}
       </div>
     </Section>

@@ -38,13 +38,28 @@ export function HumanAiCollab({ className }: { className?: string }) {
           <stop offset="100%" stopColor="#ff700e" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="hac-head" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1a2433" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#0b111b" stopOpacity="0.6" />
+          <stop offset="0%" style={{ stopColor: "var(--color-ink-700)" }} stopOpacity="0.9" />
+          <stop offset="100%" style={{ stopColor: "var(--color-ink-850)" }} stopOpacity="0.6" />
         </linearGradient>
         <radialGradient id="hac-mind" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#7cc4ff" stopOpacity="0.22" />
           <stop offset="100%" stopColor="#7cc4ff" stopOpacity="0" />
         </radialGradient>
+        {/* Fades the open bottom of the neck instead of ending it on a hard edge */}
+        <linearGradient id="hac-neck-fade" x1="0" y1="262" x2="0" y2="322" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#fff" />
+          <stop offset="100%" stopColor="#000" />
+        </linearGradient>
+        <mask id="hac-neck-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="480" height="420">
+          <rect x="0" y="0" width="480" height="262" fill="#fff" />
+          <rect x="0" y="262" width="480" height="60" fill="url(#hac-neck-fade)" />
+        </mask>
+        <marker id="hac-arrow-human" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 10 5 0 10z" className="fill-human-accent" />
+        </marker>
+        <marker id="hac-arrow-ai" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0 10 5 0 10z" className="fill-brand-400" />
+        </marker>
         <linearGradient id="hac-out" x1="0" x2="1">
           <stop offset="0%" stopColor="#7cc4ff" />
           <stop offset="100%" stopColor="#ff700e" />
@@ -59,23 +74,23 @@ export function HumanAiCollab({ className }: { className?: string }) {
       </g>
 
       {/* Human profile: soft silhouette fill, then the outline drawn on reveal */}
-      <path d={HEAD_PATH} fill="url(#hac-head)" />
-      <path
-        d={HEAD_PATH}
-        className="draw-path fill-none stroke-fg/85"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ "--path-length": 780 } as CSSProperties}
-        data-reveal
-      />
-      {/* Ear */}
-      <path
-        d="M120 176c-8-3-14 4-13 13 1 8 6 14 13 13"
-        className="fill-none stroke-fg/35"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-      />
+      <g mask="url(#hac-neck-mask)">
+        <path d={HEAD_PATH} fill="url(#hac-head)" />
+        <path
+          d={HEAD_PATH}
+          className="draw-path fill-none stroke-fg/85"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ "--path-length": 780 } as CSSProperties}
+          data-reveal
+        />
+      </g>
+      {/* Ear, behind the jaw */}
+      <g className="fill-none stroke-fg/45" strokeWidth={1.5} strokeLinecap="round">
+        <path d="M128 192c-11-4-19 5-18 17 1 11 9 17 18 15" />
+        <path d="M124 201c-4 2-4 9 1 11" />
+      </g>
 
       {/* Brain: lobes, folds traced as circuitry, cerebellum and stem */}
       <circle cx={164} cy={142} r={70} fill="url(#hac-mind)" />
@@ -128,25 +143,27 @@ export function HumanAiCollab({ className }: { className?: string }) {
       <circle cx={hub[0]} cy={hub[1]} r={7} className="animate-pulse-soft fill-brand-400" />
 
       {/* Exchange between human and AI */}
-      <path d="M262 150C298 128 330 128 354 140" className="flow-dash fill-none stroke-human-accent/80" strokeWidth={1.6} />
-      <path d="M352 214C326 232 292 230 262 210" className="flow-dash fill-none stroke-brand-400/90" strokeWidth={1.6} />
+      {/* Intent: forehead → top-left AI node. Draft: left AI node → back to the face. Pills sit on each line's midpoint. */}
+      <path d="M256 150C292 124 334 112 363 112" className="flow-dash fill-none stroke-human-accent/80" strokeWidth={1.6} markerEnd="url(#hac-arrow-human)" />
+      <path d="M351 200C326 222 292 224 268 214" className="flow-dash fill-none stroke-brand-400/90" strokeWidth={1.6} markerEnd="url(#hac-arrow-ai)" />
       <g className="font-mono" fontSize={11}>
-        <rect x={282} y={104} width={50} height={20} rx={6} className="fill-ink-850 stroke-human-accent/40" />
-        <text x={307} y={118} textAnchor="middle" className="fill-human-accent">
+        <rect x={290} y={111} width={50} height={20} rx={6} className="fill-ink-850 stroke-human-accent/40" />
+        <text x={315} y={125} textAnchor="middle" className="fill-human-accent">
           intent
         </text>
-        <rect x={280} y={228} width={54} height={20} rx={6} className="fill-ink-850 stroke-brand-500/50" />
-        <text x={307} y={242} textAnchor="middle" className="fill-brand-300">
+        <rect x={276} y={209} width={64} height={20} rx={6} className="fill-ink-850 stroke-brand-500/50" />
+        <text x={308} y={223} textAnchor="middle" className="fill-brand-300">
           {"</> draft"}
         </text>
       </g>
 
       {/* Convergence to the reviewed solution */}
-      <path d="M158 322C158 334 166 338 176 340" className="flow-dash fill-none stroke-human-accent/60" strokeWidth={1.4} />
-      <path d="M380 278C380 320 320 344 300 352" className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.4} />
+      {/* Both sides enter the top edge of the solution card */}
+      <path d="M158 300C158 326 200 318 200 336" className="flow-dash fill-none stroke-human-accent/60" strokeWidth={1.4} markerEnd="url(#hac-arrow-human)" />
+      <path d="M378 277C378 314 318 316 318 336" className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.4} markerEnd="url(#hac-arrow-ai)" />
       <rect x={160} y={340} width={196} height={52} rx={12} className="fill-ink-850" stroke="url(#hac-out)" strokeWidth={1.5} />
       <circle cx={186} cy={366} r={11} className="fill-brand-400" />
-      <path d="m180.5 366 4 4 7-8" className="fill-none stroke-ink-950" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m180.5 366 4 4 7-8" className="fill-none stroke-on-brand" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
       <text x={206} y={362} className="fill-fg font-sans" fontSize={12.5} fontWeight={600}>
         Reviewed solution
       </text>

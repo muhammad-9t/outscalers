@@ -131,12 +131,12 @@ function sliceLines(lines: Line[], count: number) {
 }
 
 const tokenClass: Record<TokenKind, string> = {
-  kw: "text-[#7cc4ff]",
+  kw: "text-code-kw",
   fn: "text-brand-300",
-  str: "text-[#a5e3a0]",
-  num: "text-[#f3a6c8]",
-  type: "text-[#c4b5fd]",
-  p: "text-[#c9d4e0]",
+  str: "text-code-str",
+  num: "text-code-num",
+  type: "text-code-type",
+  p: "text-code-text",
   h: "font-semibold text-fg",
   arrow: "text-brand-400",
 };
@@ -301,7 +301,7 @@ export function HeroScene() {
                 aria-hidden
                 className={cn(
                   "grid size-6 shrink-0 place-items-center rounded-full font-mono text-[10px] font-semibold",
-                  state === "done" && "bg-brand-400 text-ink-950",
+                  state === "done" && "bg-brand-400 text-on-brand",
                   state === "current" && "bg-ink-950 text-brand-300 ring-1 ring-brand-400",
                   state === "next" && "bg-ink-800 text-fg-subtle",
                 )}
@@ -322,14 +322,14 @@ export function HeroScene() {
 
       {/* Editor window — decorative, described for assistive tech by the tracker above */}
       <div
-        className="relative overflow-hidden rounded-2xl border border-line-strong bg-[#0a0f18] shadow-[0_40px_120px_-40px_rgba(255,112,14,0.28)]"
+        className="relative overflow-hidden rounded-2xl border border-line-strong bg-code-bg shadow-[0_40px_120px_-40px_rgba(255,112,14,0.28)]"
       >
         {/* Title bar */}
         <div className="flex h-9 items-center gap-3 border-b border-line bg-ink-950/80 px-3">
           <span aria-hidden className="flex gap-1.5">
-            <span className="size-2.5 rounded-full bg-[#2a3647]" />
-            <span className="size-2.5 rounded-full bg-[#2a3647]" />
-            <span className="size-2.5 rounded-full bg-[#2a3647]" />
+            <span className="size-2.5 rounded-full bg-line-strong" />
+            <span className="size-2.5 rounded-full bg-line-strong" />
+            <span className="size-2.5 rounded-full bg-line-strong" />
           </span>
           <span aria-hidden className="flex-1 truncate text-center font-mono text-[11px] text-fg-subtle">
             support-triage — simulated workflow
@@ -391,7 +391,7 @@ export function HeroScene() {
                   className={cn(
                     "flex h-7 items-center gap-1.5 rounded-t-md border-x border-t px-3 transition-colors duration-300",
                     activeTab === tab.id
-                      ? "border-line bg-[#0a0f18] text-fg"
+                      ? "border-line bg-code-bg text-fg"
                       : "border-transparent text-fg-subtle",
                     tab.id === "test" && "hidden sm:flex",
                   )}

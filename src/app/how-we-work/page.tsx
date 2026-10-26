@@ -4,6 +4,7 @@ import { pageMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
 import { WorkflowLoop } from "@/components/illustrations/workflow-loop";
+import { LaunchTimeline } from "@/components/sections/launch-timeline";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -55,6 +56,13 @@ export default function HowWeWorkPage() {
           <Reveal className="card mt-10 overflow-x-auto p-4 sm:p-8">
             <WorkflowLoop className="min-w-[36rem]" />
           </Reveal>
+        </div>
+      </Section>
+
+      {/* Typical timeline */}
+      <Section tone="raised" labelledBy="hww-launch-title">
+        <div className="container-site">
+          <LaunchTimeline headingId="hww-launch-title" />
         </div>
       </Section>
 

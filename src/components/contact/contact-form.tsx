@@ -3,6 +3,7 @@
 import { useId, useRef, useState, type FormEvent } from "react";
 import { Send } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { SelectField } from "./select-field";
 
 type Field = "firstName" | "lastName" | "email" | "company" | "interest" | "message";
 type Errors = Partial<Record<Field, string>>;
@@ -143,14 +144,13 @@ export function ContactForm({ email }: { email: string }) {
         <label htmlFor={fid("interest")} className="text-sm font-medium">
           What can we help with?
         </label>
-        <select id={fid("interest")} name="interest" defaultValue="" className={cn(inputClass, "appearance-none")}>
-          <option value="">Select an area (optional)</option>
-          {interests.map((i) => (
-            <option key={i} value={i}>
-              {i}
-            </option>
-          ))}
-        </select>
+        <SelectField
+          id={fid("interest")}
+          name="interest"
+          options={interests}
+          placeholder="Select an area (optional)"
+          className={inputClass}
+        />
       </div>
 
       <div>

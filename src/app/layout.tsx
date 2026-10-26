@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { RevealObserver } from "@/components/ui/reveal-observer";
+import { BackToTop } from "@/components/ui/back-to-top";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
@@ -31,8 +32,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#080d15",
-  colorScheme: "dark",
+  colorScheme: "dark light",
 };
+
+// Applies the visitor's saved theme before first paint; dark is the default.
+const themeBootstrap = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
 
 // Enables scroll reveals before first paint, so content never flashes in and out.
 // Skipped for reduced motion; without JS, content simply stays visible.
@@ -51,16 +55,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-theme="dark"
       suppressHydrationWarning
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootstrap }} />
       </head>
       <body className="flex min-h-dvh flex-col">
         <a
           href="#main"
-          className="sr-only z-60 rounded-lg bg-brand-400 px-4 py-2 font-semibold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+          className="sr-only z-60 rounded-lg bg-brand-400 px-4 py-2 font-semibold text-on-brand focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
         >
           Skip to content
         </a>
@@ -70,6 +76,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </main>
         <Footer />
         <RevealObserver />
+        <BackToTop />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

@@ -8,10 +8,21 @@ import { mainNav } from "@/lib/site";
 import { services, serviceHref } from "@/content/services";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { Logo } from "./logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/cn";
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** Active nav marker: dev-tools style selection corners (top-left and bottom-right). Parent must be relative. */
+function ActiveCorners() {
+  return (
+    <>
+      <span aria-hidden className="pointer-events-none absolute left-0 top-0 size-2 rounded-tl-[3px] border-l-2 border-t-2 border-brand-400" />
+      <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 size-2 rounded-br-[3px] border-b-2 border-r-2 border-brand-400" />
+    </>
+  );
 }
 
 export function Header() {
@@ -96,7 +107,8 @@ export function Header() {
                     if (!e.currentTarget.contains(e.relatedTarget as Node)) setServicesOpen(false);
                   }}
                 >
-                  <div className="flex items-center">
+                  <div className="relative flex items-center">
+                    {isActive(pathname, item.href) && <ActiveCorners />}
                     <Link
                       href={item.href}
                       aria-current={pathname === item.href ? "page" : undefined}
@@ -124,39 +136,58 @@ export function Header() {
                   <div
                     id={servicesMenuId}
                     hidden={!servicesOpen}
-                    className="absolute left-1/2 top-full w-[34rem] -translate-x-1/2 pt-3"
+                    className="absolute left-1/2 top-full w-[42rem] -translate-x-1/2 pt-3"
                   >
-                    <div className="animate-fade-up overflow-hidden rounded-card border border-line-strong bg-ink-850 p-2 shadow-2xl shadow-black/60">
-                      <ul className="grid grid-cols-2 gap-1">
+                    <div className="animate-fade-up grid grid-cols-[1.35fr_1fr] gap-2 overflow-hidden rounded-card border border-line-strong bg-ink-850 p-2 shadow-2xl shadow-black/60">
+                      <ul className="grid gap-0.5">
                         {services.map((s) => (
                           <li key={s.slug}>
                             <Link
                               href={serviceHref(s.slug)}
                               aria-current={pathname === serviceHref(s.slug) ? "page" : undefined}
-                              className="group flex gap-3 rounded-xl p-3 transition-colors hover:bg-ink-700/60"
+                              className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-ink-700/60 aria-[current=page]:bg-ink-700/50"
                             >
-                              <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg border border-line-strong bg-ink-800 text-brand-300 group-hover:border-brand-500/50">
+                              <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line-strong bg-ink-800 text-brand-300 transition-colors group-hover:border-brand-500/50">
                                 <ServiceGlyph slug={s.slug} />
                               </span>
-                              <span>
+                              <span className="min-w-0">
                                 <span className="block text-sm font-semibold text-fg">{s.title}</span>
-                                <span className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-fg-subtle">
-                                  {s.summary}
-                                </span>
+                                <span className="block truncate text-xs text-fg-subtle">{s.tagline}</span>
                               </span>
                             </Link>
                           </li>
                         ))}
-                        <li className="flex">
+                      </ul>
+
+                      {/* Feature panel */}
+                      <div className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-line bg-linear-to-br from-brand-500/15 via-ink-800 to-ink-800 p-5">
+                        <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-25" />
+                        <div className="relative">
+                          <p className="font-mono text-[10px] uppercase tracking-widest text-brand-300">Human + AI services</p>
+                          <p className="mt-3 font-display text-lg font-semibold leading-snug text-fg">
+                            One team for software, AI, automation, data and security.
+                          </p>
+                          <p className="mt-2 text-xs leading-relaxed text-fg-muted">
+                            Experienced engineers, accelerated by AI, accountable for every release.
+                          </p>
+                        </div>
+                        <div className="relative mt-6 space-y-2">
                           <Link
                             href="/services"
-                            className="flex w-full items-center justify-between rounded-xl border border-dashed border-line-strong p-3 text-sm font-semibold text-brand-300 transition-colors hover:border-brand-500/60 hover:bg-ink-700/40"
+                            className="flex items-center justify-between rounded-lg bg-brand-400 px-3 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-300 [[data-theme=light]_&]:hover:bg-brand-500"
                           >
-                            All services
+                            View all services
                             <ArrowRight aria-hidden className="size-4" />
                           </Link>
-                        </li>
-                      </ul>
+                          <Link
+                            href="/how-we-work"
+                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-ink-700/60 hover:text-fg"
+                          >
+                            See how we work
+                            <ArrowRight aria-hidden className="size-4" />
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -170,10 +201,8 @@ export function Header() {
                       isActive(pathname, item.href) ? "text-fg" : "text-fg-muted",
                     )}
                   >
+                    {isActive(pathname, item.href) && <ActiveCorners />}
                     {item.label}
-                    {isActive(pathname, item.href) && (
-                      <span aria-hidden className="absolute inset-x-3 -bottom-0.5 h-px bg-brand-400" />
-                    )}
                   </Link>
                 </li>
               ),
@@ -182,6 +211,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link href="/contact" className="btn btn-primary btn-sm hidden sm:inline-flex">
             Start a Project
           </Link>

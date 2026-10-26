@@ -36,6 +36,21 @@
   --color-human-accent: #7cc4ff;
   --color-data-accent: #b4a7ff;
   --color-danger: #ff8a80;
+  /* Text/icons placed on a brand-orange fill (same in both themes) */
+  --color-on-brand: #04070c;
+
+  /* Header logo tile */
+  --color-logo-tile: #0f1622;
+  --color-logo-tile-line: #2a3647;
+  --color-logo-mark: #eaf0f6;
+
+  /* Code editor mock-up (syntax colours) */
+  --color-code-bg: #0a0f18;
+  --color-code-kw: #7cc4ff;
+  --color-code-str: #a5e3a0;
+  --color-code-num: #f3a6c8;
+  --color-code-type: #c4b5fd;
+  --color-code-text: #c9d4e0;
 
   /* Light sections */
   --color-paper: #f3f6f4;
@@ -74,6 +89,75 @@
   --animate-flow: flow 2.4s linear infinite;
 }
 
+/* ------------------------------------------------------------------
+   Light theme: html[data-theme="light"] swaps the surface, line, text
+   and accent tokens. A [data-theme="dark"] subtree (e.g. the code
+   editor mock-up) keeps the dark values inside a light page.
+   ------------------------------------------------------------------ */
+[data-theme="light"] {
+  color-scheme: light;
+  --color-ink-950: #e9edf3;
+  --color-ink-900: #f5f7fa;
+  --color-ink-850: #ffffff;
+  --color-ink-800: #f0f3f7;
+  --color-ink-750: #ffffff;
+  --color-ink-700: #e6ebf1;
+  --color-ink-600: #d5dde6;
+  --color-line: #e0e6ed;
+  --color-line-strong: #c9d3de;
+  --color-fg: #0b1420;
+  --color-fg-muted: #45536a;
+  --color-fg-subtle: #64718a;
+  --color-brand-200: #993f00;
+  --color-brand-300: #c25000;
+  --color-signal: #e86100;
+  --color-human-accent: #1f74c8;
+  --color-data-accent: #6b5bd6;
+  --color-danger: #c62828;
+  --color-on-brand: #ffffff;
+  --color-code-bg: #ffffff;
+  --color-code-kw: #0b5cad;
+  --color-code-str: #2f7d32;
+  --color-code-num: #b4236a;
+  --color-code-type: #6b47c9;
+  --color-code-text: #2b3a4d;
+  --color-logo-tile: #ffffff;
+  --color-logo-tile-line: #d5dde6;
+  --color-logo-mark: #1a1a1a;
+}
+[data-theme="light"] [data-theme="dark"] {
+  color-scheme: dark;
+  color: var(--color-fg);
+  --color-ink-950: #04070c;
+  --color-ink-900: #080d15;
+  --color-ink-850: #0b111b;
+  --color-ink-800: #0f1622;
+  --color-ink-750: #131c2a;
+  --color-ink-700: #1a2433;
+  --color-ink-600: #263243;
+  --color-line: #1c2636;
+  --color-line-strong: #2a3647;
+  --color-fg: #eaf0f6;
+  --color-fg-muted: #a3afbf;
+  --color-fg-subtle: #6f7d91;
+  --color-brand-200: #ffd3b3;
+  --color-brand-300: #ff9c57;
+  --color-signal: #ffb27a;
+  --color-human-accent: #7cc4ff;
+  --color-data-accent: #b4a7ff;
+  --color-danger: #ff8a80;
+  --color-on-brand: #04070c;
+  --color-code-bg: #0a0f18;
+  --color-code-kw: #7cc4ff;
+  --color-code-str: #a5e3a0;
+  --color-code-num: #f3a6c8;
+  --color-code-type: #c4b5fd;
+  --color-code-text: #c9d4e0;
+  --color-logo-tile: #0f1622;
+  --color-logo-tile-line: #2a3647;
+  --color-logo-mark: #eaf0f6;
+}
+
 @keyframes caret {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
@@ -91,6 +175,57 @@
 }
 @keyframes draw {
   to { stroke-dashoffset: 0; }
+}
+@keyframes rocket-hover {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes flame {
+  from { transform: scaleY(1); opacity: 0.9; }
+  to { transform: scaleY(1.22); opacity: 1; }
+}
+@keyframes burst {
+  0% { transform: scale(0.35); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.08); opacity: 0; }
+}
+@keyframes flame-flicker {
+  from { transform: scaleX(0.9) scaleY(0.92); opacity: 0.85; }
+  to { transform: scaleX(1.05) scaleY(1.06); opacity: 1; }
+}
+@keyframes rocket-burst {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.4); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scale(2.6); }
+}
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes sec-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes sec-threat {
+  0% { transform: translate(0, 0); opacity: 0; }
+  8% { opacity: 1; }
+  48% { transform: translate(90px, -74px); opacity: 1; }
+  52%, 100% { transform: translate(90px, -74px); opacity: 0; }
+}
+@keyframes sec-block {
+  0%, 47% { transform: scale(1); }
+  52% { transform: scale(1.3); }
+  62%, 100% { transform: scale(1); }
+}
+@keyframes sec-impact {
+  0%, 47% { transform: scale(1); opacity: 0; }
+  50% { transform: scale(1); opacity: 0.9; }
+  85%, 100% { transform: scale(3); opacity: 0; }
+}
+@keyframes sec-review-flash {
+  0%, 47% { opacity: 0; }
+  52% { opacity: 0.5; }
+  85%, 100% { opacity: 0; }
 }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(6px); }
@@ -191,7 +326,7 @@
   .btn:active { transform: translateY(1px); }
   .btn-primary {
     background: var(--color-brand-400);
-    color: var(--color-ink-950);
+    color: var(--color-on-brand);
     box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-brand-300) 60%, transparent) inset,
       0 8px 24px -10px color-mix(in oklab, var(--color-brand-400) 70%, transparent);
   }
@@ -215,6 +350,16 @@
     border-color: var(--color-paper-line);
   }
   .tone-light .btn-secondary:hover { border-color: var(--color-brand-600); }
+  /* Light theme: brand-200/300 are darkened for text, so buttons use the fill shades */
+  [data-theme="light"] .btn-primary {
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-brand-500) 35%, transparent) inset,
+      0 4px 12px -6px color-mix(in oklab, var(--color-brand-500) 45%, transparent);
+  }
+  [data-theme="light"] .btn-primary:hover {
+    background: var(--color-brand-500);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-brand-600) 35%, transparent) inset,
+      0 6px 16px -8px color-mix(in oklab, var(--color-brand-500) 55%, transparent);
+  }
   .btn-sm { min-height: 2.25rem; padding: 0.45rem 0.9rem; font-size: 0.875rem; border-radius: 0.65rem; }
 
   .link-arrow {
@@ -236,6 +381,10 @@
     border: 1px solid var(--color-line);
     background:
       linear-gradient(180deg, color-mix(in oklab, var(--color-ink-750) 85%, transparent), var(--color-ink-850));
+  }
+  [data-theme="light"] .card,
+  [data-theme="light"] .card-flat {
+    box-shadow: 0 1px 2px rgb(15 22 34 / 0.04), 0 12px 32px -20px rgb(15 22 34 / 0.18);
   }
   .card-interactive {
     transition: border-color 0.25s, transform 0.35s var(--ease-out-soft), box-shadow 0.35s;
@@ -274,6 +423,7 @@
     color: var(--color-paper-muted);
   }
   .chip-human { border-color: color-mix(in oklab, var(--color-human-accent) 40%, var(--color-line)); color: #cfe6ff; }
+  [data-theme="light"] .chip-human { color: #17599b; }
   .chip-ai { border-color: color-mix(in oklab, var(--color-brand-400) 45%, var(--color-line)); color: var(--color-brand-200); }
 
   /* Decorative backgrounds */
@@ -329,6 +479,51 @@
   html:not(.js-reveal) .draw-path { stroke-dashoffset: 0; }
 
   .flow-dash { stroke-dasharray: 4 8; animation: var(--animate-flow); }
+
+  /* Rocket launch illustration */
+  .anim-rocket { animation: rocket-hover 3.2s ease-in-out infinite; }
+  .anim-flame { transform-box: fill-box; transform-origin: top center; animation: flame 0.45s ease-in-out infinite alternate; }
+  .anim-burst { transform-box: fill-box; transform-origin: center; animation: burst 3.2s ease-out infinite both; }
+
+  /* Scroll rocket (homepage): flame length follows --thrust, set from scroll speed */
+  .scroll-rocket-flame {
+    transform-box: fill-box;
+    transform-origin: top center;
+    transform: scaleY(var(--thrust, 0.55));
+    transition: transform 0.18s ease-out;
+  }
+  .scroll-rocket-flame path {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: flame-flicker 0.3s ease-in-out infinite alternate;
+  }
+  .scroll-rocket-burst {
+    opacity: 0;
+    background: radial-gradient(circle, color-mix(in oklab, var(--color-signal) 80%, transparent), transparent 70%);
+  }
+  .scroll-rocket.is-launched .scroll-rocket-burst { animation: rocket-burst 0.8s ease-out forwards; }
+
+  /* Security layers illustration: rings and dots orbit the release at (240,196);
+     an issue travels in every 4.5s and is stopped at the review ring */
+  .sec-orbit {
+    transform-box: view-box;
+    transform-origin: 240px 196px;
+    animation: orbit var(--orbit-dur, 60s) linear infinite var(--orbit-dir, normal);
+  }
+  .sec-ping { transform-box: fill-box; transform-origin: center; opacity: 0; animation: sec-ping 3.2s ease-out infinite; }
+  .sec-threat { opacity: 0; animation: sec-threat 4.5s ease-in infinite; }
+  .sec-block { transform-box: fill-box; transform-origin: center; animation: sec-block 4.5s ease-out infinite; }
+  .sec-impact { transform-box: fill-box; transform-origin: center; opacity: 0; animation: sec-impact 4.5s ease-out infinite; }
+  .sec-review-flash { opacity: 0; animation: sec-review-flash 4.5s ease-out infinite; }
+
+  /* SVG bars that grow from the left when their [data-reveal] parent becomes visible */
+  .grow-x { transform-box: fill-box; transform-origin: left center; }
+  .js-reveal [data-reveal] .grow-x {
+    transform: scaleX(0);
+    transition: transform 0.9s var(--ease-out-soft);
+    transition-delay: var(--grow-delay, 0ms);
+  }
+  .js-reveal [data-reveal].is-visible .grow-x { transform: none; }
   .animate-fade-up { animation: fade-up 0.35s var(--ease-out-soft) both; }
 }
 
@@ -342,6 +537,8 @@
   .js-reveal [data-reveal] { opacity: 1; transform: none; }
   .draw-path { stroke-dashoffset: 0; }
   .flow-dash { animation: none; }
+  .anim-rocket, .anim-flame, .anim-burst { animation: none; }
+  .sec-orbit, .sec-ping, .sec-threat, .sec-block, .sec-impact, .sec-review-flash { animation: none; }
 }
 
 @media print {

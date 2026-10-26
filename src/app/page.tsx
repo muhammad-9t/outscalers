@@ -14,11 +14,13 @@ import {
   Wrench,
 } from "lucide-react";
 import { HeroScene } from "@/components/hero/hero-scene";
+import { ScrollRocket } from "@/components/hero/scroll-rocket";
 import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
 import { HeroDuo } from "@/components/illustrations/hero-duo";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { ServiceCard } from "@/components/sections/service-cards";
 import { DeliveryModel } from "@/components/sections/delivery-model";
+import { LaunchTimeline } from "@/components/sections/launch-timeline";
 import { CaseStudyCard } from "@/components/sections/case-study-card";
 import { CtaBand } from "@/components/sections/cta-band";
 import { ArrowLink, ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -98,53 +100,62 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section aria-labelledby="hero-title" className="relative overflow-hidden bg-ink-950 pb-16 pt-28 sm:pb-24 lg:pt-36">
+      <section aria-labelledby="hero-title" className="relative flex flex-col justify-center overflow-hidden bg-ink-950 pb-16 pt-24 sm:pb-24 lg:min-h-svh lg:pb-16 lg:pt-24">
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="bg-grid absolute inset-0 opacity-60" />
-          <div className="glow-brand absolute -top-60 left-1/2 size-[60rem] -translate-x-1/2 animate-drift opacity-50" />
+          <div className="glow-brand absolute -top-60 left-1/2 size-240 -translate-x-1/2 animate-drift opacity-50" />
         </div>
         <div className="container-site relative">
-          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
-            <div className="lg:col-span-6">
-              <p className="eyebrow mb-6">Human + AI engineering company</p>
-              <h1 id="hero-title" className="text-display-xl font-semibold">
-                Human Intelligence.
-                <br />
-                <span className="text-gradient">AI-Powered Engineering.</span>
-              </h1>
-              <p className="mt-7 max-w-xl text-lead text-fg-muted">
-                We combine experienced engineers with artificial intelligence to build intelligent software, automate
-                complex workflows, and help businesses move from ideas to real-world solutions.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/contact" arrow>
-                  Start a Project
-                </ButtonLink>
-                <ButtonLink href="/services" variant="secondary">
-                  Explore Our Services
-                </ButtonLink>
-              </div>
-              <ul aria-label="What we do" className="mt-9 flex flex-wrap gap-2">
-                {services.map((s) => (
-                  <li key={s.slug}>
-                    <Link href={serviceHref(s.slug)} className="chip transition-colors hover:border-brand-500/50 hover:text-fg">
-                      <ServiceGlyph slug={s.slug} className="size-3.5 text-brand-400" />
-                      {s.shortTitle}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div data-reveal className="mx-auto w-full max-w-xl lg:col-span-6 lg:max-w-none">
+          {/* Stacked and centred: illustration, then the message */}
+          <div className="flex flex-col items-center text-center">
+            <div data-reveal className="w-full max-w-sm sm:max-w-md lg:max-w-[30rem]">
               <HeroDuo />
             </div>
-          </div>
-
-          <div className="mt-12 sm:mt-14">
-            <HeroScene />
+            <p className="eyebrow mt-6 sm:mt-8">Human + AI engineering company</p>
+            <h1 id="hero-title" className="mt-5 text-display-xl font-semibold">
+              Human Intelligence.
+              <br />
+              <span className="text-gradient">AI-Powered Engineering.</span>
+            </h1>
+            <p className="mt-7 max-w-2xl text-lead text-fg-muted">
+              We combine experienced engineers with artificial intelligence to build intelligent software, automate
+              complex workflows, and help businesses move from ideas to real-world solutions.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <ButtonLink href="/contact" arrow>
+                Start a Project
+              </ButtonLink>
+              <ButtonLink href="/services" variant="secondary">
+                Explore Our Services
+              </ButtonLink>
+            </div>
+            <ul aria-label="What we do" className="mt-9 flex flex-wrap justify-center gap-2">
+              {services.map((s) => (
+                <li key={s.slug}>
+                  <Link href={serviceHref(s.slug)} className="chip transition-colors hover:border-brand-500/50 hover:text-fg">
+                    <ServiceGlyph slug={s.slug} className="size-3.5 text-brand-400" />
+                    {s.shortTitle}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
+
+      {/* Workflow in action: the animated editor scene, in its own section below the hero */}
+      <Section tone="deep" tight labelledBy="scene-title" className="!pt-6 sm:!pt-10">
+        <div className="container-site">
+          <SectionHeading
+            id="scene-title"
+            eyebrow="See it in action"
+            title="From idea to tested code, with a person at every step"
+            align="center"
+            className="mb-10"
+          />
+          <HeroScene />
+        </div>
+      </Section>
 
       {/* Company introduction */}
       <Section labelledBy="intro-title">
@@ -255,6 +266,13 @@ export default function HomePage() {
         </div>
       </Section>
 
+      {/* Speed to launch */}
+      <Section tone="raised" labelledBy="launch-title">
+        <div className="container-site">
+          <LaunchTimeline />
+        </div>
+      </Section>
+
       {/* Case studies */}
       <Section labelledBy="cases-title">
         <div className="container-site">
@@ -343,6 +361,7 @@ export default function HomePage() {
       </Section>
 
       <CtaBand />
+      <ScrollRocket />
     </>
   );
 }

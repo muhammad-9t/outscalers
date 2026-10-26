@@ -9,6 +9,8 @@ export type Service = {
   slug: ServiceSlug;
   title: string;
   shortTitle: string;
+  /** Very short description for compact places such as the navigation menu. */
+  tagline: string;
   summary: string;
   metaDescription: string;
   hero: { eyebrow: string; title: string; lead: string };
@@ -23,6 +25,7 @@ export type Service = {
 export const services: Service[] = [
   {
     slug: "ai-solutions",
+    tagline: "Assistants, agents and document AI",
     title: "AI Solutions & Agents",
     shortTitle: "AI Solutions",
     summary:
@@ -104,6 +107,7 @@ export const services: Service[] = [
   },
   {
     slug: "software-development",
+    tagline: "Web, mobile, SaaS and enterprise apps",
     title: "Custom Software Development",
     shortTitle: "Software Development",
     summary:
@@ -169,6 +173,7 @@ export const services: Service[] = [
   },
   {
     slug: "automation",
+    tagline: "Workflows and system integrations",
     title: "Business Process Automation",
     shortTitle: "Automation",
     summary:
@@ -219,6 +224,7 @@ export const services: Service[] = [
   },
   {
     slug: "data-cloud",
+    tagline: "Pipelines, analytics and cloud platforms",
     title: "Data Engineering & Cloud",
     shortTitle: "Data & Cloud",
     summary:
@@ -271,6 +277,7 @@ export const services: Service[] = [
   },
   {
     slug: "security-quality",
+    tagline: "Testing, review and secure delivery",
     title: "Security & Quality Engineering",
     shortTitle: "Security & Quality",
     summary:
