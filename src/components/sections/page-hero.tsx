@@ -13,6 +13,7 @@ export function PageHero({
   crumbs,
   actions,
   visual,
+  bare,
   className,
 }: {
   eyebrow: string;
@@ -21,12 +22,14 @@ export function PageHero({
   crumbs?: Crumb[];
   actions?: ReactNode;
   visual?: ReactNode;
+  /** No background of its own (grid, glow, fill), for pages that draw one behind the hero. */
+  bare?: boolean;
   className?: string;
 }) {
   return (
-    <section className={cn("relative overflow-hidden bg-ink-950 pb-16 pt-28 sm:pb-20 lg:pb-24 lg:pt-36", className)}>
-      <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-50" />
-      <div aria-hidden className="glow-brand pointer-events-none absolute -right-40 -top-40 size-[36rem] opacity-60" />
+    <section className={cn("relative overflow-hidden pb-16 pt-28 sm:pb-20 lg:pb-24 lg:pt-36", !bare && "bg-ink-950", className)}>
+      {!bare && <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-50" />}
+      {!bare && <div aria-hidden className="glow-brand pointer-events-none absolute -right-40 -top-40 size-[36rem] opacity-60" />}
       <div className="container-site relative">
         {crumbs && (
           <nav aria-label="Breadcrumb" className="mb-8">

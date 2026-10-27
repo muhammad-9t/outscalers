@@ -1,5 +1,4 @@
 import { siteConfig } from "@/lib/site";
-import { cn } from "@/lib/cn";
 
 type LonLat = [lon: number, lat: number];
 
@@ -84,65 +83,114 @@ function inPolygon([x, y]: LonLat, poly: LonLat[]) {
   return inside;
 }
 
-// Land dots on a regular grid, computed once at module load (server-side only).
+// Time zones (abbreviations, so they stay right through daylight-saving changes) and where each
+// label pill sits relative to its pin, chosen so pills don't overlap each other or the arcs.
+const offices: Record<string, { tz: string; label: [dx: number, dy: number] }> = {
+  Mannheim: { tz: "CET", label: [-56, -62] },
+  Turin: { tz: "CET", label: [-58, 16] },
+  Rawalpindi: { tz: "PKT", label: [-66, 17] },
+  "Tsim Sha Tsui": { tz: "HKT", label: [-76, 18] },
+};
+
+const OFFICE_XY = Object.fromEntries(Object.entries(coords).map(([city, ll]) => [city, project(ll)]));
+
+// Land dots on a regular grid, computed once at module load (server-side only). Dots near an
+// office are brighter and tinted, so the team's footprint stands out from the rest of the map.
 const STEP = 8;
-const LAND_DOTS: [number, number][] = [];
+const LAND_DOTS: { x: number; y: number; tier: 0 | 1 | 2 }[] = [];
 for (let py = STEP / 2; py < H; py += STEP) {
   for (let px = STEP / 2; px < W; px += STEP) {
     const lonlat: LonLat = [LON0 + (px / W) * (LON1 - LON0), LAT0 - (py / H) * (LAT0 - LAT1)];
-    if (LAND.some((poly) => inPolygon(lonlat, poly))) LAND_DOTS.push([px, py]);
+    if (!LAND.some((poly) => inPolygon(lonlat, poly))) continue;
+    const d = Math.min(...Object.values(OFFICE_XY).map(([ox, oy]) => Math.hypot(px - ox, py - oy)));
+    LAND_DOTS.push({ x: px, y: py, tier: d < 34 ? 2 : d < 70 ? 1 : 0 });
   }
 }
+const DOT_TIERS = ["fill-fg-subtle/30", "fill-fg-subtle/55", "fill-brand-400/55"] as const;
 
 /** Dotted map of the four offices, connected as one distributed team. */
 export function OfficeNetwork({ className }: { className?: string }) {
-  const points = siteConfig.offices.map((o) => ({ ...o, xy: project(coords[o.city] ?? [0, 0]) }));
+  const points = siteConfig.offices.map((o) => ({ ...o, xy: OFFICE_XY[o.city] ?? ([0, 0] as const), ...offices[o.city] }));
   const hub = points.find((p) => p.city === "Rawalpindi")!.xy;
+  const arcs = points
+    .filter((p) => p.xy !== hub)
+    .map((p) => ({
+      key: p.city,
+      d: `M${hub[0]} ${hub[1]}Q${(hub[0] + p.xy[0]) / 2} ${Math.min(hub[1], p.xy[1]) - 60} ${p.xy[0]} ${p.xy[1]}`,
+    }));
+  const zones = new Set(points.map((p) => p.tz)).size;
 
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      role="img"
-      aria-label={`Map of Outscalers offices in ${siteConfig.offices.map((o) => `${o.city}, ${o.country}`).join("; ")}, working as one distributed team`}
-      className={cn("h-auto w-full", className)}
-    >
-      <g className="fill-fg-subtle/45">
-        {LAND_DOTS.map(([x, y]) => (
-          <circle key={`${x}-${y}`} cx={x} cy={y} r={1.5} />
-        ))}
-      </g>
-      {points.map((p) =>
-        p.xy === hub ? null : (
-          <path
-            key={p.city}
-            d={`M${hub[0]} ${hub[1]}Q${(hub[0] + p.xy[0]) / 2} ${Math.min(hub[1], p.xy[1]) - 60} ${p.xy[0]} ${p.xy[1]}`}
-            className="flow-dash fill-none stroke-brand-400/80"
-            strokeWidth={1.4}
-          />
-        ),
-      )}
-      {points.map((p) => {
-        const [x, y] = p.xy;
-        const labelLeft = x > W - 140;
-        return (
-          <g key={p.city}>
-            <circle cx={x} cy={y} r={14} className="animate-pulse-soft fill-brand-400/20" />
-            <circle cx={x} cy={y} r={5} className="fill-brand-400 stroke-ink-900" strokeWidth={2} />
-            <text
-              x={labelLeft ? x - 14 : x + 14}
-              y={p.city === "Turin" ? y + 16 : y - 8}
-              textAnchor={labelLeft ? "end" : "start"}
-              className="fill-fg font-sans stroke-ink-850"
-              fontSize={13}
-              fontWeight={600}
-              strokeWidth={4}
-              paintOrder="stroke"
-            >
-              {p.country}
-            </text>
+    <figure className={className}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label={`Map of Outscalers offices in ${siteConfig.offices.map((o) => `${o.city}, ${o.country}`).join("; ")}, working as one distributed team`}
+        className="h-auto w-full"
+      >
+        {DOT_TIERS.map((fill, tier) => (
+          <g key={fill} className={fill}>
+            {LAND_DOTS.filter((d) => d.tier === tier).map(({ x, y }) => (
+              <circle key={`${x}-${y}`} cx={x} cy={y} r={tier === 2 ? 1.7 : 1.5} />
+            ))}
           </g>
-        );
-      })}
-    </svg>
+        ))}
+  
+        {/* Connections: a faint track, with a light travelling along it */}
+        <g className="fill-none stroke-brand-400/35" strokeWidth={1.2}>
+          {arcs.map((a) => (
+            <path key={a.key} d={a.d} />
+          ))}
+        </g>
+        <g className="map-traveller fill-brand-300">
+          {arcs.map((a, i) => (
+            <circle key={a.key} r={2.4}>
+              <animateMotion
+                dur="3.6s"
+                begin={`${i * 1.2}s`}
+                repeatCount="indefinite"
+                path={a.d}
+                keyPoints={i % 2 ? "0;1" : "1;0"}
+                keyTimes="0;1"
+                calcMode="linear"
+              />
+            </circle>
+          ))}
+        </g>
+  
+        {points.map((p, i) => {
+          const [x, y] = p.xy;
+          const [dx, dy] = p.label;
+          const sub = `${p.city} · ${p.tz}`;
+          const width = Math.max(p.country.length * 8.2, sub.length * 6.9) + 22;
+          // Leader line from the pin to the nearest edge of the pill
+          const lx = x + dx + width / 2;
+          const ly = dy < 0 ? y + dy + 36 : y + dy;
+          return (
+            <g key={p.city}>
+              <circle cx={x} cy={y} r={7} className="sec-ping fill-brand-400/40" style={{ animationDelay: `${i * 0.8}s` }} />
+              <line x1={x} y1={y} x2={lx} y2={ly} className="stroke-line-strong" strokeWidth={1} />
+              <circle cx={x} cy={y} r={4.5} className="fill-brand-400 stroke-ink-900" strokeWidth={2} />
+              <g transform={`translate(${x + dx} ${y + dy})`}>
+                <rect width={width} height={36} rx={9} className="fill-ink-900/90 stroke-line-strong" strokeWidth={1} />
+                <text x={11} y={15} className="fill-fg font-sans" fontSize={13} fontWeight={600}>
+                  {p.country}
+                </text>
+                <text x={11} y={29} className="fill-fg-subtle font-mono" fontSize={10}>
+                  {sub}
+                </text>
+              </g>
+            </g>
+          );
+        })}
+  
+      </svg>
+      <figcaption className="mt-3 flex items-baseline gap-2 font-mono text-xs text-fg-subtle">
+        <span className="size-1.5 shrink-0 translate-y-[-1px] rounded-full bg-brand-400" aria-hidden />
+        <span>
+          {points.length} offices · {zones} time zones · overlapping working hours
+        </span>
+      </figcaption>
+    </figure>
   );
 }

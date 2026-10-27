@@ -8,6 +8,7 @@ import type { PortfolioProject, ShowcaseScreen } from "@/content/portfolio";
 import { cn } from "@/lib/cn";
 import { LaptopFrame } from "./laptop-frame";
 import { MiniLaptop } from "./mini-laptop";
+import { PerspectiveTunnel, type TunnelFocus } from "./perspective-tunnel";
 
 // three.js only loads on this page, and only in the browser
 const LaptopScene = dynamic(() => import("./laptop-scene").then((m) => m.LaptopScene), { ssr: false });
@@ -38,6 +39,7 @@ export function PortfolioShowcase({
   const heroRef = useRef<HTMLDivElement>(null);
   const chaptersRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
+  const focusRef = useRef<TunnelFocus>(null);
   const [active, setActive] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   // 3D only on laptops and desktops; phones and tablets get the lighter MiniLaptop
@@ -50,7 +52,10 @@ export function PortfolioShowcase({
       setReducedMotion(mq.matches);
       setDesktop(lg.matches);
       // Without the 3D scene nothing drives the hand-off, so show the frame
-      if (!lg.matches) frameRef.current?.style.removeProperty("--handoff");
+      if (!lg.matches) {
+        frameRef.current?.style.removeProperty("--handoff");
+        focusRef.current = null; // the tunnel falls back to its default vanishing point
+      }
     };
     apply();
     mq.addEventListener("change", apply);
@@ -70,6 +75,13 @@ export function PortfolioShowcase({
 
   return (
     <div ref={sectionRef} className="relative bg-ink-950">
+      {/* Perspective tunnel behind everything; its vanishing point follows the laptop */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="tunnel-edges sticky top-0 h-svh">
+          <PerspectiveTunnel focusRef={focusRef} active={active} reducedMotion={reducedMotion} />
+        </div>
+      </div>
+
       {/* The layer spans the showcase, so the pinned laptop unpins with the last chapter.
           z-10 keeps it above the hero background; it never takes pointer events. */}
       {desktop && (
@@ -81,6 +93,7 @@ export function PortfolioShowcase({
               heroRef={heroRef}
               chaptersRef={chaptersRef}
               frameRef={frameRef}
+              focusRef={focusRef}
               reducedMotion={reducedMotion}
             />
           </div>
@@ -105,7 +118,7 @@ export function PortfolioShowcase({
               <div className="lg:hidden">
                 <MiniLaptop screen={screen} />
               </div>
-              <div className="card mx-auto w-full max-w-xl bg-ink-900/85 p-6 backdrop-blur-md sm:p-8 lg:mx-0 lg:max-w-md">
+              <div className="card mx-auto w-full max-w-xl bg-ink-900/95 p-6 sm:p-8 lg:mx-0 lg:max-w-md">
                 <p className="flex items-center justify-between gap-3 font-mono text-xs uppercase tracking-wider">
                   <span className="text-brand-300">
                     {String(i + 1).padStart(2, "0")} / {total}

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { ShowcaseScreen } from "@/content/portfolio";
+import type { TunnelFocus } from "./perspective-tunnel";
 import { tokenize } from "./code-tokens";
 
 /* ------------------------------------------------------------------
@@ -167,8 +168,46 @@ function drawScreen(ctx: CanvasRenderingContext2D, screen: ShowcaseScreen, t: nu
 
 /* ---------------------------- Laptop ---------------------------- */
 
-const KEY_ROWS = Array.from({ length: 5 }, (_, r) => r);
-const KEY_COLS = Array.from({ length: 13 }, (_, c) => c);
+const KEY_ROWS = 5;
+const KEY_COLS = 13;
+
+/** All 65 keys as one instanced mesh: a single draw call instead of 65. */
+function Keys({ color }: { color: string }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    for (let r = 0; r < KEY_ROWS; r++) {
+      for (let c = 0; c < KEY_COLS; c++) {
+        mesh.setMatrixAt(r * KEY_COLS + c, m.makeTranslation(-1.32 + c * 0.22, 0.112, -0.73 + r * 0.2));
+      }
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, []);
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, KEY_ROWS * KEY_COLS]}>
+      <boxGeometry args={[0.18, 0.02, 0.16]} />
+      <meshStandardMaterial color={color} roughness={0.7} />
+    </instancedMesh>
+  );
+}
+
+/** With on-demand rendering, a frame is only drawn when the page scrolls or resizes (or the scene asks). */
+function InvalidateOnScroll() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const onChange = () => invalidate(); // not invalidate directly: it would take the event as a frame count
+    onChange();
+    window.addEventListener("scroll", onChange, { passive: true });
+    window.addEventListener("resize", onChange);
+    return () => {
+      window.removeEventListener("scroll", onChange);
+      window.removeEventListener("resize", onChange);
+    };
+  }, [invalidate]);
+  return null;
+}
 
 type Props = {
   screens: ShowcaseScreen[];
@@ -178,6 +217,8 @@ type Props = {
   chaptersRef: RefObject<HTMLDivElement | null>;
   /** The HTML laptop frame around the project grid, where the 3D laptop hands off. */
   frameRef: RefObject<HTMLDivElement | null>;
+  /** Receives the laptop screen's position in viewport pixels, the vanishing point of the tunnel behind it. */
+  focusRef: RefObject<TunnelFocus | null>;
   reducedMotion: boolean;
 };
 
@@ -192,7 +233,9 @@ function frame3d(el: HTMLDivElement | null, vh: number) {
   return { left: r.left, top: r.top, width: r.width, progress: clamp((vh - stageTop) / vh, 0, 1) };
 }
 
-function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Props) {
+const SCREEN_CENTRE = new THREE.Vector3();
+
+function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMotion }: Props) {
   const group = useRef<THREE.Group>(null);
   const lid = useRef<THREE.Group>(null);
   const screenMat = useRef<THREE.MeshBasicMaterial>(null);
@@ -212,6 +255,8 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Prop
     start: 0,
     done: false,
     dirty: true,
+    drawnAt: -Infinity,
+    fade: -1,
     palette: null as Palette | null,
   });
 
@@ -293,12 +338,15 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Prop
       scale: lerp(heroPose.scale, chapterPose.scale, approach),
     };
 
-    const k = reducedMotion || !s.ready ? 1 : 1 - Math.exp(-dt * 6);
+    // dt is clamped: with on-demand rendering the first frame after a pause can be long
+    const k = reducedMotion || !s.ready ? 1 : 1 - Math.exp(-Math.min(dt, 1 / 30) * 6);
     s.ready = true;
     s.x += (target.x - s.x) * k;
     s.y += (target.y - s.y) * k;
     s.rotY += (target.rotY - s.rotY) * k;
     s.scale += (target.scale - s.scale) * k;
+    const settling =
+      Math.abs(target.x - s.x) + Math.abs(target.y - s.y) + Math.abs(target.rotY - s.rotY) + Math.abs(target.scale - s.scale) > 1e-3;
 
     // Entrance on first visit: the laptop rises and turns in, then the lid opens
     const enter = reducedMotion ? 1 : smooth(clamp((now - 0.15) / 1.3, 0, 1));
@@ -307,7 +355,7 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Prop
     const floating = {
       x: s.x,
       y: s.y - 0.95 * scale + lerp(-0.8, 0, enter),
-      rotY: s.rotY + lerp(-1.1, 0, enter) + (reducedMotion ? 0 : Math.sin(now * 0.6) * 0.03),
+      rotY: s.rotY + lerp(-1.1, 0, enter),
     };
 
     // Hand-off: as the HTML laptop frame scrolls in, turn to face the viewer and line the
@@ -327,8 +375,18 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Prop
     g.position.set(lerp(floating.x, front.x, w), lerp(floating.y, front.y, w), lerp(0, front.z, w));
     g.rotation.set(lerp(0.2, 0, w), lerp(floating.rotY, 0, w), 0);
     l.rotation.x = lerp(lerp(LID_CLOSED, LID_OPEN, open), 0, w);
-    frame.gl.domElement.style.opacity = String(1 - fade);
-    frameRef.current?.style.setProperty("--handoff", String(fade));
+    g.visible = fade < 1; // nothing to draw once the HTML frame has taken over
+    // Only touch the DOM when the value changes (avoids style recalcs every frame)
+    if (fade !== s.fade) {
+      s.fade = fade;
+      frame.gl.domElement.style.opacity = String(1 - fade);
+      frameRef.current?.style.setProperty("--handoff", String(fade));
+    }
+
+    // Tell the tunnel where the screen is so its vanishing point sits right behind it
+    g.updateMatrixWorld();
+    const p = l.localToWorld(SCREEN_CENTRE.set(0, 1.05, 0)).project(frame.camera);
+    focusRef.current = { x: ((p.x + 1) / 2) * size.width, y: ((1 - p.y) / 2) * size.height };
 
     // Screen: restart the typing when the project changes, and wait until the lid is open
     const chapter = Math.round(c);
@@ -338,14 +396,20 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Prop
       s.start = now;
       s.done = false;
     }
-    if (!s.done || s.dirty) {
+    // Typing redraws are capped at ~30 fps: each one re-uploads the screen texture
+    if (s.dirty || (!s.done && now - s.drawnAt >= 1 / 30)) {
       const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      s.palette ??= readPalette();
-      s.done = drawScreen(ctx, screens[chapter], reducedMotion ? Infinity : now - s.start, s.palette);
-      s.dirty = false;
-      if (screenMat.current?.map) screenMat.current.map.needsUpdate = true;
+      if (ctx) {
+        s.palette ??= readPalette();
+        s.done = drawScreen(ctx, screens[chapter], reducedMotion ? Infinity : now - s.start, s.palette);
+        s.dirty = false;
+        s.drawnAt = now;
+        if (screenMat.current?.map) screenMat.current.map.needsUpdate = true;
+      }
     }
+
+    // Rendering is on demand: keep going only while something is still moving
+    if (settling || enter < 1 || open < 1 || !s.done) frame.invalidate();
   });
 
   return (
@@ -359,14 +423,7 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, reducedMotion }: Prop
         <planeGeometry args={[2.86, 1.04]} />
         <meshStandardMaterial color={device.keys} roughness={0.9} />
       </mesh>
-      {KEY_ROWS.map((r) =>
-        KEY_COLS.map((col) => (
-          <mesh key={`${r}-${col}`} position={[-1.32 + col * 0.22, 0.112, -0.73 + r * 0.2]}>
-            <boxGeometry args={[0.18, 0.02, 0.16]} />
-            <meshStandardMaterial color={device.key} roughness={0.7} />
-          </mesh>
-        )),
-      )}
+      <Keys color={device.key} />
       <mesh position={[0, 0.101, 0.6]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[1.1, 0.62]} />
         <meshStandardMaterial color={device.trackpad} metalness={0.4} roughness={0.5} />
@@ -410,11 +467,12 @@ export function LaptopScene({ active, ...props }: Props & { active: boolean }) {
   return (
     <Canvas
       camera={{ position: [0, CAMERA_Y, 10.5], fov: 30 }}
-      dpr={[1, 2]}
-      frameloop={active ? "always" : "never"}
-      gl={{ antialias: true, alpha: true }}
+      dpr={[1, 1.5]}
+      frameloop={active ? "demand" : "never"}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       fallback={null}
     >
+      <InvalidateOnScroll />
       <Lights />
       <Laptop {...props} />
     </Canvas>

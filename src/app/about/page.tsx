@@ -4,6 +4,8 @@ import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
 import { OfficeNetwork } from "@/components/illustrations/office-network";
 import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
+import { EvolutionJourney } from "@/components/about/evolution-journey";
+import { evolution } from "@/content/evolution";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -101,42 +103,18 @@ export default function AboutPage() {
         </div>
       </Section>
 
-      {/* Evolution */}
-      <Section tone="deep" labelledBy="evolution-title">
-        <div className="container-site grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
+      {/* Evolution: a scroll story on large screens, cards on small ones */}
+      <Section tone="deep" labelledBy="evolution-title" className="lg:pb-0">
+        <div className="container-site">
           <SectionHeading
             id="evolution-title"
             eyebrow="Our evolution"
-            title="From human-only development to Human + AI engineering"
-            lead="The fundamentals haven't changed: skilled people, sound engineering and honest communication. What has changed is how much faster good engineers can move with the right tools."
+            title="From freelancing to Human + AI engineering"
+            lead="The fundamentals haven't changed: skilled people, sound engineering and honest communication. What has changed is the scale of our teams, and how much faster good engineers can move with the right tools."
+            className="mb-12 lg:mb-0"
           />
-          <ol className="relative space-y-8 border-l border-line-strong pl-8">
-            {[
-              {
-                when: String(siteConfig.founded),
-                title: "Founded in Rawalpindi",
-                body: "Outscalers starts as a software development and outsourcing partner, connecting German and Pakistani engineering talent.",
-              },
-              {
-                when: "Growth",
-                title: "A distributed team",
-                body: "Offices in Germany, Italy, Hong Kong and Pakistan, with services spanning software, QA, cloud, data and security.",
-              },
-              {
-                when: "Today",
-                title: "Human + AI engineering",
-                body: "AI is now part of our delivery workflow — accelerating routine work while our engineers keep ownership of design, review and quality.",
-              },
-            ].map((m, i) => (
-              <Reveal as="li" key={m.title} delay={i * 90} className="relative">
-                <span aria-hidden className="absolute -left-[2.35rem] top-1 size-3 rounded-full border-2 border-ink-950 bg-brand-400" />
-                <p className="font-mono text-xs uppercase tracking-wider text-brand-300">{m.when}</p>
-                <h3 className="mt-1.5 text-xl font-semibold">{m.title}</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{m.body}</p>
-              </Reveal>
-            ))}
-          </ol>
         </div>
+        <EvolutionJourney steps={evolution} />
       </Section>
 
       {/* Values */}

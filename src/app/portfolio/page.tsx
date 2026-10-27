@@ -35,6 +35,7 @@ export default function PortfolioPage() {
               { label: "Home", href: "/" },
               { label: "Portfolio", href: "/portfolio" },
             ]}
+            bare
             className="lg:flex lg:min-h-[80svh] lg:flex-col lg:justify-center"
           />
         }
@@ -61,7 +62,12 @@ export default function PortfolioPage() {
           </section>
         }
         outroHeading={
-          <SectionHeading id="portfolio-list-title" eyebrow="All projects" title="Browse by service" className="mb-10" />
+          <SectionHeading
+            id="portfolio-list-title"
+            eyebrow="All projects"
+            title="Browse by service"
+            className="mb-10 lg:mb-[2%] lg:[&_.eyebrow]:mb-2 lg:[&_h2]:text-3xl short:[&_.eyebrow]:hidden short:[&_h2]:text-2xl"
+          />
         }
         outro={<PortfolioGrid projects={portfolio} />}
       />

@@ -97,12 +97,7 @@ export function HeroCircuit() {
               animationDelay: `-${t.delay}s`,
               animationDirection: t.reverse ? "reverse" : "normal",
             } as CSSProperties;
-            return (
-              <g key={t.d}>
-                <path d={t.d} pathLength={100} strokeWidth="6" className="circuit-pulse" style={{ ...style, strokeOpacity: 0.22 }} />
-                <path d={t.d} pathLength={100} strokeWidth="2" className="circuit-pulse" style={style} />
-              </g>
-            );
+            return <path key={t.d} d={t.d} pathLength={100} strokeWidth="2.5" className="circuit-pulse" style={style} />;
           })}
         </g>
       </svg>

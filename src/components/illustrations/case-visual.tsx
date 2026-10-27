@@ -18,16 +18,20 @@ export function CaseVisual({ visual, className }: { visual: CaseStudy["visual"];
 }
 
 function ScaleVisual() {
-  const services = [
-    [250, 40],
-    [320, 40],
-    [250, 100],
-    [320, 100],
-    [250, 160],
-    [320, 160],
-  ];
+  const rows = [40, 100, 160];
+  const services = rows.flatMap((y) => [
+    [250, y],
+    [320, y],
+  ]);
   return (
     <g>
+      {/* Connectors first, so they always sit under the boxes: hub → first column, then along each row */}
+      {rows.map((y) => (
+        <g key={y} className="fill-none stroke-brand-500/40" strokeWidth={1.1}>
+          <path d={`M222 110C236 110 236 ${y + 15} 250 ${y + 15}`} />
+          <path d={`M302 ${y + 15}H320`} />
+        </g>
+      ))}
       <rect x={40} y={50} width={90} height={120} rx={12} className="fill-ink-800 stroke-line-strong" strokeWidth={1.4} />
       {[72, 96, 120, 144].map((y) => (
         <rect key={y} x={56} y={y} width={58} height={10} rx={3} className="fill-ink-700" />
@@ -39,7 +43,6 @@ function ScaleVisual() {
       <circle cx={212} cy={110} r={10} className="fill-ink-800 stroke-brand-400" strokeWidth={1.4} />
       {services.map(([x, y]) => (
         <g key={`${x}${y}`}>
-          <path d={`M222 110C232 110 236 ${y + 15} ${x} ${y + 15}`} className="fill-none stroke-brand-500/40" strokeWidth={1.1} />
           <rect x={x} y={y} width={52} height={30} rx={8} className="fill-ink-850 stroke-brand-400/70" strokeWidth={1.3} />
           <circle cx={x + 12} cy={y + 15} r={3} className="fill-brand-400" />
           <rect x={x + 20} y={y + 12} width={22} height={6} rx={3} className="fill-ink-700" />
@@ -58,14 +61,15 @@ function TrafficVisual() {
         className="fill-none stroke-human-accent"
         strokeWidth={2}
       />
+      {/* Capacity steps sized from the traffic curve: always ~12 units of headroom above it */}
       <path
-        d="M30 160H120V128H160V42H240V120H300V156H380"
+        d="M30 145H118V107H158V34H262V93H300V141H380"
         className="fill-none stroke-brand-400"
         strokeWidth={1.8}
         strokeDasharray="5 4"
       />
-      <rect x={176} y={20} width={68} height={18} rx={9} className="fill-ink-850 stroke-human-accent/50" />
-      <text x={210} y={33} textAnchor="middle" className="fill-human-accent font-mono" fontSize={9.5}>
+      <rect x={176} y={6} width={68} height={18} rx={9} className="fill-ink-850 stroke-human-accent/50" />
+      <text x={210} y={19} textAnchor="middle" className="fill-human-accent font-mono" fontSize={9.5}>
         peak event
       </text>
       <g className="font-mono" fontSize={9.5}>

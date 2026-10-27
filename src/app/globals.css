@@ -462,6 +462,15 @@
   .hero-circuit {
     opacity: 0.4;
     mask-image: radial-gradient(ellipse 42% 55% at 50% 52%, transparent 35%, #000 100%);
+    /* Keep the animated SVG's repaints inside this layer */
+    contain: strict;
+  }
+  /* Portfolio tunnel: lines fade out towards every edge and corner of the screen */
+  .tunnel-edges {
+    mask-image:
+      linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+      linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
+    mask-composite: intersect;
   }
   .circuit-pulse {
     stroke-dasharray: 8 100;
@@ -573,6 +582,7 @@
   .flow-dash { animation: none; }
   .anim-rocket, .anim-flame, .anim-burst { animation: none; }
   .sec-orbit, .sec-ping, .sec-threat, .sec-block, .sec-impact, .sec-review-flash { animation: none; }
+  .map-traveller { display: none; } /* SVG animateMotion ignores CSS animation rules */
 }
 
 @media print {

@@ -50,12 +50,12 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
       </div>
       <div className="flex flex-1 flex-col px-5 py-4">
         <p className="font-mono text-[10.5px] uppercase tracking-wider text-fg-subtle">{project.industry}</p>
-        <h3 className="mt-1.5 text-base font-semibold leading-snug">{project.name}</h3>
-        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-fg-muted">{project.summary}</p>
+        <h3 className="mt-1.5 text-base font-semibold leading-snug short:line-clamp-2">{project.name}</h3>
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-fg-muted short:hidden">{project.summary}</p>
         <div className="mt-auto flex flex-col items-start gap-2 pt-3">
           <ul className="flex flex-wrap gap-1" aria-label="Technologies">
-            {project.stack.slice(0, 3).map((t) => (
-              <li key={t} className="chip px-2! py-0! text-[11px]">
+            {project.stack.slice(0, 3).map((t, i) => (
+              <li key={t} className={cn("chip px-2! py-0! text-[11px]", i === 2 && "short:hidden")}>
                 {t}
               </li>
             ))}
@@ -90,9 +90,11 @@ export function PortfolioGrid({ projects }: { projects: PortfolioProject[] }) {
     ...services.filter((s) => projects.some((p) => p.services.includes(s.slug))).map((s) => ({ slug: s.slug, label: s.shortTitle })),
   ];
 
+  // Below lg: a normal grid. On lg (inside the portfolio laptop): one horizontal row the page
+  // scroll slides through; cards size off the row's height (cqh) so a whole card always fits.
   return (
-    <>
-      <div role="group" aria-label="Filter by service" className="mb-8 flex flex-wrap gap-2">
+    <div className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+      <div role="group" aria-label="Filter by service" className="mb-8 flex flex-wrap gap-2 lg:mb-[2.5%] lg:gap-1.5">
         {options.map((o) => (
           <button
             key={o.slug}
@@ -100,11 +102,11 @@ export function PortfolioGrid({ projects }: { projects: PortfolioProject[] }) {
             aria-pressed={filter === o.slug}
             onClick={() => setFilter(o.slug)}
             className={cn(
-              "chip cursor-pointer transition-colors hover:border-brand-500/50 hover:text-fg",
+              "chip cursor-pointer transition-colors hover:border-brand-500/50 hover:text-fg lg:text-[12.5px]",
               filter === o.slug && "border-brand-400! bg-brand-500/10 text-fg!",
             )}
           >
-            {o.slug !== "all" && <ServiceGlyph slug={o.slug} className="size-3.5 text-brand-400" />}
+            {o.slug !== "all" && <ServiceGlyph slug={o.slug} className="size-3.5 text-brand-400 short:hidden" />}
             {o.label}
           </button>
         ))}
@@ -112,13 +114,16 @@ export function PortfolioGrid({ projects }: { projects: PortfolioProject[] }) {
       <p aria-live="polite" className="sr-only">
         {shown.length} projects shown
       </p>
-      <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {shown.map((p) => (
-          <li key={p.slug} className="animate-fade-up">
-            <ProjectCard project={p} />
-          </li>
-        ))}
-      </ul>
-    </>
+      {/* Bleeds to the laptop screen edges (cancels the screen's 3% padding, which is 3/94 of this box); the track puts it back as inner padding */}
+      <div data-track-viewport className="lg:mx-[-3.1915%] lg:min-h-0 lg:flex-1 lg:overflow-hidden lg:[container-type:size]">
+        <ul data-track className="grid gap-4 md:grid-cols-2 lg:flex lg:h-full lg:w-max lg:px-[3%] lg:will-change-transform">
+          {shown.map((p) => (
+            <li key={p.slug} className="animate-fade-up lg:h-full lg:w-[74cqh] lg:min-w-56 lg:shrink-0">
+              <ProjectCard project={p} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
