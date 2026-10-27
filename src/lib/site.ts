@@ -50,7 +50,7 @@ export const mainNav: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
   { label: "How We Work", href: "/how-we-work" },
-  { label: "Case Studies", href: "/case-studies" },
+  { label: "Portfolio", href: "/portfolio" },
   { label: "About Us", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];

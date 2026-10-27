@@ -54,7 +54,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
         lead={study.summary}
         crumbs={[
           { label: "Home", href: "/" },
-          { label: "Case Studies", href: "/case-studies" },
+          { label: "Portfolio", href: "/portfolio" },
           { label: study.industry, href: `/case-studies/${study.slug}` },
         ]}
         visual={

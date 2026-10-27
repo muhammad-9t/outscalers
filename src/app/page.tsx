@@ -13,6 +13,7 @@ import {
   AppWindow,
   Wrench,
 } from "lucide-react";
+import { HeroCircuit } from "@/components/hero/hero-circuit";
 import { HeroScene } from "@/components/hero/hero-scene";
 import { ScrollRocket } from "@/components/hero/scroll-rocket";
 import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
@@ -100,28 +101,29 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section aria-labelledby="hero-title" className="relative flex flex-col justify-center overflow-hidden bg-ink-950 pb-16 pt-24 sm:pb-24 lg:min-h-svh lg:pb-16 lg:pt-24">
+      <section aria-labelledby="hero-title" className="relative flex flex-col justify-center overflow-hidden bg-ink-950 pb-16 pt-24 sm:pb-24 lg:min-h-svh lg:pb-16 lg:pt-24 short:pb-6 short:pt-20">
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="bg-grid absolute inset-0 opacity-60" />
           <div className="glow-brand absolute -top-60 left-1/2 size-240 -translate-x-1/2 animate-drift opacity-50" />
         </div>
+        <HeroCircuit />
         <div className="container-site relative">
           {/* Stacked and centred: illustration, then the message */}
           <div className="flex flex-col items-center text-center">
-            <div data-reveal className="w-full max-w-sm sm:max-w-md lg:max-w-[30rem]">
+            <div data-reveal className="w-full max-w-sm sm:max-w-md lg:max-w-120 short:max-w-[40vh]">
               <HeroDuo />
             </div>
-            <p className="eyebrow mt-6 sm:mt-8">Human + AI engineering company</p>
-            <h1 id="hero-title" className="mt-5 text-display-xl font-semibold">
+            <p className="eyebrow mt-6 sm:mt-8 short:mt-3">Human + AI engineering company</p>
+            <h1 id="hero-title" className="mt-5 text-display-xl font-semibold short:mt-3 short:text-[clamp(2.6rem,8.5vh,4.75rem)]">
               Human Intelligence.
               <br />
               <span className="text-gradient">AI-Powered Engineering.</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-lead text-fg-muted">
+            <p className="mt-7 max-w-2xl text-lead text-fg-muted short:mt-4 short:max-w-3xl">
               We combine experienced engineers with artificial intelligence to build intelligent software, automate
               complex workflows, and help businesses move from ideas to real-world solutions.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 short:mt-6">
               <ButtonLink href="/contact" arrow>
                 Start a Project
               </ButtonLink>
@@ -129,7 +131,7 @@ export default function HomePage() {
                 Explore Our Services
               </ButtonLink>
             </div>
-            <ul aria-label="What we do" className="mt-9 flex flex-wrap justify-center gap-2">
+            <ul aria-label="What we do" className="mt-9 flex flex-wrap justify-center gap-2 short:mt-5">
               {services.map((s) => (
                 <li key={s.slug}>
                   <Link href={serviceHref(s.slug)} className="chip transition-colors hover:border-brand-500/50 hover:text-fg">
@@ -284,7 +286,7 @@ export default function HomePage() {
               lead="A look at the kinds of problems we solve. Verified outcomes are published only with client approval."
             />
             <Reveal className="shrink-0">
-              <ArrowLink href="/case-studies">All case studies</ArrowLink>
+              <ArrowLink href="/portfolio">View our portfolio</ArrowLink>
             </Reveal>
           </div>
           <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">

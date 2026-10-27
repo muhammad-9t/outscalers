@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Desktop-width but short viewports (laptops): lets the hero fit one screen */
+@custom-variant short (@media (min-width: 64rem) and (max-height: 56rem));
+
 /* ------------------------------------------------------------------
    Design tokens
    ------------------------------------------------------------------ */
@@ -43,6 +46,13 @@
   --color-logo-tile: #0f1622;
   --color-logo-tile-line: #2a3647;
   --color-logo-mark: #eaf0f6;
+
+  /* Portfolio laptop (3D model + HTML frame); a physical object, so the same in both themes */
+  --color-device-metal: #8b95a1;
+  --color-device-bezel: #05080d;
+  --color-device-keys: #121821;
+  --color-device-key: #1c2430;
+  --color-device-trackpad: #7a838f;
 
   /* Code editor mock-up (syntax colours) */
   --color-code-bg: #0a0f18;
@@ -226,6 +236,16 @@
   0%, 47% { opacity: 0; }
   52% { opacity: 0.5; }
   85%, 100% { opacity: 0; }
+}
+@keyframes circuit-pulse {
+  0% { stroke-dashoffset: 8; opacity: 0; }
+  8%, 88% { opacity: 1; }
+  100% { stroke-dashoffset: -100; opacity: 0; }
+}
+@keyframes code-float {
+  0% { transform: translateY(16px); opacity: 0; }
+  25%, 70% { opacity: 0.55; }
+  100% { transform: translateY(-36px); opacity: 0; }
 }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(6px); }
@@ -437,6 +457,20 @@
   .bg-dots {
     background-image: radial-gradient(color-mix(in oklab, var(--color-fg-subtle) 45%, transparent) 1px, transparent 1px);
     background-size: 22px 22px;
+  }
+  /* Home hero circuit: faded out in the middle so the copy stays readable */
+  .hero-circuit {
+    opacity: 0.4;
+    mask-image: radial-gradient(ellipse 42% 55% at 50% 52%, transparent 35%, #000 100%);
+  }
+  .circuit-pulse {
+    stroke-dasharray: 8 100;
+    opacity: 0;
+    animation: circuit-pulse linear infinite;
+  }
+  .code-float {
+    opacity: 0;
+    animation: code-float 10s ease-in-out infinite;
   }
   .glow-brand {
     background: radial-gradient(closest-side, color-mix(in oklab, var(--color-brand-500) 28%, transparent), transparent);
