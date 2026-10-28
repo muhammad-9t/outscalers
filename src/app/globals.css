@@ -247,6 +247,14 @@
   25%, 70% { opacity: 0.55; }
   100% { transform: translateY(-36px); opacity: 0; }
 }
+@keyframes launch-dot {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes launch-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
@@ -567,6 +575,9 @@
     transition-delay: var(--grow-delay, 0ms);
   }
   .js-reveal [data-reveal].is-visible .grow-x { transform: none; }
+  .launch-dot { width: 3px; height: 3px; border-radius: 9999px; background: var(--color-brand-300); animation: launch-dot 0.9s ease-in-out infinite; }
+  /* A project opened from the portfolio laptop zooms in as the dark screen lifts */
+  html[data-launch] #main { animation: launch-in 0.6s var(--ease-out-soft) both; transform-origin: 50% 40vh; }
   .animate-fade-up { animation: fade-up 0.35s var(--ease-out-soft) both; }
 }
 

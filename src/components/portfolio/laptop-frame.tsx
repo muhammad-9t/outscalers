@@ -1,11 +1,80 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
+import { useRouter } from "next/navigation";
+import { LogoMark } from "@/components/layout/logo";
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 const HOLD = 0.35; // pause before the cards start and after they finish, as a share of the viewport height
 const EASE = 0.12; // how quickly the cards catch up with the scroll each frame (lower = softer)
+
+// Opening a project from the screen, in ms
+const FADE = 300; // the cards fade out
+const HOLD_LOGO = 1000; // the dark screen shows the logo
+const ZOOM = 700; // the screen grows to fill the viewport
+const REVEAL = 450; // the dark screen fades away over the new page
+
+/**
+ * Plays the "opening" sequence for a link clicked on the laptop screen, then navigates.
+ * The overlay is a clone of `template` appended to <body>, so it outlives this page and
+ * fades out only once the new page has rendered. `html[data-launch]` lets the new page zoom in.
+ * `done` runs once the portfolio is hidden, after its screen has been reset: Next keeps the page
+ * alive, so going back must find the cards visible again.
+ */
+function launch(href: string, screen: HTMLElement, content: HTMLElement, template: HTMLElement, push: (href: string) => void, done: () => void) {
+  const ease = "cubic-bezier(0.65, 0, 0.35, 1)";
+  const rect = screen.getBoundingClientRect();
+  const ghost = template.cloneNode(true) as HTMLElement;
+  ghost.hidden = false;
+  // The logo's gradient id would resolve to the hidden template's copy, which doesn't paint
+  ghost.querySelectorAll("linearGradient[id]").forEach((g) => {
+    const id = `${g.id}-launch`;
+    ghost.querySelectorAll(`[fill="url(#${g.id})"]`).forEach((el) => el.setAttribute("fill", `url(#${id})`));
+    g.id = id;
+  });
+  Object.assign(ghost.style, {
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    borderRadius: getComputedStyle(screen).borderRadius,
+    opacity: "0",
+  });
+  document.body.append(ghost);
+  const logo = ghost.querySelector("[data-launch-logo]");
+  const fade = content.animate({ opacity: [1, 0], filter: ["blur(0)", "blur(4px)"] }, { duration: FADE, fill: "forwards" });
+  ghost.animate({ opacity: [0, 1] }, { duration: FADE, delay: FADE * 0.6, fill: "forwards" });
+  logo?.animate(
+    { opacity: [0, 1], transform: ["scale(0.85)", "scale(1)"] },
+    { duration: 500, delay: FADE, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" },
+  );
+
+  window.setTimeout(() => {
+    const zoom = ghost.animate(
+      { left: ["0px"], top: ["0px"], width: ["100vw"], height: ["100vh"], borderRadius: ["0px"] },
+      { duration: ZOOM, easing: ease, fill: "forwards" },
+    );
+    logo?.animate({ transform: ["scale(1)", "scale(1.12)"] }, { duration: ZOOM, easing: ease, fill: "forwards" });
+    zoom.onfinish = () => {
+      const root = document.documentElement;
+      root.dataset.launch = "";
+      push(href);
+      // Wait for the new route to render (or give up after 6s), then lift the dark screen
+      const started = performance.now();
+      const reveal = () => {
+        if (location.pathname !== href && performance.now() - started < 6000) return void requestAnimationFrame(reveal);
+        requestAnimationFrame(() => {
+          fade.cancel();
+          done();
+          ghost.animate({ opacity: [1, 0] }, { duration: REVEAL, easing: "ease-out", fill: "forwards" }).onfinish = () => ghost.remove();
+          window.setTimeout(() => delete root.dataset.launch, 900);
+        });
+      };
+      reveal();
+    };
+  }, FADE + HOLD_LOGO);
+}
 
 /**
  * A front-view laptop whose screen holds `children`. On large screens the laptop
@@ -21,6 +90,29 @@ export function LaptopFrame({ frameRef, children }: { frameRef: RefObject<HTMLDi
   const stageRef = useRef<HTMLDivElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const launchRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Opening a project from the screen: play the launch sequence instead of jumping straight there
+  useEffect(() => {
+    const screen = screenRef.current;
+    const content = contentRef.current;
+    const template = launchRef.current;
+    if (!screen || !content || !template) return;
+    let busy = false;
+    const onClick = (e: MouseEvent) => {
+      const link = e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href^='/']") : null;
+      if (!link || busy || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (!window.matchMedia("(min-width: 64rem)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      e.preventDefault();
+      busy = true;
+      const href = link.getAttribute("href")!;
+      router.prefetch(href);
+      launch(href, screen, content, template, router.push, () => (busy = false));
+    };
+    content.addEventListener("click", onClick);
+    return () => content.removeEventListener("click", onClick);
+  }, [router]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -116,6 +208,25 @@ export function LaptopFrame({ frameRef, children }: { frameRef: RefObject<HTMLDi
                   {children}
                 </div>
               </div>
+            </div>
+          </div>
+          {/* Launch overlay template, cloned onto <body> when a project opens. Always dark, like a screen waking up. */}
+          <div
+            ref={launchRef}
+            hidden
+            aria-hidden
+            data-theme="dark"
+            className="fixed z-[100] flex flex-col items-center justify-center overflow-hidden bg-ink-950 text-fg"
+          >
+            <div data-launch-logo className="flex flex-col items-center">
+              <LogoMark className="size-16" />
+              <span className="mt-4 font-display text-2xl font-semibold tracking-tight">Outscalers</span>
+              <span className="mt-3 flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.2em] text-fg-subtle">
+                Opening
+                <span className="launch-dot" />
+                <span className="launch-dot [animation-delay:0.15s]" />
+                <span className="launch-dot [animation-delay:0.3s]" />
+              </span>
             </div>
           </div>
           <div aria-hidden className="mx-[-3%] hidden h-4 rounded-b-[clamp(10px,1.5vw,20px)] bg-device-metal lg:block">
