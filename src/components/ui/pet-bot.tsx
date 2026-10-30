@@ -54,7 +54,9 @@ const JOKES = [
   "Dragos 302 has 302 excuses for that missed AWP shot. We've heard 301.",
   "Spartan held the bridge alone. Then asked why nobody came. Classic Spartan.",
   "Frustrated is the calmest one on the team. Don't let the name fool you.",
-  "Glitch, Death, Ghost, No-mercy, Codex, Dr. Doom, Dragos 302, Spartan, Frustrated. Terrorists win? Not on our server.",
+  "Killer Man asked for a knife round. We ended up with a deadline instead.",
+  "Killer Man tops the scoreboard and the commit log. Some people just like killing it.",
+  "Glitch, Death, Ghost, No-mercy, Codex, Dr. Doom, Dragos 302, Spartan, Frustrated, Killer Man. Terrorists win? Not on our server.",
   "Our stand-ups are just CS: Source callouts. \"Two on B, one lurking in the backlog.\"",
   "Counter-Terrorists win. Clients win. Frustrated still blames the lag.",
 ];
