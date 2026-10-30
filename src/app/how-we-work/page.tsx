@@ -1,11 +1,12 @@
-import { CircleCheck, Info, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import type { CSSProperties } from "react";
+import { CircleCheck, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { processPhases } from "@/content/process";
 import { pageMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
 import { WorkflowLoop } from "@/components/illustrations/workflow-loop";
 import { LaunchTimeline } from "@/components/sections/launch-timeline";
-import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
+import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
   title: "How We Work",
@@ -37,11 +38,6 @@ export default function HowWeWorkPage() {
           { label: "Home", href: "/" },
           { label: "How We Work", href: "/how-we-work" },
         ]}
-        actions={
-          <ButtonLink href="/contact" arrow>
-            Start a Project
-          </ButtonLink>
-        }
       />
 
       {/* Workflow overview */}
@@ -67,7 +63,7 @@ export default function HowWeWorkPage() {
       </Section>
 
       {/* Phase-by-phase narrative */}
-      <Section tone="deep" labelledBy="phases-title">
+      <Section labelledBy="phases-title">
         <div className="container-site">
           <SectionHeading
             id="phases-title"
@@ -75,15 +71,22 @@ export default function HowWeWorkPage() {
             title="Who does what, and where the checkpoints are"
           />
           <ol className="relative mt-14 space-y-6 lg:space-y-8">
-            <span aria-hidden className="absolute bottom-6 left-[1.15rem] top-6 hidden w-px bg-gradient-to-b from-brand-500/60 via-line-strong to-transparent md:block" />
+            <span aria-hidden className="absolute bottom-6 left-[1.15rem] top-6 hidden w-px bg-gradient-to-b from-brand-500/60 via-line-strong to-transparent md:block lg:hidden" />
             {processPhases.map((p, i) => (
-              <Reveal as="li" key={p.id} className="relative md:pl-16">
-                <span className="relative z-10 mb-4 grid size-10 place-items-center rounded-full border border-brand-500/50 bg-ink-950 font-mono text-sm text-brand-300 md:absolute md:left-0 md:top-6 md:mb-0">
+              // On large screens each card sticks below the header, a step lower than the last, so they stack as you scroll
+              <li
+                key={p.id}
+                data-reveal
+                className="relative md:pl-16 isolate lg:sticky lg:top-(--stack-top) lg:pl-0"
+                style={{ "--stack-top": `calc(6rem + ${i * 1.25}rem)` } as CSSProperties}
+              >
+                {/* Phase number: in the timeline gutter, or inside the card once the cards stack */}
+                <span className="relative z-10 mb-4 grid size-10 place-items-center rounded-full border border-brand-500/50 bg-ink-950 font-mono text-sm text-brand-300 md:absolute md:left-0 md:top-6 md:mb-0 lg:top-8 lg:left-8">
                   0{i + 1}
                 </span>
-                <article className="card overflow-hidden" aria-labelledby={`phase-${p.id}`}>
+                <article className="card overflow-hidden bg-ink-850 lg:shadow-[0_-20px_40px_-24px_rgb(0_0_0/0.7)]" aria-labelledby={`phase-${p.id}`}>
                   <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_1.5fr] lg:gap-12">
-                    <div>
+                    <div className="lg:pl-14">
                       <h3 id={`phase-${p.id}`} className="text-display-md font-semibold">
                         {p.title}
                       </h3>
@@ -124,7 +127,7 @@ export default function HowWeWorkPage() {
                     <span>{p.checkpoint}</span>
                   </p>
                 </article>
-              </Reveal>
+              </li>
             ))}
           </ol>
         </div>
@@ -147,25 +150,6 @@ export default function HowWeWorkPage() {
               </Reveal>
             ))}
           </ul>
-        </div>
-      </Section>
-
-      {/* About the animations */}
-      <Section tone="dark" tight labelledBy="note-title">
-        <div className="container-narrow">
-          <Reveal className="flex gap-4 rounded-card border border-line bg-ink-850 p-6 sm:p-8">
-            <Info aria-hidden className="mt-1 size-5 shrink-0 text-data-accent" />
-            <div>
-              <h2 id="note-title" className="text-lg font-semibold">
-                A note on the animations on this site
-              </h2>
-              <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">
-                The code editor and workflow animations on our website are simplified, scripted illustrations. They are
-                not recordings of real projects, and they don&apos;t connect to any AI service. Real delivery involves
-                more people, more discussion and more review than any animation can show.
-              </p>
-            </div>
-          </Reveal>
         </div>
       </Section>
 

@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ArrowUpRight, Boxes, LifeBuoy, Rocket } from "lucide-react";
+import { Boxes, LifeBuoy, Rocket } from "lucide-react";
 import { services, serviceHref } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
-import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
+import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
+import { ServicePanel } from "@/components/sections/service-panel";
+import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
   title: "Services",
@@ -94,56 +96,19 @@ export default function ServicesPage() {
           { label: "Home", href: "/" },
           { label: "Services", href: "/services" },
         ]}
-        actions={
-          <ButtonLink href="/contact" arrow>
-            Start a Project
-          </ButtonLink>
-        }
         visual={<ServiceMap />}
       />
 
-      <Section labelledBy="list-title">
-        <div className="container-site">
-          <h2 id="list-title" className="sr-only">
-            Our services
-          </h2>
-          <ol className="divide-y divide-line border-y border-line">
-            {services.map((s, i) => (
-              <Reveal as="li" key={s.slug} className="py-10 sm:py-12">
-                <div className="grid gap-8 lg:grid-cols-[5rem_1.1fr_1fr] lg:gap-10">
-                  <div className="flex items-center gap-4 lg:block">
-                    <span className="font-mono text-sm text-fg-subtle">0{i + 1}</span>
-                    <span className="grid size-12 place-items-center rounded-xl border border-line-strong bg-ink-800 text-brand-300 lg:mt-4">
-                      <ServiceGlyph slug={s.slug} className="size-6" />
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-display-md font-semibold">
-                      <Link href={serviceHref(s.slug)} className="transition-colors hover:text-brand-200">
-                        {s.title}
-                      </Link>
-                    </h3>
-                    <p className="mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-fg-muted">{s.summary}</p>
-                    <Link
-                      href={serviceHref(s.slug)}
-                      className="link-arrow mt-6"
-                      aria-label={`Explore ${s.title}`}
-                    >
-                      Explore service <ArrowUpRight aria-hidden className="size-4" />
-                    </Link>
-                  </div>
-                  <ul className="grid content-start gap-2 sm:grid-cols-2">
-                    {s.deliverables.map((d) => (
-                      <li key={d.title} className="rounded-lg border border-line bg-ink-850 px-3.5 py-2.5 text-sm text-fg-muted">
-                        {d.title}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-            ))}
-          </ol>
-        </div>
+      {/* Full-screen service panels; on large screens they pin and slide sideways as you scroll */}
+      <Section labelledBy="list-title" className="py-0!">
+        <h2 id="list-title" className="sr-only">
+          Our services
+        </h2>
+        <HorizontalScroll label="Our services" stops={services.map((s) => s.shortTitle)}>
+          {services.map((s, i) => (
+            <ServicePanel key={s.slug} service={s} index={i} total={services.length} />
+          ))}
+        </HorizontalScroll>
       </Section>
 
       <Section tone="raised" labelledBy="engage-title">

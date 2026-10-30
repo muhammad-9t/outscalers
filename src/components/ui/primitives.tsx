@@ -40,9 +40,10 @@ export function ArrowLink({ href, children, className }: { href: string; childre
 type Tone = "dark" | "deep" | "raised" | "light";
 
 const toneClass: Record<Tone, string> = {
-  dark: "bg-ink-900",
+  // One background everywhere: every dark tone uses the same ink-950 as the home hero and editor
+  dark: "bg-ink-950",
   deep: "bg-ink-950",
-  raised: "bg-ink-850",
+  raised: "bg-ink-950",
   light: "tone-light bg-paper text-paper-fg",
 };
 

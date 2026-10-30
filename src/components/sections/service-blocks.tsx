@@ -22,14 +22,9 @@ export function ServiceHero({ service }: { service: Service }) {
         { label: service.title, href: `/services/${service.slug}` },
       ]}
       actions={
-        <>
-          <ButtonLink href="/contact" arrow>
-            Start a Project
-          </ButtonLink>
-          <ButtonLink href="#approach" variant="secondary">
-            Our approach
-          </ButtonLink>
-        </>
+        <ButtonLink href="#approach" variant="secondary">
+          Our approach
+        </ButtonLink>
       }
       visual={
         <div className="mx-auto w-full max-w-xl lg:max-w-none lg:scale-105">
@@ -143,7 +138,7 @@ export function DeliverablesBlock({
 }
 
 /** Side-by-side: what AI assists with vs what engineers own. */
-export function ApproachBlock({ service, tone = "deep" }: { service: Service; tone?: "deep" | "dark" }) {
+export function ApproachBlock({ service, tone = "dark" }: { service: Service; tone?: "deep" | "dark" }) {
   return (
     <Section tone={tone} id="approach" labelledBy="approach-title">
       <div className="container-site">

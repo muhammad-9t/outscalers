@@ -233,6 +233,7 @@ export function Header() {
       <div
         id={mobileMenuId}
         hidden={!mobileOpen}
+        data-lenis-prevent
         className="h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line bg-ink-900 lg:hidden"
       >
         <nav aria-label="Mobile" className="container-site animate-fade-up py-6">

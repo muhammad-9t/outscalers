@@ -40,7 +40,7 @@ export default function DataCloudPage() {
       <ProblemsBlock service={service} />
 
       {/* Signature: pipeline stages + AI readiness */}
-      <Section tone="deep" labelledBy="pipeline-title">
+      <Section labelledBy="pipeline-title">
         <div className="container-site">
           <SectionHeading
             id="pipeline-title"

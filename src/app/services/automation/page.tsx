@@ -93,7 +93,7 @@ export default function AutomationPage() {
       </Section>
 
       <ProblemsBlock service={service} variant="numbered" tone="raised" title="Signs a process is ready for automation" />
-      <DeliverablesBlock service={service} tone="deep" title="Automation we deliver" />
+      <DeliverablesBlock service={service} tone="dark" title="Automation we deliver" />
       <ApproachBlock service={service} tone="dark" />
       <ProcessBlock service={service} />
       <CapabilitiesBlock service={service} />

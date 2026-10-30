@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import {
@@ -12,19 +13,21 @@ import {
   BrainCircuit,
   AppWindow,
   Wrench,
+  ArrowRight,
 } from "lucide-react";
 import { HeroCircuit } from "@/components/hero/hero-circuit";
 import { HeroScene } from "@/components/hero/hero-scene";
+import { EventHorizon } from "@/components/hero/event-horizon";
 import { ScrollRocket } from "@/components/hero/scroll-rocket";
-import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
-import { HeroDuo } from "@/components/illustrations/hero-duo";
-import { ServiceGlyph } from "@/components/illustrations/service-glyph";
+import { HeroControl } from "@/components/illustrations/hero-control";
+import { HudServices } from "@/components/hero/hud-services";
+import { HudLog } from "@/components/hero/hero-hud";
 import { ServiceCard } from "@/components/sections/service-cards";
 import { DeliveryModel } from "@/components/sections/delivery-model";
 import { LaunchTimeline } from "@/components/sections/launch-timeline";
 import { CaseStudyCard } from "@/components/sections/case-study-card";
 import { CtaBand } from "@/components/sections/cta-band";
-import { ArrowLink, ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
+import { ArrowLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 import { services, serviceHref } from "@/content/services";
 import { caseStudies } from "@/content/case-studies";
 import { pageMetadata } from "@/lib/site";
@@ -101,67 +104,75 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section aria-labelledby="hero-title" className="relative flex flex-col justify-center overflow-hidden bg-ink-950 pb-16 pt-24 sm:pb-24 lg:min-h-svh lg:pb-16 lg:pt-24 short:pb-6 short:pt-20">
+      <section aria-labelledby="hero-title" className="relative flex flex-col justify-center overflow-hidden bg-ink-950 pb-16 pt-24 sm:pb-24 lg:min-h-svh lg:pb-14 lg:pt-28 short:pb-6 short:pt-20">
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="bg-grid absolute inset-0 opacity-60" />
-          <div className="glow-brand absolute -top-60 left-1/2 size-240 -translate-x-1/2 animate-drift opacity-50" />
         </div>
         <HeroCircuit />
         <div className="container-site relative">
-          {/* Stacked and centred: illustration, then the message */}
-          <div className="flex flex-col items-center text-center">
-            <div data-reveal className="w-full max-w-sm sm:max-w-md lg:max-w-120 short:max-w-[40vh]">
-              <HeroDuo />
+          {/* The message comes first: the headline runs across the top, then the lead and actions sit beside
+              the human-control animation. Small screens stack them: message, actions, services, animation. */}
+          <div className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
+            {/* Live session log in the empty top right, beside the headline, on wide screens only.
+                Inside this block (not the padded container) so it lines up with the content edge. */}
+            <div className="absolute top-0 right-0 hidden w-72 text-left xl:block">
+              <HudLog />
             </div>
-            <p className="eyebrow mt-6 sm:mt-8 short:mt-3">Human + AI engineering company</p>
-            <h1 id="hero-title" className="mt-5 text-display-xl font-semibold short:mt-3 short:text-[clamp(2.6rem,8.5vh,4.75rem)]">
+            <p className="eyebrow">Human + AI engineering company</p>
+            <h1 id="hero-title" className="mt-5 text-display-xl font-semibold lg:text-[clamp(2.75rem,4.4vw,4.75rem)] short:mt-3 short:text-[clamp(2.5rem,min(4.4vw,8vh),4.5rem)]">
               Human Intelligence.
               <br />
               <span className="text-gradient">AI-Powered Engineering.</span>
             </h1>
-            <p className="mt-7 max-w-2xl text-lead text-fg-muted short:mt-4 short:max-w-3xl">
-              We combine experienced engineers with artificial intelligence to build intelligent software, automate
-              complex workflows, and help businesses move from ideas to real-world solutions.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3 short:mt-6">
-              <ButtonLink href="/contact" arrow>
-                Start a Project
-              </ButtonLink>
-              <ButtonLink href="/services" variant="secondary">
-                Explore Our Services
-              </ButtonLink>
+          </div>
+          <div className="mt-8 grid items-center gap-12 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 short:mt-5">
+            <div className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
+              <p className="max-w-xl text-lead text-fg-muted">
+                Experienced engineers and AI, building intelligent software that takes your ideas to production.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start short:mt-5">
+                <Link href="/services" className="btn btn-primary">
+                  Explore our services
+                  <ArrowRight aria-hidden className="size-4" />
+                </Link>
+                <Link href="/portfolio" className="btn btn-secondary">
+                  See our work
+                </Link>
+              </div>
+              <div className="mt-12 flex flex-col items-center gap-3 lg:items-start short:mt-6">
+                <p aria-hidden className="font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
+                  {"// Services"}
+                </p>
+                <HudServices className="justify-center lg:justify-start" />
+              </div>
             </div>
-            <ul aria-label="What we do" className="mt-9 flex flex-wrap justify-center gap-2 short:mt-5">
-              {services.map((s) => (
-                <li key={s.slug}>
-                  <Link href={serviceHref(s.slug)} className="chip transition-colors hover:border-brand-500/50 hover:text-fg">
-                    <ServiceGlyph slug={s.slug} className="size-3.5 text-brand-400" />
-                    {s.shortTitle}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div data-reveal className="mx-auto w-full max-w-md sm:max-w-xl lg:mx-0 lg:w-auto lg:max-w-none">
+              <HeroControl />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Workflow in action: the animated editor scene, in its own section below the hero */}
-      <Section tone="deep" tight labelledBy="scene-title" className="!pt-6 sm:!pt-10">
+      <Section tone="deep" tight labelledBy="scene-title" className="overflow-hidden !pt-6 sm:!pt-10">
         <div className="container-site">
           <SectionHeading
             id="scene-title"
             eyebrow="See it in action"
             title="From idea to tested code, with a person at every step"
             align="center"
-            className="mb-10"
           />
-          <HeroScene />
+          {/* Glowing horizon, as wide as the editor, which rests on its edge */}
+          <EventHorizon className="relative -mt-6" />
+          <div className="relative -mt-50">
+            <HeroScene />
+          </div>
         </div>
       </Section>
 
       {/* Company introduction */}
       <Section labelledBy="intro-title">
-        <div className="container-site grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+        <div className="container-site grid items-center gap-14 lg:grid-cols-2 lg:items-stretch lg:gap-20">
           <div>
             <SectionHeading
               id="intro-title"
@@ -170,34 +181,95 @@ export default function HomePage() {
             />
             <Reveal className="prose-site mt-6 max-w-xl" delay={80}>
               <p>
-                Founded in 2023, Outscalers brings together engineering talent from Germany and Pakistan in remote-first,
-                English-speaking teams of developers, QA engineers, designers and project managers. We build software,
-                platforms and infrastructure for organisations worldwide.
-              </p>
-              <p>
-                Today our engineers work alongside AI. It speeds up research, drafting and routine implementation, while
-                our people stay responsible for architecture, critical decisions, security and the quality of what
-                reaches production.
+                Developers, QA engineers, designers and project managers building software, platforms and infrastructure
+                for organisations worldwide. AI speeds up the routine work; our people stay responsible for what reaches
+                production.
               </p>
             </Reveal>
-            <Reveal delay={160} className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="card-flat p-5">
-                <p className="chip chip-human">People own</p>
-                <p className="mt-3 text-sm leading-relaxed text-fg-muted">
-                  Requirements, architecture, code review, security decisions and release approval.
-                </p>
-              </div>
-              <div className="card-flat p-5">
-                <p className="chip chip-ai">AI accelerates</p>
-                <p className="mt-3 text-sm leading-relaxed text-fg-muted">
-                  Research, scaffolding, drafts, test ideas, documentation and log analysis.
-                </p>
-              </div>
+            <Reveal delay={120} className="mt-8">
+              <dl className="flex flex-wrap gap-x-8 gap-y-3 border-y border-line py-4 font-mono">
+                {[
+                  ["2023", "Founded"],
+                  ["DE + PK", "Engineering teams"],
+                  ["Remote-first", "English-speaking"],
+                ].map(([v, k]) => (
+                  <div key={k} className="flex flex-col-reverse">
+                    <dt className="text-[10px] tracking-[0.18em] text-fg-subtle uppercase">{k}</dt>
+                    <dd className="text-lg font-semibold text-fg">{v}</dd>
+                  </div>
+                ))}
+              </dl>
             </Reveal>
           </div>
-          <Reveal delay={120} className="relative mx-auto w-full max-w-lg">
-            <HumanAiCollab />
-          </Reveal>
+          {/* The cards stack and share the height of the text column */}
+          <div className="lg:h-full">
+            <Reveal delay={160} className="grid gap-4 sm:grid-cols-2 lg:h-full lg:grid-cols-1 lg:grid-rows-2">
+              {[
+                {
+                  label: "People own",
+                  tag: "01 // Human",
+                  tone: "human",
+                  text: "Every decision that shapes the product, and the final say on what ships.",
+                  items: ["Requirements", "Architecture", "Code review", "Security decisions", "Release approval"],
+                },
+                {
+                  label: "AI accelerates",
+                  tag: "02 // AI",
+                  tone: "ai",
+                  text: "Speed on the routine work, with every output reviewed by an engineer.",
+                  items: ["Research", "Scaffolding", "Drafts & test ideas", "Documentation", "Log analysis"],
+                },
+              ].map((c) => (
+                <div
+                  key={c.label}
+                  className={cn(
+                    "group relative flex flex-col border bg-ink-900/40 p-5 transition-[border-color,box-shadow] duration-300",
+                    c.tone === "human"
+                      ? "border-human-accent/25 hover:border-human-accent/60 hover:shadow-[0_0_28px_-10px_var(--color-human-accent)]"
+                      : "border-brand-400/25 hover:border-brand-400/60 hover:shadow-[0_0_28px_-10px_var(--color-brand-500)]",
+                  )}
+                >
+                  {/* Corner brackets */}
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute -top-px -left-px size-2.5 border-t-2 border-l-2",
+                      c.tone === "human" ? "border-human-accent" : "border-brand-400",
+                    )}
+                  />
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute -right-px -bottom-px size-2.5 border-r-2 border-b-2",
+                      c.tone === "human" ? "border-human-accent" : "border-brand-400",
+                    )}
+                  />
+                  <p
+                    aria-hidden
+                    className={cn(
+                      "font-mono text-[10px] tracking-[0.18em] uppercase",
+                      c.tone === "human" ? "text-human-accent" : "text-brand-300",
+                    )}
+                  >
+                    {c.tag}
+                  </p>
+                  <h3 className="mt-1 font-semibold">{c.label}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-fg-muted">{c.text}</p>
+                  <ul className="mt-6 space-y-2.5 border-t border-line pt-5 text-sm text-fg-muted lg:mt-auto lg:grid lg:grid-cols-2 lg:gap-x-6 lg:gap-y-2.5 lg:space-y-0">
+                    {c.items.map((it) => (
+                      <li key={it} className="flex items-center gap-2.5">
+                        <span
+                          aria-hidden
+                          className={cn("size-1.5 shrink-0", c.tone === "human" ? "bg-human-accent" : "bg-brand-400")}
+                        />
+                        {it}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </Reveal>
+          </div>
         </div>
       </Section>
 
@@ -243,7 +315,7 @@ export default function HomePage() {
       </Section>
 
       {/* Human + AI delivery model */}
-      <Section tone="deep" labelledBy="model-title" className="overflow-hidden">
+      <Section labelledBy="model-title" className="overflow-hidden">
         <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-30" />
         <div className="container-site relative">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-end">
@@ -300,7 +372,7 @@ export default function HomePage() {
       </Section>
 
       {/* Why Outscalers — light section for contrast */}
-      <Section tone="deep" labelledBy="why-title">
+      <Section labelledBy="why-title">
         <div className="container-site">
           <SectionHeading
             id="why-title"

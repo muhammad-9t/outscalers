@@ -3,6 +3,7 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import type { EvolutionStep } from "@/content/evolution";
 import { cn } from "@/lib/cn";
+import { scrollToY } from "@/lib/smooth-scroll";
 import { EvolutionNetwork } from "./evolution-network";
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
@@ -60,7 +61,7 @@ export function EvolutionJourney({ steps }: { steps: EvolutionStep[] }) {
     if (!outer) return;
     const span = outer.offsetHeight - window.innerHeight;
     const top = outer.getBoundingClientRect().top + window.scrollY + (span * i) / last;
-    window.scrollTo({ top, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    scrollToY(top);
   };
 
   return (

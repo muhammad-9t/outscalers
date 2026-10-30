@@ -55,7 +55,7 @@ export default function SecurityQualityPage() {
       <ProblemsBlock service={service} variant="numbered" title="Why quality needs more than one safeguard" />
 
       {/* Signature: safeguards matrix */}
-      <Section tone="deep" labelledBy="matrix-title">
+      <Section labelledBy="matrix-title">
         <div className="container-site">
           <SectionHeading
             id="matrix-title"
@@ -90,7 +90,7 @@ export default function SecurityQualityPage() {
       </Section>
 
       <DeliverablesBlock service={service} tone="dark" title="Security and quality services" />
-      <ApproachBlock service={service} tone="deep" />
+      <ApproachBlock service={service} />
       <ProcessBlock service={service} />
       <CapabilitiesBlock service={service} />
       <ServiceFooter service={service} ctaTitle="Want more confidence in every release?" />

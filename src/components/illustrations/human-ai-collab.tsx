@@ -5,6 +5,25 @@ import { cn } from "@/lib/cn";
 export const HEAD_PATH =
   "M112 320C110 296 104 278 102 262C80 246 68 214 68 180C68 120 112 84 166 84C212 84 240 112 244 150C245 160 246 168 246 172L262 202C265 207 264 211 259 212L249 214C252 220 253 224 250 228C248 230 248 232 251 236C252 244 250 254 244 260C236 268 222 270 208 270C202 280 200 300 204 320";
 
+const BRAIN_PATH =
+  "M110 160C98 150 100 126 118 118C122 102 144 96 158 102C170 92 196 94 204 108C220 110 228 126 222 140C230 152 222 170 206 170C200 180 184 182 176 174C166 182 148 182 142 172C130 178 114 172 110 160Z";
+
+// Exchange and convergence paths. Light pulses travel along them.
+const INTENT = "M256 150C292 124 334 112 363 112";
+const DRAFT = "M351 200C326 222 292 224 268 214";
+const TO_HUMAN = "M158 300C158 326 200 318 200 336";
+const TO_AI = "M378 277C378 314 318 316 318 336";
+
+/** A dot that travels along a path; hidden for reduced motion. */
+function Pulse({ path, dur, begin = "0s", className }: { path: string; dur: string; begin?: string; className: string }) {
+  return (
+    <circle r={3} className={cn("motion-reduce:hidden", className)}>
+      <animateMotion dur={dur} begin={begin} repeatCount="indefinite" path={path} />
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.8;1" dur={dur} begin={begin} repeatCount="indefinite" />
+    </circle>
+  );
+}
+
 /**
  * Human profile (judgment) and a neural cluster (AI capability) exchanging work,
  * converging on one reviewed solution.
@@ -60,6 +79,9 @@ export function HumanAiCollab({ className }: { className?: string }) {
         <marker id="hac-arrow-ai" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M0 0 10 5 0 10z" className="fill-brand-400" />
         </marker>
+        <clipPath id="hac-brain">
+          <path d={BRAIN_PATH} />
+        </clipPath>
         <linearGradient id="hac-out" x1="0" x2="1">
           <stop offset="0%" stopColor="#7cc4ff" />
           <stop offset="100%" stopColor="#ff700e" />
@@ -95,7 +117,7 @@ export function HumanAiCollab({ className }: { className?: string }) {
       {/* Brain: lobes, folds traced as circuitry, cerebellum and stem */}
       <circle cx={164} cy={142} r={70} fill="url(#hac-mind)" />
       <path
-        d="M110 160C98 150 100 126 118 118C122 102 144 96 158 102C170 92 196 94 204 108C220 110 228 126 222 140C230 152 222 170 206 170C200 180 184 182 176 174C166 182 148 182 142 172C130 178 114 172 110 160Z"
+        d={BRAIN_PATH}
         className="fill-human-accent/[0.07] stroke-human-accent"
         strokeWidth={1.6}
         strokeLinejoin="round"
@@ -125,6 +147,12 @@ export function HumanAiCollab({ className }: { className?: string }) {
         ))}
       </g>
       <circle cx={222} cy={140} r={3.4} className="animate-pulse-soft fill-human-accent" />
+      {/* Scan line sweeping the brain */}
+      <g clipPath="url(#hac-brain)" className="motion-reduce:hidden">
+        <rect x={96} y={96} width={136} height={2} className="fill-human-accent/70">
+          <animate attributeName="y" values="96;184;96" dur="4.5s" repeatCount="indefinite" />
+        </rect>
+      </g>
 
       {/* AI network */}
       <circle cx={hub[0]} cy={hub[1]} r={90} fill="url(#hac-glow)" />
@@ -139,13 +167,35 @@ export function HumanAiCollab({ className }: { className?: string }) {
           <circle key={i} cx={x} cy={y} r={6} />
         ))}
       </g>
+      {/* Targeting rings around the hub */}
+      <circle
+        cx={hub[0]}
+        cy={hub[1]}
+        r={30}
+        className="fill-none stroke-brand-400/60 motion-safe:animate-[spin_10s_linear_infinite]"
+        strokeWidth={1.2}
+        strokeDasharray="10 7"
+        style={{ transformOrigin: `${hub[0]}px ${hub[1]}px` }}
+      />
+      <circle
+        cx={hub[0]}
+        cy={hub[1]}
+        r={76}
+        className="fill-none stroke-brand-400/25 motion-safe:animate-[spin_40s_linear_infinite_reverse]"
+        strokeWidth={1}
+        strokeDasharray="2 10 40 10"
+        style={{ transformOrigin: `${hub[0]}px ${hub[1]}px` }}
+      />
       <circle cx={hub[0]} cy={hub[1]} r={18} className="fill-ink-850 stroke-brand-300" strokeWidth={2} />
       <circle cx={hub[0]} cy={hub[1]} r={7} className="animate-pulse-soft fill-brand-400" />
 
       {/* Exchange between human and AI */}
       {/* Intent: forehead → top-left AI node. Draft: left AI node → back to the face. Pills sit on each line's midpoint. */}
-      <path d="M256 150C292 124 334 112 363 112" className="flow-dash fill-none stroke-human-accent/80" strokeWidth={1.6} markerEnd="url(#hac-arrow-human)" />
-      <path d="M351 200C326 222 292 224 268 214" className="flow-dash fill-none stroke-brand-400/90" strokeWidth={1.6} markerEnd="url(#hac-arrow-ai)" />
+      <path d={INTENT} className="flow-dash fill-none stroke-human-accent/80" strokeWidth={1.6} markerEnd="url(#hac-arrow-human)" />
+      <path d={DRAFT} className="flow-dash fill-none stroke-brand-400/90" strokeWidth={1.6} markerEnd="url(#hac-arrow-ai)" />
+      {/* Pulses run under the pills */}
+      <Pulse path={INTENT} dur="3s" className="fill-human-accent" />
+      <Pulse path={DRAFT} dur="3s" begin="1.5s" className="fill-brand-300" />
       <g className="font-mono" fontSize={11}>
         <rect x={290} y={111} width={50} height={20} rx={6} className="fill-ink-850 stroke-human-accent/40" />
         <text x={315} y={125} textAnchor="middle" className="fill-human-accent">
@@ -159,8 +209,13 @@ export function HumanAiCollab({ className }: { className?: string }) {
 
       {/* Convergence to the reviewed solution */}
       {/* Both sides enter the top edge of the solution card */}
-      <path d="M158 300C158 326 200 318 200 336" className="flow-dash fill-none stroke-human-accent/60" strokeWidth={1.4} markerEnd="url(#hac-arrow-human)" />
-      <path d="M378 277C378 314 318 316 318 336" className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.4} markerEnd="url(#hac-arrow-ai)" />
+      <path d={TO_HUMAN} className="flow-dash fill-none stroke-human-accent/60" strokeWidth={1.4} markerEnd="url(#hac-arrow-human)" />
+      <path d={TO_AI} className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.4} markerEnd="url(#hac-arrow-ai)" />
+
+      {/* Pulses into the result */}
+      <Pulse path={TO_HUMAN} dur="2.4s" begin="0.6s" className="fill-human-accent" />
+      <Pulse path={TO_AI} dur="2.4s" begin="1.8s" className="fill-brand-300" />
+
       <rect x={160} y={340} width={196} height={52} rx={12} className="fill-ink-850" stroke="url(#hac-out)" strokeWidth={1.5} />
       <circle cx={186} cy={366} r={11} className="fill-brand-400" />
       <path d="m180.5 366 4 4 7-8" className="fill-none stroke-on-brand" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />

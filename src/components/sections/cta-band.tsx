@@ -38,9 +38,6 @@ export function CtaBand({
               <p className="mt-5 max-w-xl text-lead text-fg-muted">{lead}</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-end">
-              <ButtonLink href="/contact" arrow>
-                Start a Project
-              </ButtonLink>
               <ButtonLink href="/how-we-work" variant="secondary">
                 See how we work
               </ButtonLink>

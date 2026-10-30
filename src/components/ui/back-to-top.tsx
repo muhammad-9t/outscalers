@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { scrollToY } from "@/lib/smooth-scroll";
 
 const SHOW_AFTER = 600;
 const RING = 2 * Math.PI * 20;
@@ -35,8 +36,7 @@ export function BackToTop() {
   }, []);
 
   const backToTop = () => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    scrollToY(0);
     // Return keyboard focus to the start of the page.
     document.querySelector<HTMLElement>("header a")?.focus({ preventScroll: true });
   };

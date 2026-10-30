@@ -1,73 +1,61 @@
 "use client";
 
 import { useId, useRef, useState, type FormEvent } from "react";
-import { Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { interests, readContact, validateContact, type ContactErrors, type ContactField } from "@/lib/contact";
 import { SelectField } from "./select-field";
 
-type Field = "firstName" | "lastName" | "email" | "company" | "interest" | "message";
-type Errors = Partial<Record<Field, string>>;
-
-const interests = [
-  "AI solutions & agents",
-  "Custom software development",
-  "Business process automation",
-  "Data engineering & cloud",
-  "Security & quality engineering",
-  "Team augmentation",
-  "Not sure yet",
-];
-
-function validate(data: FormData): Errors {
-  const errors: Errors = {};
-  const get = (k: Field) => String(data.get(k) ?? "").trim();
-  if (!get("firstName")) errors.firstName = "Please enter your first name.";
-  if (!get("lastName")) errors.lastName = "Please enter your last name.";
-  const email = get("email");
-  if (!email) errors.email = "Please enter your email address.";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Please enter a valid email address.";
-  if (get("message").length < 20) errors.message = "Please tell us a little more (at least 20 characters).";
-  return errors;
-}
+type Field = ContactField;
+type Status = "idle" | "sending" | "sent" | "error";
 
 const inputClass =
   "mt-2 block w-full rounded-xl border border-line-strong bg-ink-900 px-4 py-3 text-[0.9375rem] text-fg placeholder:text-fg-subtle transition-colors focus:border-brand-400 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300 aria-[invalid=true]:border-danger";
 
-/**
- * Project enquiry form. There is no backend yet, so a valid submission opens the
- * visitor's email client with the message pre-filled.
- * TODO: replace `mailto` with a server action or form service when one is chosen.
- */
+/** Project enquiry form. Posts to /api/contact, which emails the team through Resend. */
 export function ContactForm({ email }: { email: string }) {
-  const [errors, setErrors] = useState<Errors>({});
-  const [status, setStatus] = useState<"idle" | "opened">("idle");
+  const [errors, setErrors] = useState<ContactErrors>({});
+  const [status, setStatus] = useState<Status>("idle");
   const formRef = useRef<HTMLFormElement>(null);
   const id = useId();
   const fid = (f: Field) => `${id}-${f}`;
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const found = validate(data);
-    setErrors(found);
+  function focusFirst(found: ContactErrors) {
     const firstInvalid = Object.keys(found)[0] as Field | undefined;
-    if (firstInvalid) {
-      formRef.current?.querySelector<HTMLElement>(`#${CSS.escape(fid(firstInvalid))}`)?.focus();
-      return;
+    if (firstInvalid) formRef.current?.querySelector<HTMLElement>(`#${CSS.escape(fid(firstInvalid))}`)?.focus();
+    return Boolean(firstInvalid);
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (status === "sending") return;
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const values = readContact((k) => data.get(k));
+    const found = validateContact(values);
+    setErrors(found);
+    if (focusFirst(found)) return;
+
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, website: String(data.get("website") ?? "") }),
+      });
+      if (res.status === 422) {
+        const { errors: serverErrors } = (await res.json()) as { errors: ContactErrors };
+        setErrors(serverErrors);
+        setStatus("idle");
+        focusFirst(serverErrors);
+        return;
+      }
+      if (!res.ok) throw new Error(String(res.status));
+      form.reset();
+      setStatus("sent");
+    } catch {
+      setStatus("error");
     }
-
-    const v = (k: Field) => String(data.get(k) ?? "").trim();
-    const subject = `Project enquiry: ${v("interest") || "General"}`;
-    const details = [
-      `Name: ${v("firstName")} ${v("lastName")}`,
-      `Email: ${v("email")}`,
-      v("company") && `Company: ${v("company")}`,
-      v("interest") && `Interested in: ${v("interest")}`,
-    ].filter(Boolean);
-    const body = `${details.join("\n")}\n\n${v("message")}`;
-
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setStatus("opened");
   }
 
   const describedBy = (f: Field, hint?: string) =>
@@ -81,7 +69,14 @@ export function ContactForm({ email }: { email: string }) {
     ) : null;
 
   return (
-    <form ref={formRef} noValidate onSubmit={onSubmit} className="space-y-5" aria-describedby={`${id}-note`}>
+    <form ref={formRef} noValidate onSubmit={onSubmit} className="space-y-5" aria-describedby={`${id}-note`} aria-busy={status === "sending"}>
+      {/* Honeypot for bots; hidden from people and assistive tech. */}
+      <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+        <label>
+          Website <input name="website" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor={fid("firstName")} className="text-sm font-medium">
@@ -151,6 +146,7 @@ export function ContactForm({ email }: { email: string }) {
           placeholder="Select an area (optional)"
           className={inputClass}
         />
+        {errorText("interest")}
       </div>
 
       <div>
@@ -174,17 +170,38 @@ export function ContactForm({ email }: { email: string }) {
 
       <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
         <p id={`${id}-note`} className="text-sm text-fg-subtle">
-          Submitting opens your email app with your message ready to send to {email}.
+          Your message goes straight to our team at {email}. We only use your details to reply.
         </p>
-        <button type="submit" className="btn btn-primary shrink-0">
-          Prepare email <Send aria-hidden className="size-4" />
+        <button type="submit" disabled={status === "sending"} className="btn btn-primary shrink-0 disabled:cursor-wait disabled:opacity-70">
+          {status === "sending" ? (
+            <>
+              Sending <Loader2 aria-hidden className="size-4 animate-spin" />
+            </>
+          ) : (
+            <>
+              Send message <Send aria-hidden className="size-4" />
+            </>
+          )}
         </button>
       </div>
 
-      <p role="status" aria-live="polite" className="text-sm text-brand-200 empty:hidden">
-        {status === "opened" &&
-          `Your email app should now open with your message. If it didn't, please email us directly at ${email}.`}
-      </p>
+      <div role="status" aria-live="polite" className="empty:hidden">
+        {status === "sent" && (
+          <p className="flex items-start gap-2 rounded-xl border border-brand-400/40 bg-brand-500/10 px-4 py-3 text-sm text-brand-200">
+            <CheckCircle2 aria-hidden className="mt-0.5 size-4 shrink-0" />
+            Thanks! Your message is on its way. We&apos;ll reply within one business day.
+          </p>
+        )}
+        {status === "error" && (
+          <p className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+            Sorry, we couldn&apos;t send your message. Please try again, or email us directly at{" "}
+            <a href={`mailto:${email}`} className="underline underline-offset-2">
+              {email}
+            </a>
+            .
+          </p>
+        )}
+      </div>
     </form>
   );
 }

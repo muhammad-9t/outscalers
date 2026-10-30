@@ -40,7 +40,7 @@ const place = (x: number, mirror = false) =>
 export function HeroDuo({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="20 90 520 300"
+      viewBox="20 30 520 282"
       role="img"
       aria-labelledby="hd-title hd-desc"
       className={cn("h-auto w-full overflow-visible", className)}
@@ -140,15 +140,15 @@ export function HeroDuo({ className }: { className?: string }) {
         </text>
       </g>
 
-      {/* Outcome: the core feeds one reviewed, tested result */}
-      <path d="M280 225V328" className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.6} />
-      <rect x={164} y={330} width={232} height={54} rx={14} className="fill-ink-850" stroke="url(#hd-core-stroke)" strokeWidth={1.5} />
-      <circle cx={192} cy={357} r={12} className="fill-brand-400" />
-      <path d="m186 357 4.5 4.5 7.5-8.5" className="fill-none stroke-on-brand" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-      <text x={214} y={353} className="fill-fg font-sans" fontSize={13} fontWeight={600}>
+      {/* Outcome, above the core: the core feeds one reviewed, tested result */}
+      <path d="M280 141V92" className="flow-dash fill-none stroke-brand-400/70" strokeWidth={1.6} />
+      <rect x={164} y={36} width={232} height={54} rx={14} className="fill-ink-850" stroke="url(#hd-core-stroke)" strokeWidth={1.5} />
+      <circle cx={192} cy={63} r={12} className="fill-brand-400" />
+      <path d="m186 63 4.5 4.5 7.5-8.5" className="fill-none stroke-on-brand" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+      <text x={214} y={59} className="fill-fg font-sans" fontSize={13} fontWeight={600}>
         Shipped with confidence
       </text>
-      <text x={214} y={370} className="fill-fg-subtle font-mono" fontSize={10}>
+      <text x={214} y={76} className="fill-fg-subtle font-mono" fontSize={10}>
         human-reviewed · tested
       </text>
     </svg>

@@ -46,9 +46,8 @@ The design tokens (colours, type scale, radii, motion) live in `src/app/globals.
 
 Search for `TODO(verify)` and check these items:
 
-1. **Email:** `hello@outscalers.com` (`src/lib/site.ts`). The live site doesn't list an email address.
-2. **Contact form:** there is no backend yet. The form opens the visitor's email client (`mailto`). Replace it with a server action or form service when one is chosen.
-3. **Case studies** (`src/content/case-studies.ts`): the three profiles come from the previous Vercel site and are marked **Draft** on the page. Confirm them with clients, then add client names, screenshots and verified `results`, or remove them. `humanAiApproach` should only be filled in if AI-assisted delivery was actually used on that project.
-4. **How We Work ground rules** (`src/app/how-we-work/page.tsx`): confirm these match company policy, especially the client-data rule.
-5. **Team profiles:** the About page has a placeholder for them.
-6. **Digital marketing**, which is listed on outscalers.com, isn't on this engineering-focused site. Add it if it should stay.
+1. **Contact form:** there is no backend yet. The form opens the visitor's email client (`mailto`). Replace it with a server action or form service when one is chosen.
+2. **Case studies** (`src/content/case-studies.ts`): the three profiles come from the previous Vercel site and are marked **Draft** on the page. Confirm them with clients, then add client names, screenshots and verified `results`, or remove them. `humanAiApproach` should only be filled in if AI-assisted delivery was actually used on that project.
+3. **How We Work ground rules** (`src/app/how-we-work/page.tsx`): confirm these match company policy, especially the client-data rule.
+4. **Team profiles:** the About page has a placeholder for them.
+5. **Digital marketing**, which is listed on outscalers.com, isn't on this engineering-focused site. Add it if it should stay.

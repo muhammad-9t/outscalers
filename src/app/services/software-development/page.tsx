@@ -36,7 +36,7 @@ export default function SoftwareDevelopmentPage() {
       <DeliverablesBlock service={service} variant="split" title="Software we build" />
 
       {/* Signature: AI in the engineering workflow */}
-      <Section tone="deep" labelledBy="workflow-title">
+      <Section labelledBy="workflow-title">
         <div className="container-site">
           <SectionHeading
             id="workflow-title"

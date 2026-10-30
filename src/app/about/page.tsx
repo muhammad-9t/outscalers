@@ -104,7 +104,7 @@ export default function AboutPage() {
       </Section>
 
       {/* Evolution: a scroll story on large screens, cards on small ones */}
-      <Section tone="deep" labelledBy="evolution-title" className="lg:pb-0">
+      <Section labelledBy="evolution-title" className="lg:pb-0">
         <div className="container-site">
           <SectionHeading
             id="evolution-title"

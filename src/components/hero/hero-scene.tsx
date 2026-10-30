@@ -281,9 +281,9 @@ export function HeroScene() {
           : "Engineer writing the brief";
 
   return (
-    <div ref={rootRef} className="relative">
-      {/* Stage tracker — readable text that tells the story even without motion */}
-      <ol className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="How a feature moves through our workflow">
+    <div ref={rootRef} className="relative flex flex-col">
+      {/* Stage tracker — first in the DOM for screen readers, shown below the editor */}
+      <ol className="order-last mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="How a feature moves through our workflow">
         {STAGES.map((s, i) => {
           const state = done || i < stage ? "done" : i === stage ? "current" : "next";
           return (
@@ -320,12 +320,12 @@ export function HeroScene() {
         })}
       </ol>
 
-      {/* Editor window — decorative, described for assistive tech by the tracker above */}
+      {/* Editor window — decorative, described for assistive tech by the stage tracker */}
       <div
-        className="relative overflow-hidden rounded-2xl border border-line-strong bg-code-bg shadow-[0_40px_120px_-40px_rgba(255,112,14,0.28)]"
+        className="relative overflow-hidden rounded-2xl border border-line-strong bg-code-bg/45 shadow-[0_40px_120px_-40px_rgba(255,112,14,0.28)] backdrop-blur-2xl backdrop-saturate-150 [[data-theme=light]_&]:bg-code-bg/70"
       >
         {/* Title bar */}
-        <div className="flex h-9 items-center gap-3 border-b border-line bg-ink-950/80 px-3">
+        <div className="flex h-9 items-center gap-3 border-b border-line bg-ink-950/15 px-3">
           <span aria-hidden className="flex gap-1.5">
             <span className="size-2.5 rounded-full bg-line-strong" />
             <span className="size-2.5 rounded-full bg-line-strong" />
@@ -348,7 +348,7 @@ export function HeroScene() {
 
         <div aria-hidden className="flex">
           {/* Explorer */}
-          <div className="hidden w-44 shrink-0 border-r border-line bg-ink-950/50 py-3 lg:block">
+          <div className="hidden w-44 shrink-0 border-r border-line bg-ink-950/25 py-3 lg:block">
             <p className="px-4 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">Explorer</p>
             <div className="mt-2 px-2 font-mono text-[11.5px] leading-6 text-fg-muted">
               <p className="flex items-center gap-1 px-2">
@@ -380,7 +380,7 @@ export function HeroScene() {
           {/* Editor + terminal */}
           <div className="min-w-0 flex-1">
             {/* Tabs */}
-            <div className="flex h-8 items-end gap-px overflow-hidden border-b border-line bg-ink-950/40 px-1 font-mono text-[11px]">
+            <div className="flex h-8 items-end gap-px overflow-hidden border-b border-line bg-ink-950/20 px-1 font-mono text-[11px]">
               {[
                 { id: "brief", label: "BRIEF.md", icon: FileText },
                 { id: "code", label: "triage.ts", icon: FileCode2 },
@@ -478,7 +478,7 @@ export function HeroScene() {
           </div>
 
           {/* AI assistant panel */}
-          <div className="hidden w-[248px] shrink-0 flex-col border-l border-line bg-ink-950/40 md:flex xl:w-[288px]">
+          <div className="hidden w-[248px] shrink-0 flex-col border-l border-line bg-ink-950/20 md:flex xl:w-[288px]">
             <p className="flex h-8 items-center gap-1.5 border-b border-line px-3 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
               <Sparkles className="size-3 text-brand-400" /> AI assistant
             </p>
@@ -532,7 +532,7 @@ export function HeroScene() {
         </div>
       </div>
 
-      <p className="mt-3 text-center text-xs text-fg-subtle">
+      <p className="order-last mt-3 text-center text-xs text-fg-subtle">
         Illustrative animation. In real projects, every AI-assisted change is reviewed and tested by our engineers.
       </p>
     </div>

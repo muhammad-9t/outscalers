@@ -15,8 +15,7 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://outscalers-it.vercel.app",
   founded: 2023,
   contact: {
-    // TODO(verify): the live site lists no email address; confirm this inbox exists before launch.
-    email: "hello@outscalers.com",
+    email: "contact@outscalers.com",
     responseTime: "We aim to reply within one business day.",
   },
   // Offices and phone numbers as published on outscalers.com/contact.

@@ -35,6 +35,15 @@ export function SelectField({
   // Option 0 is the empty placeholder, so the list can be cleared again.
   const items = ["", ...options];
 
+  // Clear the choice when the surrounding form is reset (e.g. after sending).
+  useEffect(() => {
+    const form = rootRef.current?.closest("form");
+    if (!form) return;
+    const onReset = () => setValue("");
+    form.addEventListener("reset", onReset);
+    return () => form.removeEventListener("reset", onReset);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onPointer = (e: PointerEvent) => {

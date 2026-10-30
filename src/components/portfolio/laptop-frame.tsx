@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { useRouter } from "next/navigation";
 import { LogoMark } from "@/components/layout/logo";
+import { scrollToY } from "@/lib/smooth-scroll";
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
@@ -167,7 +168,7 @@ export function LaptopFrame({ frameRef, children }: { frameRef: RefObject<HTMLDi
       screen.scrollTop = 0;
       const offset = e.target.getBoundingClientRect().left - p.track.getBoundingClientRect().left;
       const wanted = clamp(offset - p.viewport.clientWidth / 3, 0, p.travel);
-      window.scrollTo({ top: stage.getBoundingClientRect().top + window.scrollY + hold() + wanted });
+      scrollToY(stage.getBoundingClientRect().top + window.scrollY + hold() + wanted, { smooth: false });
     };
 
     const ro = new ResizeObserver(schedule);
