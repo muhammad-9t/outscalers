@@ -1,10 +1,11 @@
+import nodemailer from "nodemailer";
 import { siteConfig } from "@/lib/site";
 import { readContact, validateContact, type ContactValues } from "@/lib/contact";
 
 /**
- * Sends a project enquiry to the team inbox through Resend.
- * Env: RESEND_API_KEY (required), CONTACT_FROM (a sender on a Resend-verified
- * domain), CONTACT_TO (defaults to the public contact address).
+ * Sends a project enquiry to the team inbox over SMTP.
+ * Env: SMTP_HOST, SMTP_PORT (465 = TLS, otherwise STARTTLS), SMTP_USER, SMTP_PASS,
+ * CONTACT_FROM (defaults to SMTP_USER), CONTACT_TO (defaults to the public contact address).
  */
 
 const escapeHtml = (s: string) =>
@@ -40,29 +41,32 @@ export async function POST(req: Request) {
   const errors = validateContact(values);
   if (Object.keys(errors).length) return Response.json({ errors }, { status: 422 });
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.CONTACT_FROM;
-  if (!apiKey || !from) {
-    console.error("Contact form: RESEND_API_KEY or CONTACT_FROM is not set.");
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    console.error("Contact form: SMTP_HOST, SMTP_USER or SMTP_PASS is not set.");
     return Response.json({ error: "not_configured" }, { status: 503 });
   }
 
+  const port = Number(SMTP_PORT) || 587;
+  const transport = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port,
+    secure: port === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+
   const { text, html } = buildEmail(values);
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from,
-      to: [process.env.CONTACT_TO || siteConfig.contact.email],
-      reply_to: values.email,
+  try {
+    await transport.sendMail({
+      from: process.env.CONTACT_FROM || `Outscalers Website <${SMTP_USER}>`,
+      to: process.env.CONTACT_TO || siteConfig.contact.email,
+      replyTo: values.email,
       subject: `Project enquiry: ${values.interest || "General"} (${values.firstName} ${values.lastName})`,
       text,
       html,
-    }),
-  });
-
-  if (!res.ok) {
-    console.error("Contact form: Resend error", res.status, await res.text());
+    });
+  } catch (err) {
+    console.error("Contact form: SMTP error", err);
     return Response.json({ error: "send_failed" }, { status: 502 });
   }
   return Response.json({ ok: true });

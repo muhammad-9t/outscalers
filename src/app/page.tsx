@@ -13,7 +13,6 @@ import {
   BrainCircuit,
   AppWindow,
   Wrench,
-  ArrowRight,
 } from "lucide-react";
 import { HeroCircuit } from "@/components/hero/hero-circuit";
 import { HeroScene } from "@/components/hero/hero-scene";
@@ -110,8 +109,8 @@ export default function HomePage() {
         </div>
         <HeroCircuit />
         <div className="container-site relative">
-          {/* The message comes first: the headline runs across the top, then the lead and actions sit beside
-              the human-control animation. Small screens stack them: message, actions, services, animation. */}
+          {/* The message comes first: the headline runs across the top, then the lead and services sit beside
+              the human-control animation. Small screens stack them: message, services, animation. */}
           <div className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
             {/* Live session log in the empty top right, beside the headline, on wide screens only.
                 Inside this block (not the padded container) so it lines up with the content edge. */}
@@ -130,15 +129,6 @@ export default function HomePage() {
               <p className="max-w-xl text-lead text-fg-muted">
                 Experienced engineers and AI, building intelligent software that takes your ideas to production.
               </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start short:mt-5">
-                <Link href="/services" className="btn btn-primary">
-                  Explore our services
-                  <ArrowRight aria-hidden className="size-4" />
-                </Link>
-                <Link href="/portfolio" className="btn btn-secondary">
-                  See our work
-                </Link>
-              </div>
               <div className="mt-12 flex flex-col items-center gap-3 lg:items-start short:mt-6">
                 <p aria-hidden className="font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
                   {"// Services"}

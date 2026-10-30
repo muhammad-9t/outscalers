@@ -1,5 +1,3 @@
-import { ButtonLink } from "@/components/ui/primitives";
-
 /** Closing call to action, shared across pages. */
 export function CtaBand({
   title = "Have an idea? Let's engineer what's next.",
@@ -26,22 +24,15 @@ export function CtaBand({
             <path d="M0 280C200 280 260 190 420 190S660 140 800 120" className="fill-none stroke-line-strong" strokeWidth={1} />
           </svg>
 
-          <div className="relative grid items-end gap-10 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <p className="font-mono text-sm text-brand-300">
-                <span className="text-fg-subtle">$</span> outscalers start --project <span className="text-fg">your-idea</span>
-                <span aria-hidden className="ml-1 inline-block h-4 w-2 translate-y-0.5 animate-caret bg-brand-300" />
-              </p>
-              <h2 id="cta-title" className="mt-6 text-display-lg font-semibold">
-                {title}
-              </h2>
-              <p className="mt-5 max-w-xl text-lead text-fg-muted">{lead}</p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-end">
-              <ButtonLink href="/how-we-work" variant="secondary">
-                See how we work
-              </ButtonLink>
-            </div>
+          <div className="relative mx-auto max-w-3xl text-center">
+            <p className="font-mono text-sm text-brand-300">
+              <span className="text-fg-subtle">$</span> outscalers start --project <span className="whitespace-nowrap text-fg">your-idea</span>
+              <span aria-hidden className="ml-1 inline-block h-4 w-2 translate-y-0.5 animate-caret bg-brand-300" />
+            </p>
+            <h2 id="cta-title" className="mt-6 text-display-lg font-semibold text-balance">
+              {title}
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-lead text-fg-muted">{lead}</p>
           </div>
         </div>
       </div>

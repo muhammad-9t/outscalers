@@ -12,7 +12,7 @@ type Status = "idle" | "sending" | "sent" | "error";
 const inputClass =
   "mt-2 block w-full rounded-xl border border-line-strong bg-ink-900 px-4 py-3 text-[0.9375rem] text-fg placeholder:text-fg-subtle transition-colors focus:border-brand-400 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300 aria-[invalid=true]:border-danger";
 
-/** Project enquiry form. Posts to /api/contact, which emails the team through Resend. */
+/** Project enquiry form. Posts to /api/contact, which emails the team over SMTP. */
 export function ContactForm({ email }: { email: string }) {
   const [errors, setErrors] = useState<ContactErrors>({});
   const [status, setStatus] = useState<Status>("idle");
