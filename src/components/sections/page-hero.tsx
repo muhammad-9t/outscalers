@@ -59,7 +59,7 @@ export function PageHero({
             {actions && <div className="mt-9 flex flex-wrap gap-3">{actions}</div>}
           </div>
           {visual && (
-            <div data-reveal className="relative">
+            <div data-reveal className="relative min-w-0">
               {visual}
             </div>
           )}

@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { Boxes, LifeBuoy, Rocket } from "lucide-react";
+import { Check } from "lucide-react";
 import { services, serviceHref } from "@/content/services";
+import { cn } from "@/lib/cn";
 import { pageMetadata } from "@/lib/site";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { PageHero } from "@/components/sections/page-hero";
+import { BookCallDialog } from "@/components/contact/book-call-dialog";
 import { CtaBand } from "@/components/sections/cta-band";
+import { QuickCheck } from "@/components/sections/quick-check";
 import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
 import { ServicePanel } from "@/components/sections/service-panel";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -16,21 +19,52 @@ export const metadata = pageMetadata({
   path: "/services",
 });
 
-const engagements = [
+const plans = [
   {
-    icon: Rocket,
-    title: "Project delivery",
-    body: "A dedicated team takes a defined product or initiative from discovery to launch, with clear milestones and regular demos.",
+    kind: "One-off",
+    title: "Assessment",
+    lead: "The health and security check for anyone who wants to know what they have first.",
+    price: "Fixed price, agreed in advance",
+    items: [
+      "Map of all applications and interfaces",
+      "Component inventory with versions and end-of-life dates",
+      "Review against all 20 points of our standard",
+      "Risks ranked by urgency, with effort estimates",
+      "Final meeting and a quote for maintenance",
+    ],
+    note: "Credited if you go on to book maintenance.",
   },
   {
-    icon: Boxes,
-    title: "Team augmentation",
-    body: "Our engineers join your team, work in your tools and processes, and bring AI-assisted practices with them.",
+    kind: "Monthly · Core service",
+    featured: true,
+    title: "Maintenance",
+    lead: "For software that has to keep running.",
+    price: "Fixed monthly price",
+    items: [
+      "Updates and security patches",
+      "New security advisories checked continuously against your component inventory",
+      "Monitoring and backups with restore tests",
+      "System dossier, kept up to date",
+      "Fixed monthly allowance for changes",
+      "Agreed response time for critical vulnerabilities",
+      "Monthly report and a dedicated contact person",
+    ],
+    note: "Minimum term 6 months, then cancellable monthly.",
   },
   {
-    icon: LifeBuoy,
-    title: "Ongoing support & improvement",
-    body: "Maintenance, monitoring, performance optimisation and feature enhancements after launch.",
+    kind: "Monthly",
+    title: "Developer team",
+    lead: "For ongoing development.",
+    price: "Monthly per developer",
+    items: [
+      "Junior and senior developers, dedicated to your project",
+      "Working with AI tools every day",
+      "Review by a second developer for every change",
+      "Project management from Mannheim",
+      "Working directly in your Jira, GitHub, Slack or Teams",
+      "Maintenance standard included",
+    ],
+    note: "Minimum term 6 months, then cancellable monthly.",
   },
 ];
 
@@ -111,24 +145,50 @@ export default function ServicesPage() {
         </HorizontalScroll>
       </Section>
 
-      <Section tone="raised" labelledBy="engage-title">
+      <Section tone="raised" labelledBy="pricing-title">
         <div className="container-site">
           <SectionHeading
-            id="engage-title"
-            eyebrow="Ways to work together"
-            title="Engagement models"
-            lead="Choose the model that fits your team today. Many clients move between them over time."
+            id="pricing-title"
+            eyebrow="Pricing"
+            title={<>Three ways to work<br className="hidden sm:block" /> with Outscalers</>}
+            lead="You pay for maintenance, not for a full-time position. You get your quote at a fixed price before you decide."
           />
-          <ul className="mt-12 grid gap-5 md:grid-cols-3">
-            {engagements.map((e, i) => (
-              <Reveal as="li" key={e.title} delay={i * 80} className="card p-7">
-                <e.icon aria-hidden className="size-6 text-brand-300" strokeWidth={1.7} />
-                <h3 className="mt-5 text-lg font-semibold">{e.title}</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{e.body}</p>
+          <ul className="mt-12 grid items-stretch gap-5 lg:grid-cols-3">
+            {plans.map((p, i) => (
+              <Reveal
+                as="li"
+                key={p.title}
+                delay={i * 80}
+                className={cn("card flex flex-col p-7 sm:p-8", p.featured && "border-brand-500/50")}
+              >
+                <p className={cn("font-mono text-xs uppercase tracking-widest", p.featured ? "text-brand-300" : "text-fg-subtle")}>
+                  {p.kind}
+                </p>
+                <h3 className="mt-4 text-2xl font-semibold">{p.title}</h3>
+                <p className="mt-3 text-[0.9375rem] leading-relaxed text-fg-muted">{p.lead}</p>
+                <p className="mt-5 border-y border-line py-4 font-display text-lg font-semibold">{p.price}</p>
+                <ul className="mt-5 space-y-3">
+                  {p.items.map((item) => (
+                    <li key={item} className="flex gap-3 text-[0.9375rem] leading-relaxed">
+                      <Check aria-hidden className="mt-1 size-4 shrink-0 text-brand-400" strokeWidth={2.2} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-auto pt-8 text-sm text-fg-subtle">{p.note}</p>
+                {p.featured && <BookCallDialog label="Request an assessment" className="mt-5 w-full" />}
               </Reveal>
             ))}
           </ul>
+          <p className="mt-8 max-w-3xl text-[0.9375rem] leading-relaxed text-fg-muted">
+            <strong className="font-semibold text-fg">What determines the price:</strong> the number and type of systems,
+            their condition when we take over, the response times you need and the change allowance.
+          </p>
         </div>
+      </Section>
+
+      <Section tone="dark" labelledBy="quick-check-title">
+        <QuickCheck />
       </Section>
 
       <CtaBand />

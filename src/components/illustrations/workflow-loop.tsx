@@ -22,6 +22,15 @@ const tone: Record<Tone, { ring: string; halo: string; icon: string; dot: string
   neutral: { ring: "stroke-fg-subtle", halo: "stroke-fg-subtle/20", icon: "text-fg-muted", dot: "fill-fg-subtle" },
 };
 
+// Work packets: a packet crosses the pipeline in the first two thirds of each cycle
+// (reaching each node in turn, which pings), then feedback carries it back round to the idea.
+const CYCLE = 6;
+const RUN = 4; // seconds to cross from Idea to Deploy
+const MAIN = `M80 ${Y}H640`;
+const CHANGES = `M360 ${Y - R - 6}C360 ${Y - 86} 220 ${Y - 86} 220 ${Y - R - 8}`;
+const FEEDBACK = `M${640 + R + 6} ${Y}H684Q700 ${Y} 700 ${Y + 16}V196Q700 212 684 212H36Q20 212 20 196V${Y + 16}Q20 ${Y} 36 ${Y}H${80 - R - 8}`;
+const pingDelay = (x: number) => ((x - 80) / 560) * RUN;
+
 const legend: { label: string; tone: Tone; x: number }[] = [
   { label: "Human-led", tone: "human", x: 444 },
   { label: "AI-assisted", tone: "ai", x: 534 },
@@ -89,7 +98,7 @@ export function WorkflowLoop({ className }: { className?: string }) {
 
       {/* Changes requested: review → implement */}
       <path
-        d={`M360 ${Y - R - 6}C360 ${Y - 86} 220 ${Y - 86} 220 ${Y - R - 8}`}
+        d={CHANGES}
         className="flow-dash fill-none stroke-human-accent/70"
         strokeWidth={1.4}
         markerEnd="url(#wl-arrow-human)"
@@ -103,7 +112,7 @@ export function WorkflowLoop({ className }: { className?: string }) {
 
       {/* Feedback: deploy → idea, routed around the pipeline */}
       <path
-        d={`M${640 + R + 6} ${Y}H684Q700 ${Y} 700 ${Y + 16}V196Q700 212 684 212H36Q20 212 20 196V${Y + 16}Q20 ${Y} 36 ${Y}H${80 - R - 8}`}
+        d={FEEDBACK}
         className="flow-dash fill-none stroke-fg-subtle/60"
         strokeWidth={1.3}
         markerEnd="url(#wl-arrow-muted)"
@@ -115,8 +124,33 @@ export function WorkflowLoop({ className }: { className?: string }) {
         </text>
       </g>
 
+      {/* Packets travel behind the nodes, so they seem to pass through each step */}
+      <g className="motion-reduce:hidden">
+        <circle r={4.5} className="fill-brand-300 drop-shadow-[0_0_6px_var(--color-brand-400)]">
+          <animateMotion dur={`${CYCLE}s`} repeatCount="indefinite" path={MAIN} keyPoints="0;1;1" keyTimes={`0;${RUN / CYCLE};1`} calcMode="linear" />
+        </circle>
+        <circle r={3.5} className="fill-fg-subtle">
+          <animateMotion dur={`${CYCLE}s`} begin={`${RUN}s`} repeatCount="indefinite" path={FEEDBACK} keyPoints="0;1;1" keyTimes={`0;${(CYCLE - RUN) / CYCLE};1`} calcMode="linear" />
+          <animate attributeName="opacity" dur={`${CYCLE}s`} begin={`${RUN}s`} repeatCount="indefinite" values="1;1;0;0" keyTimes={`0;${(CYCLE - RUN) / CYCLE - 0.01};${(CYCLE - RUN) / CYCLE};1`} />
+        </circle>
+        {/* Every other cycle, review sends a change back to implementation */}
+        <circle r={3.5} opacity={0} className="fill-human-accent drop-shadow-[0_0_5px_var(--color-human-accent)]">
+          <animateMotion dur={`${CYCLE * 2}s`} begin={`${pingDelay(360)}s`} repeatCount="indefinite" path={CHANGES} keyPoints="0;1;1" keyTimes="0;0.1;1" calcMode="linear" />
+          <animate attributeName="opacity" dur={`${CYCLE * 2}s`} begin={`${pingDelay(360)}s`} repeatCount="indefinite" values="1;1;0;0" keyTimes="0;0.09;0.1;1" />
+        </circle>
+      </g>
+
       {nodes.map(({ x, label, sub, tone: t, Icon }) => (
         <g key={label}>
+          {/* Ping as the packet arrives */}
+          <circle
+            cx={x}
+            cy={Y}
+            r={R + 6}
+            strokeWidth={1.5}
+            className={cn("wl-ping fill-none motion-reduce:hidden", tone[t].ring)}
+            style={{ animationDelay: `${pingDelay(x)}s`, animationDuration: `${CYCLE}s` }}
+          />
           <circle cx={x} cy={Y} r={R + 6} className={cn("fill-none", tone[t].halo)} strokeWidth={1} />
           <circle cx={x} cy={Y} r={R} className={cn("fill-ink-850", tone[t].ring)} strokeWidth={1.6} />
           <Icon x={x - 10} y={Y - 10} width={20} height={20} strokeWidth={1.6} className={tone[t].icon} aria-hidden />

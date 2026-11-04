@@ -212,7 +212,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/contact" className="btn btn-primary btn-sm hidden sm:inline-flex">
+          <Link href="/contact#start-project" className="btn btn-primary btn-sm hidden sm:inline-flex">
             Start a Project
           </Link>
           <button
@@ -270,7 +270,7 @@ export function Header() {
               </li>
             ))}
           </ul>
-          <Link href="/contact" className="btn btn-primary mt-6 w-full">
+          <Link href="/contact#start-project" className="btn btn-primary mt-6 w-full">
             Start a Project
           </Link>
         </nav>

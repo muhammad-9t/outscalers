@@ -1,4 +1,4 @@
-import { CalendarClock, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { pageMetadata, siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { ContactForm } from "@/components/contact/contact-form";
@@ -7,7 +7,7 @@ import { Reveal, Section } from "@/components/ui/primitives";
 export const metadata = pageMetadata({
   title: "Contact",
   description:
-    "Start a project with Outscalers. Tell us what you want to build, automate or improve, or book a call with our team in Europe or Asia.",
+    "Start a project with Outscalers. Tell us what you want to build, automate or improve.",
   path: "/contact",
 });
 
@@ -18,7 +18,7 @@ const steps = [
 ];
 
 export default function ContactPage() {
-  const { contact, offices, scheduling } = siteConfig;
+  const { contact, offices } = siteConfig;
 
   return (
     <>
@@ -33,10 +33,10 @@ export default function ContactPage() {
         className="pb-10 sm:pb-12 lg:pb-14"
       />
 
-      <Section tone="dark" className="!pt-10 sm:!pt-12" labelledBy="form-title">
+      <Section tone="dark" className="!pt-10 sm:!pt-12" labelledBy="start-project">
         <div className="container-site grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:gap-14">
           <Reveal className="card p-6 sm:p-10">
-            <h2 id="form-title" className="text-2xl font-semibold">
+            <h2 id="start-project" className="text-2xl font-semibold">
               Start a project
             </h2>
             <p className="mt-2 text-[0.9375rem] text-fg-muted">{contact.responseTime}</p>
@@ -48,29 +48,6 @@ export default function ContactPage() {
           <div className="space-y-5">
             <Reveal delay={80} className="card p-6">
               <h2 className="flex items-center gap-2 font-semibold">
-                <CalendarClock aria-hidden className="size-5 text-brand-400" /> Book a call
-              </h2>
-              <p className="mt-2 text-sm text-fg-muted">Pick a 30-minute slot that suits your time zone.</p>
-              <ul className="mt-4 grid gap-2">
-                {scheduling.map((s) => (
-                  <li key={s.href}>
-                    <a
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-secondary btn-sm w-full justify-between"
-                    >
-                      {s.label}
-                      <span className="sr-only"> (opens in a new tab)</span>
-                      <span aria-hidden>↗</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-
-            <Reveal delay={140} className="card p-6">
-              <h2 className="flex items-center gap-2 font-semibold">
                 <Mail aria-hidden className="size-5 text-brand-400" /> Email
               </h2>
               <a href={`mailto:${contact.email}`} className="mt-2 inline-block text-sm text-brand-300 hover:text-brand-200">
@@ -78,7 +55,7 @@ export default function ContactPage() {
               </a>
             </Reveal>
 
-            <Reveal delay={200} className="card p-6">
+            <Reveal delay={140} className="card p-6">
               <h2 className="font-semibold">What happens next</h2>
               <ol className="mt-4 space-y-3">
                 {steps.map((s, i) => (

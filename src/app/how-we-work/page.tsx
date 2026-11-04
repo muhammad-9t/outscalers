@@ -4,6 +4,7 @@ import { processPhases } from "@/content/process";
 import { pageMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { CtaBand } from "@/components/sections/cta-band";
+import { DeliveryConsole } from "@/components/how-we-work/delivery-console";
 import { WorkflowLoop } from "@/components/illustrations/workflow-loop";
 import { LaunchTimeline } from "@/components/sections/launch-timeline";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -38,6 +39,7 @@ export default function HowWeWorkPage() {
           { label: "Home", href: "/" },
           { label: "How We Work", href: "/how-we-work" },
         ]}
+        visual={<DeliveryConsole />}
       />
 
       {/* Workflow overview */}
@@ -97,9 +99,9 @@ export default function HowWeWorkPage() {
                         <h4 className="chip chip-human">
                           <UserRound aria-hidden className="size-3.5" /> People
                         </h4>
-                        <ul className="mt-4 space-y-2.5 text-[0.9375rem]">
-                          {p.human.map((h) => (
-                            <li key={h} className="flex gap-2.5">
+                        <ul className="stagger-in mt-4 space-y-2.5 text-[0.9375rem]">
+                          {p.human.map((h, j) => (
+                            <li key={h} className="flex gap-2.5" style={{ "--i": j } as CSSProperties}>
                               <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-human-accent" />
                               {h}
                             </li>
@@ -110,9 +112,12 @@ export default function HowWeWorkPage() {
                         <h4 className="chip chip-ai">
                           <Sparkles aria-hidden className="size-3.5" /> AI assists
                         </h4>
-                        <ul className="mt-4 space-y-2.5 text-[0.9375rem] text-fg-muted">
-                          {p.ai.map((a) => (
-                            <li key={a} className="flex gap-2.5">
+                        <ul
+                          className="stagger-in mt-4 space-y-2.5 text-[0.9375rem] text-fg-muted"
+                          style={{ "--stagger-base": "380ms" } as CSSProperties}
+                        >
+                          {p.ai.map((a, j) => (
+                            <li key={a} className="flex gap-2.5" style={{ "--i": j } as CSSProperties}>
                               <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-400" />
                               {a}
                             </li>
@@ -121,8 +126,8 @@ export default function HowWeWorkPage() {
                       </div>
                     </div>
                   </div>
-                  <p className="flex items-center gap-2.5 border-t border-line bg-ink-900/60 px-6 py-3.5 text-sm sm:px-8">
-                    <ShieldCheck aria-hidden className="size-4 shrink-0 text-brand-400" />
+                  <p className="checkpoint-bar flex items-center gap-2.5 border-t border-line bg-ink-900/60 px-6 py-3.5 text-sm sm:px-8">
+                    <ShieldCheck aria-hidden className="checkpoint-icon size-4 shrink-0 text-brand-400" />
                     <span className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Checkpoint</span>
                     <span>{p.checkpoint}</span>
                   </p>
@@ -145,7 +150,12 @@ export default function HowWeWorkPage() {
           <ul className="space-y-3">
             {principles.map((p, i) => (
               <Reveal as="li" key={p} delay={i * 60} className="card-flat flex items-start gap-4 p-5">
-                <CircleCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-brand-400" strokeWidth={1.8} />
+                <CircleCheck
+                  aria-hidden
+                  className="check-draw mt-0.5 size-5 shrink-0 text-brand-400"
+                  strokeWidth={1.8}
+                  style={{ "--draw-delay": `${i * 60 + 300}ms` } as CSSProperties}
+                />
                 <span className="text-[1.0625rem] font-medium">{p}</span>
               </Reveal>
             ))}

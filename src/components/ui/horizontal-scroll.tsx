@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { scrollToY } from "@/lib/smooth-scroll";
 import { ScrollRobot } from "./scroll-robot";
 
 // Only on large screens, and never for reduced motion: there the panels stay a normal vertical list.
@@ -25,6 +26,7 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
   const flame = useRef<SVGGElement>(null);
   const [on, setOn] = useState(false);
   const [stop, setStop] = useState(0);
+  const travel = useRef(0); // horizontal distance the track covers, mirrored for the rail buttons
 
   useEffect(() => {
     const mq = window.matchMedia(QUERY);
@@ -71,6 +73,7 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
     const measure = () => {
       // How far the track must travel so its last panel ends at the right edge
       distance = Math.max(0, t.scrollWidth - t.clientWidth);
+      travel.current = distance;
       o.style.height = `${window.innerHeight + distance}px`;
       read();
     };
@@ -98,6 +101,14 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
     };
   }, [on, stops.length]);
 
+  // Scrolls the page to the point where panel `i` is in view; the robot then glides there on its own.
+  const goTo = (i: number) => {
+    const o = outer.current;
+    if (!o) return;
+    const top = o.getBoundingClientRect().top + window.scrollY;
+    scrollToY(top + (i / (stops.length - 1)) * travel.current);
+  };
+
   return (
     <div ref={outer} className="relative">
       <div data-pet-hide={on || undefined} className={cn(on && "sticky top-0 h-svh overflow-hidden")}>
@@ -105,35 +116,41 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
           {children}
         </ol>
         {on && (
-          <div aria-hidden className="container-site absolute inset-x-0 bottom-9">
+          <div className="container-site absolute inset-x-0 bottom-9">
             <div ref={rail} className="relative h-px w-full bg-line">
-              <span ref={bar} className="block h-full origin-left scale-x-0 bg-brand-400" />
+              <span ref={bar} aria-hidden className="block h-full origin-left scale-x-0 bg-brand-400" />
               {/* One stop per panel */}
               {stops.map((name, i) => (
-                <span
+                <button
+                  type="button"
                   key={name}
-                  className="absolute top-0 -translate-x-1/2"
+                  onClick={() => goTo(i)}
+                  aria-label={name}
+                  aria-current={i === stop ? "step" : undefined}
+                  className="group absolute top-0 -translate-x-1/2 cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-300"
                   style={{ left: `${(i / (stops.length - 1)) * 100}%` }}
                 >
+                  {/* Larger hit area than the tiny diamond and number */}
+                  <span aria-hidden className="absolute -inset-x-4 -top-3 h-10" />
                   <span
                     className={cn(
                       "block size-2 -translate-y-1/2 rotate-45 border transition-colors duration-300",
-                      i <= stop ? "border-brand-400 bg-brand-400" : "border-line-strong bg-ink-950",
+                      i <= stop ? "border-brand-400 bg-brand-400" : "border-line-strong bg-ink-950 group-hover:border-brand-400",
                     )}
                   />
                   <span
                     className={cn(
                       "absolute top-2.5 left-1/2 -translate-x-1/2 font-mono text-[10px] transition-colors duration-300",
-                      i === stop ? "text-brand-300" : "text-fg-subtle",
+                      i === stop ? "text-brand-300" : "text-fg-subtle group-hover:text-fg",
                     )}
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                </span>
+                </button>
               ))}
               {/* The robot, riding the rail */}
               {/* Zero-width anchor at the robot's centre, so the readout can sit a fixed gap to either side */}
-              <div ref={rider} className="absolute bottom-1 left-0 w-0">
+              <div ref={rider} aria-hidden className="pointer-events-none absolute bottom-1 left-0 w-0">
                 <div className="absolute bottom-0 left-0 -translate-x-1/2 motion-safe:animate-[hover-bob_2.4s_ease-in-out_infinite]">
                   <ScrollRobot bodyRef={body} eyeRef={eye} flameRef={flame} />
                 </div>

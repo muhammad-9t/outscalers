@@ -11,7 +11,7 @@ import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/pri
 export const metadata = pageMetadata({
   title: "About Us",
   description:
-    "Founded in 2023, Outscalers brings together engineering talent from Germany and Pakistan in remote-first teams — now combining human expertise with AI-powered engineering.",
+    "From freelance roots in 2017 to Outscalers in 2023, we bring together engineering talent from Germany and Pakistan in remote-first teams — now combining human expertise with AI-powered engineering.",
   path: "/about",
 });
 
@@ -66,7 +66,7 @@ export default function AboutPage() {
             Built on engineering talent. <span className="text-gradient">Evolving with AI.</span>
           </>
         }
-        lead={`Outscalers was founded in ${siteConfig.founded} in Rawalpindi, Pakistan, to connect strong engineering talent from Germany and Pakistan with organisations around the world. Today we combine that human expertise with AI to deliver better software, faster.`}
+        lead={`Our journey began in 2017 with freelance software development. In ${siteConfig.founded} it became Outscalers, founded in Rawalpindi, Pakistan, to connect strong engineering talent from Germany and Pakistan with organisations around the world. Today we combine that human expertise with AI to deliver better software, faster.`}
         crumbs={[
           { label: "Home", href: "/" },
           { label: "About Us", href: "/about" },

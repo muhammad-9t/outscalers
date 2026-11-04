@@ -1,9 +1,10 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { interests, readContact, validateContact, type ContactErrors, type ContactField } from "@/lib/contact";
+import { quickCheckParam, quickCheckSummary } from "@/content/quick-check";
 import { SelectField } from "./select-field";
 
 type Field = ContactField;
@@ -19,6 +20,13 @@ export function ContactForm({ email }: { email: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const id = useId();
   const fid = (f: Field) => `${id}-${f}`;
+
+  // Arriving from the Services quick check: start the message with the visitor's answers.
+  useEffect(() => {
+    const summary = quickCheckSummary(new URLSearchParams(window.location.search).get(quickCheckParam));
+    const message = formRef.current?.elements.namedItem("message");
+    if (summary && message instanceof HTMLTextAreaElement && !message.value) message.value = summary;
+  }, []);
 
   function focusFirst(found: ContactErrors) {
     const firstInvalid = Object.keys(found)[0] as Field | undefined;

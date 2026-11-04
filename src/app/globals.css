@@ -274,6 +274,13 @@
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: none; }
 }
+/* Quick check: questions slide in from the right and out to the left */
+@keyframes qc-in { from { opacity: 0; transform: translateX(28px); } }
+@keyframes qc-out { to { opacity: 0; transform: translateX(-28px); } }
+/* How We Work: workflow nodes ping as a packet arrives; checkpoints light up once their card is in view */
+@keyframes wl-ping { 0% { opacity: 0.9; transform: scale(1); } 18%, 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes checkpoint-sweep { 0% { transform: scaleX(0); opacity: 1; } 70% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0.35; } }
+@keyframes checkpoint-lock { 0%, 100% { transform: scale(1); filter: none; } 45% { transform: scale(1.35); filter: drop-shadow(0 0 6px var(--color-brand-400)); } }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
@@ -598,6 +605,37 @@
   /* A project opened from the portfolio laptop zooms in as the dark screen lifts */
   html[data-launch] #main { animation: launch-in 0.6s var(--ease-out-soft) both; transform-origin: 50% 40vh; }
   .animate-fade-up { animation: fade-up 0.35s var(--ease-out-soft) both; }
+
+  /* How We Work */
+  .wl-ping { transform-box: fill-box; transform-origin: center; opacity: 0; animation: wl-ping 6s ease-out infinite; }
+  /* Children come in one after another once their [data-reveal] parent is visible; set --i per child */
+  .js-reveal [data-reveal] .stagger-in > * {
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.5s var(--ease-out-soft), transform 0.5s var(--ease-out-soft);
+    transition-delay: calc(var(--stagger-base, 200ms) + var(--i, 0) * 90ms);
+  }
+  .js-reveal [data-reveal].is-visible .stagger-in > * { opacity: 1; transform: none; }
+  .checkpoint-bar { position: relative; }
+  .checkpoint-bar::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-brand-400), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .is-visible .checkpoint-bar::before { animation: checkpoint-sweep 1.2s 0.6s var(--ease-out-soft) forwards; }
+  .is-visible .checkpoint-bar .checkpoint-icon { animation: checkpoint-lock 0.7s 1.4s var(--ease-out-soft) both; }
+  /* Lucide check icons that draw themselves when revealed */
+  .check-draw circle, .check-draw path { stroke-dasharray: 70; stroke-dashoffset: 70; }
+  .is-visible .check-draw circle, .is-visible .check-draw path {
+    animation: draw 0.9s var(--ease-out-soft) forwards;
+    animation-delay: var(--draw-delay, 0ms);
+  }
+  html:not(.js-reveal) .check-draw circle, html:not(.js-reveal) .check-draw path { stroke-dashoffset: 0; }
 }
 
 /* Lenis smooth scrolling (desktop with a mouse). Lenis moves the page itself, so the CSS smoothing is off while it runs. */
@@ -621,6 +659,8 @@ html.lenis { scroll-behavior: auto; }
   .anim-rocket, .anim-flame, .anim-burst { animation: none; }
   .sec-orbit, .sec-ping, .sec-threat, .sec-block, .sec-impact, .sec-review-flash { animation: none; }
   .map-traveller { display: none; } /* SVG animateMotion ignores CSS animation rules */
+  .js-reveal [data-reveal] .stagger-in > * { opacity: 1; transform: none; }
+  .check-draw circle, .check-draw path { stroke-dashoffset: 0; }
 }
 
 @media print {
