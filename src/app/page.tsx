@@ -186,7 +186,7 @@ export default function HomePage() {
             <Reveal delay={120} className="mt-8">
               <dl className="flex flex-wrap gap-x-8 gap-y-3 border-y border-line py-4 font-mono">
                 {[
-                  ["2023", "Founded"],
+                  ["2017", "Building since"],
                   ["DE + PK", "Engineering teams"],
                   ["Remote-first", "English-speaking"],
                 ].map(([v, k]) => (
