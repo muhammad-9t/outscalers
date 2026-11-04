@@ -54,18 +54,14 @@ jobs:
         if: success()
         continue-on-error: true
         run: |
-          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
-            curl -sS -X POST -H "Content-type: application/json" \
-              --data "{\"text\":\"✅ Deployment successful for ${{ github.repository }}@${{ github.sha }} → https://outscalers.com/\"}" \
-              "${{ secrets.SLACK_WEBHOOK_URL }}"
-          fi
+          curl -sS -X POST -H "Content-type: application/json" \
+            --data "{\"text\":\"✅ Deployment successful for ${{ github.repository }} on branch ${{ github.ref_name }} by ${{ github.actor }}\"}" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"
 
       - name: Notify Slack on Failure
         if: failure()
         continue-on-error: true
         run: |
-          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
-            curl -sS -X POST -H "Content-type: application/json" \
-              --data "{\"text\":\"❌ Deployment FAILED for ${{ github.repository }}@${{ github.sha }} — old site on :3003 was not touched.\"}" \
-              "${{ secrets.SLACK_WEBHOOK_URL }}"
-          fi
+          curl -sS -X POST -H "Content-type: application/json" \
+            --data "{\"text\":\"❌ Deployment FAILED for ${{ github.repository }} on branch ${{ github.ref_name }} by ${{ github.actor }}\"}" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"
