@@ -8,7 +8,8 @@ import { mainNav } from "@/lib/site";
 import { services, serviceHref } from "@/content/services";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { Logo } from "./logo";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+// Theme switcher hidden for now; uncomment this and <ThemeToggle /> below to bring it back.
+// import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/cn";
 
 function isActive(pathname: string, href: string) {
@@ -211,7 +212,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
           <Link href="/contact#start-project" className="btn btn-primary btn-sm hidden sm:inline-flex">
             Start a Project
           </Link>
