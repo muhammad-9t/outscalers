@@ -288,8 +288,6 @@ export function PetBot() {
     let chase = 0; // seconds of chasing so far
     let stage = 0; // chase lines already said this chase
     let chaseSet = Math.floor(Math.random() * CHASE_LINES.length);
-    // Hide while a section that has its own robot (the services rail) fills the screen
-    let hideEl: Element | null = document.querySelector("[data-pet-hide]");
 
     const onMove = (e: PointerEvent) => {
       mouse.x = e.clientX;
@@ -315,9 +313,12 @@ export function PetBot() {
       const el = pet.current;
       if (!el) return;
 
-      hideEl ??= document.querySelector("[data-pet-hide]");
-      const r = hideEl?.getBoundingClientRect();
-      const hidden = !!r && r.top <= 1 && r.bottom >= window.innerHeight - 1;
+      // Hide while any section with its own robot or stage (services and phase rails, the workflow stage) fills
+      // the screen. Looked up every frame: those sections only switch the marker on once they are active.
+      const hidden = Array.from(document.querySelectorAll("[data-pet-hide]")).some((h) => {
+        const r = h.getBoundingClientRect();
+        return r.top <= 1 && r.bottom >= window.innerHeight - 1;
+      });
       el.style.opacity = hidden || !readyRef.current ? "0" : "1";
       if (!readyRef.current) return; // nothing to follow yet
 
@@ -416,7 +417,6 @@ export function PetBot() {
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerover", onMove);
       cancelAnimationFrame(frame);
-      hideEl = null;
     };
   }, [on, pathname, say, talk]);
 
