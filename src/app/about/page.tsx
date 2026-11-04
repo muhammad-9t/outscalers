@@ -9,9 +9,9 @@ import { evolution } from "@/content/evolution";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
-  title: "About Us",
+  title: "About",
   description:
-    "Outscalers is your dedicated IT outsourcing partner. From freelance roots in 2017 to a remote-first engineering company in 2023, we reshape digital journeys with tailored software, AI and support across Germany, Italy, Hong Kong and Pakistan.",
+    "Outscalers is a global technology partner. From freelance roots in 2017 to remote-first teams across Germany, Italy, Hong Kong and Pakistan — human expertise, AI-powered engineering.",
   path: "/about",
   keywords: ["About Outscalers", "IT outsourcing partner", "software engineering team", "remote-first"],
 });

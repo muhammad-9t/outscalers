@@ -9,6 +9,11 @@ export const siteConfig = {
   name: "Outscalers",
   shortName: "Outscalers",
   tagline: "Human Intelligence. AI-Powered Engineering.",
+  /** Brand SERP-style title (shown as the main Google blue link). */
+  serpTitle: "Outscalers: Human Intelligence. AI-Powered Engineering.",
+  /** Homepage / brand snippet — who you are + service pillars in one line. */
+  serpDescription:
+    "Outscalers pairs human engineering with AI across Custom Software Development, AI Solutions & Agents, Business Process Automation, Data & Cloud, and Security & Quality.",
   description:
     "Outscalers is an IT outsourcing and software engineering partner that combines experienced engineers with artificial intelligence to build intelligent software, automate business processes, and help businesses innovate faster.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://outscalers.com",
@@ -74,7 +79,8 @@ type PageMetadataInput = {
 
 /** Builds unique page metadata: title, description, canonical, Open Graph and Twitter. */
 export function pageMetadata({ title, description, path, keywords, noIndex }: PageMetadataInput): Metadata {
-  const fullTitle = title ? `${title} | ${siteConfig.name}` : `${siteConfig.name} — ${siteConfig.tagline}`;
+  // Homepage uses a "Brand: promise" title for the main SERP result.
+  const fullTitle = title ? `${title} | ${siteConfig.name}` : siteConfig.serpTitle;
   const url = absoluteUrl(path);
 
   return {

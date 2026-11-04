@@ -17,10 +17,10 @@ const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subset
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
+    default: siteConfig.serpTitle,
     template: `%s | ${siteConfig.name}`,
   },
-  description: siteConfig.description,
+  description: siteConfig.serpDescription,
   applicationName: siteConfig.name,
   authors: [{ name: siteConfig.name, url: siteConfig.url }],
   creator: siteConfig.name,
@@ -37,12 +37,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: siteConfig.name,
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
+    title: siteConfig.serpTitle,
+    description: siteConfig.serpDescription,
     url: "/",
     locale: "en_US",
   },
-  twitter: { card: "summary_large_image", title: `${siteConfig.name} — ${siteConfig.tagline}`, description: siteConfig.description },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.serpTitle,
+    description: siteConfig.serpDescription,
+  },
   formatDetection: { telephone: true, email: true, address: true },
 };
 
