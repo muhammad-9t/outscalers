@@ -49,7 +49,7 @@ const JOKES = [
   "Death never asks for a medic. Mostly because CS: Source doesn't have one.",
   "Ghost once planted the bomb and nobody noticed. Same with Ghost's deploys.",
   "No-mercy never shows mercy. Not to enemies, and not to legacy code.",
-  "Codex rushed B without a plan. Now Codex writes the plans.",
+  "Every good team needs a captain. Ours is Codex: calm calls, clear plans, rounds won.",
   "Dr. Doom calls every round \"a calculated risk\". The scoreboard disagrees.",
   "Dragos 302 has 302 excuses for that missed AWP shot. We've heard 301.",
   "Spartan held the bridge alone. Then asked why nobody came. Classic Spartan.",

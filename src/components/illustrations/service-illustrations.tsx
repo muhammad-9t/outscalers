@@ -128,6 +128,13 @@ const LAYER_HW = 120;
 const LAYER_HH = 35;
 const LAYER_T = 8;
 
+// One build cycle: a packet rises from Data to Interface, lighting each plate as it arrives
+const BUILD_S = 4.8;
+const RISE_S = 3.2;
+const loop = (name: string, duration: number, delay = 0, timing = "ease-in-out"): CSSProperties => ({
+  animation: `${name} ${duration}s ${timing} ${delay}s infinite both`,
+});
+
 export function SoftwareLayers({ className }: { className?: string }) {
   const [cx, hw, hh, t] = [LAYER_CX, LAYER_HW, LAYER_HH, LAYER_T];
   const left = cx - hw;
@@ -144,68 +151,111 @@ export function SoftwareLayers({ className }: { className?: string }) {
       title="Layered software architecture"
       desc="Four stacked layers: data, services, APIs and interface. AI assists implementation across layers while engineers review the architecture."
     >
-      {layers.map(({ y, label, sub, accent }) => (
-        <g key={label}>
-          <polygon points={`${left},${y} ${cx},${y + hh} ${cx},${y + hh + t} ${left},${y + t}`} className="fill-ink-750" />
-          <polygon points={`${cx},${y + hh} ${right},${y} ${right},${y + t} ${cx},${y + hh + t}`} className="fill-ink-700" />
-          <polygon
-            points={`${cx},${y - hh} ${right},${y} ${cx},${y + hh} ${left},${y}`}
-            className={accent ? "fill-ink-800 stroke-brand-400" : "fill-ink-850 stroke-line-strong"}
-            strokeWidth={1.3}
-          />
-          <g transform={`translate(${cx} ${y}) scale(1 ${hh / hw}) rotate(45)`}>
-            {label === "Interface" && (
-              <g className="fill-none stroke-brand-300/80" strokeWidth={1.2} vectorEffect="non-scaling-stroke">
-                <rect x={-60} y={-60} width={120} height={22} rx={4} vectorEffect="non-scaling-stroke" />
-                <rect x={-60} y={-28} width={56} height={84} rx={4} vectorEffect="non-scaling-stroke" />
-                <rect x={6} y={-28} width={54} height={40} rx={4} vectorEffect="non-scaling-stroke" />
-                <rect x={6} y={18} width={54} height={38} rx={4} vectorEffect="non-scaling-stroke" />
-              </g>
-            )}
-            {label === "APIs" && (
-              <g className="stroke-data-accent/70" strokeWidth={1.2}>
-                {[-40, -10, 20, 50].map((o) => (
-                  <line key={o} x1={-60} y1={o} x2={60} y2={o} vectorEffect="non-scaling-stroke" strokeDasharray="6 5" />
-                ))}
-              </g>
-            )}
-            {label === "Services" && (
-              <g className="fill-none stroke-fg-subtle" strokeWidth={1.2}>
-                {[-50, 10].map((x) =>
-                  [-50, 10].map((yy) => (
-                    <rect key={`${x}${yy}`} x={x} y={yy} width={40} height={40} rx={6} vectorEffect="non-scaling-stroke" />
-                  )),
-                )}
-              </g>
-            )}
-            {label === "Data" && (
-              <g className="fill-none stroke-brand-500/70" strokeWidth={1.2}>
-                {[-36, 0, 36].map((o) => (
-                  <circle key={o} cx={o} cy={-o} r={18} vectorEffect="non-scaling-stroke" />
-                ))}
-              </g>
-            )}
+      {layers.map(({ y, label, sub, accent }, i) => {
+        // When the rising packet reaches this plate (bottom plate first)
+        const arrive = (i / (layers.length - 1)) * RISE_S;
+        return (
+          <g key={label} className="cv-anim" style={loop("sl-float", 5, i * 0.45)}>
+            <polygon points={`${left},${y} ${cx},${y + hh} ${cx},${y + hh + t} ${left},${y + t}`} className="fill-ink-750" />
+            <polygon points={`${cx},${y + hh} ${right},${y} ${right},${y + t} ${cx},${y + hh + t}`} className="fill-ink-700" />
+            <polygon
+              points={`${cx},${y - hh} ${right},${y} ${cx},${y + hh} ${left},${y}`}
+              className={accent ? "fill-ink-800 stroke-brand-400" : "fill-ink-850 stroke-line-strong"}
+              strokeWidth={1.3}
+            />
+            {/* Edge lights up as the packet arrives */}
+            <polygon
+              points={`${cx},${y - hh} ${right},${y} ${cx},${y + hh} ${left},${y}`}
+              className="cv-anim fill-brand-400/5 stroke-brand-300 drop-shadow-[0_0_6px_var(--color-brand-400)]"
+              strokeWidth={1.8}
+              opacity={0}
+              style={loop("sl-light", BUILD_S, arrive)}
+            />
+            <g transform={`translate(${cx} ${y}) scale(1 ${hh / hw}) rotate(45)`}>
+              {label === "Interface" && (
+                <g className="cv-anim fill-none stroke-brand-300/80" strokeWidth={1.2} vectorEffect="non-scaling-stroke" style={loop("cv-shimmer", 3.2)}>
+                  <rect x={-60} y={-60} width={120} height={22} rx={4} vectorEffect="non-scaling-stroke" />
+                  <rect x={-60} y={-28} width={56} height={84} rx={4} vectorEffect="non-scaling-stroke" />
+                  <rect x={6} y={-28} width={54} height={40} rx={4} vectorEffect="non-scaling-stroke" />
+                  <rect x={6} y={18} width={54} height={38} rx={4} vectorEffect="non-scaling-stroke" />
+                </g>
+              )}
+              {label === "APIs" && (
+                <g className="stroke-data-accent/70" strokeWidth={1.2}>
+                  {[-40, -10, 20, 50].map((o) => (
+                    <line key={o} x1={-60} y1={o} x2={60} y2={o} vectorEffect="non-scaling-stroke" strokeDasharray="6 5" className="cv-anim" style={loop("sl-dash", 1.4, 0, "linear")} />
+                  ))}
+                </g>
+              )}
+              {label === "Services" && (
+                <g className="fill-none stroke-fg-subtle" strokeWidth={1.2}>
+                  {[-50, 10].map((x, a) =>
+                    [-50, 10].map((yy, b) => (
+                      <rect
+                        key={`${x}${yy}`}
+                        x={x}
+                        y={yy}
+                        width={40}
+                        height={40}
+                        rx={6}
+                        vectorEffect="non-scaling-stroke"
+                        className="cv-anim"
+                        style={loop("sl-block", 3.2, (a * 2 + b) * 0.4)}
+                      />
+                    )),
+                  )}
+                </g>
+              )}
+              {label === "Data" && (
+                <g className="fill-none stroke-brand-500/70" strokeWidth={1.2}>
+                  {[-36, 0, 36].map((o) => (
+                    <circle key={o} cx={o} cy={-o} r={18} vectorEffect="non-scaling-stroke" className="cv-anim" style={loop("cv-shimmer", 2.4, (o + 36) / 36 * 0.4)} />
+                  ))}
+                </g>
+              )}
+            </g>
+            <line x1={right + 4} y1={y} x2={right + 16} y2={y} className="stroke-line-strong" />
+            <text x={right + 20} y={y - 1} className={accent ? "fill-brand-200 font-sans" : "fill-fg font-sans"} fontSize={12} fontWeight={600}>
+              {label}
+            </text>
+            <text x={right + 20} y={y + 13} className="fill-fg-subtle font-mono" fontSize={9}>
+              {sub}
+            </text>
           </g>
-          <line x1={right + 4} y1={y} x2={right + 16} y2={y} className="stroke-line-strong" />
-          <text x={right + 20} y={y - 1} className={accent ? "fill-brand-200 font-sans" : "fill-fg font-sans"} fontSize={12} fontWeight={600}>
-            {label}
-          </text>
-          <text x={right + 20} y={y + 13} className="fill-fg-subtle font-mono" fontSize={9}>
-            {sub}
-          </text>
-        </g>
-      ))}
+        );
+      })}
+
+      {/* The packet, rising through the centre of the stack */}
+      <g className="motion-reduce:hidden">
+        <circle r={4} opacity={0} className="fill-brand-300 drop-shadow-[0_0_8px_var(--color-brand-400)]">
+          <animateMotion
+            dur={`${BUILD_S}s`}
+            repeatCount="indefinite"
+            keyPoints="0;1;1"
+            keyTimes={`0;${RISE_S / BUILD_S};1`}
+            calcMode="linear"
+            path={`M${cx} ${layers[0].y}V${layers[layers.length - 1].y}`}
+          />
+          <animate
+            attributeName="opacity"
+            dur={`${BUILD_S}s`}
+            repeatCount="indefinite"
+            values="1;1;0;0"
+            keyTimes={`0;${RISE_S / BUILD_S};${RISE_S / BUILD_S + 0.02};1`}
+          />
+        </circle>
+      </g>
 
       <g className="font-mono" fontSize={9.5}>
         {/* Pills sit level with the APIs (y 145) and Services (y 215) plates and connect to their left corners */}
         <rect x={4} y={133} width={74} height={24} rx={12} className="fill-ink-850 stroke-brand-500/60" />
         <text x={41} y={149} textAnchor="middle" className="fill-brand-300">AI assist</text>
         <path d={`M78 145H${left - 2}`} className={cn(flow, "stroke-brand-400/70")} strokeWidth={1.2} />
-        <circle cx={left} cy={145} r={2.5} className="fill-brand-400" />
+        <circle cx={left} cy={145} r={2.5} className="cv-anim fill-brand-400" style={loop("cv-blink", 2.4)} />
         <rect x={4} y={203} width={74} height={24} rx={12} className="fill-ink-850 stroke-human-accent/60" />
         <text x={41} y={219} textAnchor="middle" className="fill-human-accent">Eng. review</text>
         <path d={`M78 215H${left - 2}`} className={cn(flow, "stroke-human-accent/70")} strokeWidth={1.2} />
-        <circle cx={left} cy={215} r={2.5} className="fill-human-accent" />
+        <circle cx={left} cy={215} r={2.5} className="cv-anim fill-human-accent" style={loop("cv-blink", 2.4, 1.2)} />
       </g>
     </Frame>
   );

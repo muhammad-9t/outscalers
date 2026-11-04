@@ -282,6 +282,24 @@
 @keyframes view-wipe { from { clip-path: inset(0 0 100% 0); filter: brightness(1.7); } 70% { filter: brightness(1.1); } to { clip-path: inset(0 0 0 0); filter: none; } }
 @keyframes view-sweep { from { top: 0; opacity: 1; } 85% { opacity: 1; } to { top: 100%; opacity: 0; } }
 @keyframes view-out { to { opacity: 0; filter: blur(2px); } }
+/* Case study diagrams (case-visual.tsx) */
+@keyframes cv-shimmer { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes cv-ping { 0% { transform: scale(1); opacity: 0.8; } 60%, 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes cv-blink { 0%, 8% { opacity: 1; } 25%, 100% { opacity: 0.35; } }
+@keyframes cv-dash { to { stroke-dashoffset: -18; } }
+@keyframes cv-glow { 0% { opacity: 1; filter: drop-shadow(0 0 6px var(--color-human-accent)); } 25%, 100% { opacity: 0.85; filter: none; } }
+@keyframes cv-tick { 0%, 8% { opacity: 0; transform: scale(0.4); } 14%, 80% { opacity: 1; transform: none; } 92%, 100% { opacity: 0; } }
+@keyframes cv-shackle { 0%, 35% { transform: translateY(-5px); } 40%, 85% { transform: none; } 95%, 100% { transform: translateY(-5px); } }
+@keyframes cv-lock-glow { 0%, 38% { opacity: 0.5; filter: none; } 42%, 85% { opacity: 1; filter: drop-shadow(0 0 5px var(--color-brand-400)); } 95%, 100% { opacity: 0.5; filter: none; } }
+@keyframes cv-log { 0%, 44% { opacity: 0; transform: translateX(-6px); } 50%, 85% { opacity: 1; transform: none; } 95%, 100% { opacity: 0; } }
+/* Software layers illustration: plates bob, light up as the build packet arrives, contents move */
+@keyframes sl-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes sl-light { 0%, 18% { opacity: 1; } 45%, 100% { opacity: 0; } }
+@keyframes sl-dash { to { stroke-dashoffset: -22; } }
+@keyframes sl-block { 0%, 100% { opacity: 0.45; } 15% { opacity: 1; } }
+/* About hero: AI work items fill, and the reviewed result pulses as both sides arrive */
+@keyframes hac-fill { 0%, 8% { transform: scaleX(0); } 35%, 88% { transform: scaleX(1); } 100% { transform: scaleX(1); opacity: 0.5; } }
+@keyframes hac-badge { 0%, 72% { transform: scale(1); filter: none; } 78% { transform: scale(1.25); filter: drop-shadow(0 0 8px var(--color-brand-400)); } 90%, 100% { transform: scale(1); filter: none; } }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
@@ -606,6 +624,8 @@
   /* A project opened from the portfolio laptop zooms in as the dark screen lifts */
   html[data-launch] #main { animation: launch-in 0.6s var(--ease-out-soft) both; transform-origin: 50% 40vh; }
   .animate-fade-up { animation: fade-up 0.35s var(--ease-out-soft) both; }
+  /* Case study diagrams: animated SVG parts scale and move around their own centre */
+  .cv-anim { transform-box: fill-box; transform-origin: center; }
 
   /* How We Work */
   /* Lucide check icons that draw themselves when revealed */
@@ -638,6 +658,7 @@ html.lenis { scroll-behavior: auto; }
   .anim-rocket, .anim-flame, .anim-burst { animation: none; }
   .sec-orbit, .sec-ping, .sec-threat, .sec-block, .sec-impact, .sec-review-flash { animation: none; }
   .map-traveller { display: none; } /* SVG animateMotion ignores CSS animation rules */
+  .cv-anim { animation: none !important; }
   .check-draw circle, .check-draw path { stroke-dashoffset: 0; }
 }
 
