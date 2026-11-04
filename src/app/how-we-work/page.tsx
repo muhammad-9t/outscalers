@@ -14,8 +14,9 @@ import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 export const metadata = pageMetadata({
   title: "How We Work",
   description:
-    "How Outscalers combines human engineering and AI: from validated requirements and architecture to AI-assisted implementation, human code review, testing, deployment and monitoring.",
+    "See how Outscalers delivers: discovery, architecture, AI-assisted implementation, human code review, testing and deployment — a clear engineering process with accountability at every stage.",
   path: "/how-we-work",
+  keywords: ["software delivery process", "AI-assisted development", "code review", "Outscalers methodology"],
 });
 
 const principles = [

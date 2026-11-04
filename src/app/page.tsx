@@ -33,8 +33,15 @@ import { pageMetadata } from "@/lib/site";
 
 export const metadata = pageMetadata({
   description:
-    "Outscalers combines experienced engineers with AI to build intelligent software, automate business processes and modernise systems — with human review and accountability at every step.",
+    "Outscalers provides tailored IT outsourcing and software engineering worldwide — combining experienced engineers with AI to build software, automate processes and modernise systems, with human review at every step.",
   path: "/",
+  keywords: [
+    "IT outsourcing",
+    "software development",
+    "AI engineering",
+    "business process automation",
+    "Outscalers",
+  ],
 });
 
 const differentiators = [

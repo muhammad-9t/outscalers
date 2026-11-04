@@ -5,6 +5,7 @@ import { Check, FileClock } from "lucide-react";
 import { caseStudies, getCaseStudy } from "@/content/case-studies";
 import { services, serviceHref } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
+import { breadcrumbJsonLd } from "@/lib/seo";
 import { PageHero } from "@/components/sections/page-hero";
 import { CaseStudyCard } from "@/components/sections/case-study-card";
 import { CtaBand } from "@/components/sections/cta-band";
@@ -45,6 +46,11 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
 
   const related = caseStudies.filter((c) => c.slug !== study.slug).slice(0, 2);
   const studyServices = services.filter((s) => study.services.includes(s.slug));
+  const crumbsLd = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Portfolio", path: "/portfolio" },
+    { name: study.title, path: `/case-studies/${study.slug}` },
+  ]);
 
   return (
     <>
@@ -160,6 +166,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
       )}
 
       <CtaBand />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbsLd) }} />
     </>
   );
 }

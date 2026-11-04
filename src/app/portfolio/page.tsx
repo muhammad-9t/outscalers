@@ -10,8 +10,9 @@ import { Reveal, SectionHeading } from "@/components/ui/primitives";
 export const metadata = pageMetadata({
   title: "Portfolio",
   description:
-    "Projects by Outscalers across AI, software development, automation, data and cloud, and security — with in-depth case studies.",
+    "Explore Outscalers projects across AI, custom software, automation, data and cloud, and security — selected work and case studies for growing businesses.",
   path: "/portfolio",
+  keywords: ["Outscalers portfolio", "software case studies", "AI projects", "IT outsourcing work"],
 });
 
 export default function PortfolioPage() {

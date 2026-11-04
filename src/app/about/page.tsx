@@ -11,8 +11,9 @@ import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/pri
 export const metadata = pageMetadata({
   title: "About Us",
   description:
-    "From freelance roots in 2017 to Outscalers in 2023, we bring together engineering talent from Germany and Pakistan in remote-first teams — now combining human expertise with AI-powered engineering.",
+    "Outscalers is your dedicated IT outsourcing partner. From freelance roots in 2017 to a remote-first engineering company in 2023, we reshape digital journeys with tailored software, AI and support across Germany, Italy, Hong Kong and Pakistan.",
   path: "/about",
+  keywords: ["About Outscalers", "IT outsourcing partner", "software engineering team", "remote-first"],
 });
 
 const values = [

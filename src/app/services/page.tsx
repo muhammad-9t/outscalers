@@ -15,8 +15,15 @@ import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 export const metadata = pageMetadata({
   title: "Services",
   description:
-    "AI solutions and agents, custom software development, business process automation, data engineering and cloud, and security and quality engineering from Outscalers.",
+    "Software development, AI solutions, business process automation, data and cloud, and security engineering from Outscalers — reliable outsourcing models that help organisations streamline delivery with dedicated teams.",
   path: "/services",
+  keywords: [
+    "software outsourcing",
+    "AI solutions",
+    "custom software development",
+    "process automation",
+    "data engineering",
+  ],
 });
 
 const plans = [

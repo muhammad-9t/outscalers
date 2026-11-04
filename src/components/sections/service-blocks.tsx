@@ -6,6 +6,7 @@ import { PageHero } from "@/components/sections/page-hero";
 import { RelatedServices } from "@/components/sections/service-cards";
 import { ServiceIllustration } from "@/components/illustrations/service-illustrations";
 import { CtaBand } from "@/components/sections/cta-band";
+import { breadcrumbJsonLd, serviceJsonLd } from "@/lib/seo";
 import { cn } from "@/lib/cn";
 
 const delay = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as CSSProperties;
@@ -279,6 +280,16 @@ export function ProcessBlock({
 }
 
 export function ServiceFooter({ service, ctaTitle }: { service: Service; ctaTitle: string }) {
+  const path = `/services/${service.slug}`;
+  const jsonLd = [
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Services", path: "/services" },
+      { name: service.title, path },
+    ]),
+    serviceJsonLd({ name: service.title, description: service.metaDescription, path }),
+  ];
+
   return (
     <>
       <Section tone="dark" labelledBy="related-title">
@@ -293,6 +304,9 @@ export function ServiceFooter({ service, ctaTitle }: { service: Service; ctaTitl
         title={ctaTitle}
         lead="Share your goals and constraints. We'll come back with practical options, a realistic plan and the questions worth asking."
       />
+      {jsonLd.map((block, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }} />
+      ))}
     </>
   );
 }

@@ -7,8 +7,9 @@ import { Reveal, Section } from "@/components/ui/primitives";
 export const metadata = pageMetadata({
   title: "Contact",
   description:
-    "Start a project with Outscalers. Tell us what you want to build, automate or improve.",
+    "Contact Outscalers to start a project or ask a question. Use our form or book a call — we reply within one business day across Europe and Asia time zones.",
   path: "/contact",
+  keywords: ["contact Outscalers", "book a call", "IT outsourcing enquiry", "software project quote"],
 });
 
 export default function ContactPage() {

@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ui/primitives";
+import { pageMetadata } from "@/lib/site";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Page not found",
+  description: "The page you requested could not be found on outscalers.com.",
+  path: "/404",
+  noIndex: true,
+});
 
 export default function NotFound() {
   return (
@@ -16,6 +25,9 @@ export default function NotFound() {
           <ButtonLink href="/">Go to homepage</ButtonLink>
           <ButtonLink href="/contact" variant="secondary">
             Contact us
+          </ButtonLink>
+          <ButtonLink href="/services" variant="secondary">
+            View services
           </ButtonLink>
         </div>
       </div>

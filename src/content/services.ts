@@ -113,7 +113,7 @@ export const services: Service[] = [
     summary:
       "Web and mobile applications, SaaS platforms, APIs and enterprise systems — built by engineers who own the architecture, with AI accelerating the routine work.",
     metaDescription:
-      "Custom web applications, mobile apps, SaaS platforms, APIs and enterprise software from Outscalers — human-led engineering accelerated by AI-assisted workflows.",
+      "Software outsourcing and custom development from Outscalers: web apps, mobile apps, SaaS platforms, APIs and enterprise systems — human-led engineering accelerated by AI.",
     hero: {
       eyebrow: "Custom Software Development",
       title: "Software built around how your business actually works.",

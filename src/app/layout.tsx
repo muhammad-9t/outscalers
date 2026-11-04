@@ -7,6 +7,7 @@ import { BackToTop } from "@/components/ui/back-to-top";
 import { PetBot } from "@/components/ui/pet-bot";
 import { SmoothScroll } from "@/components/ui/smooth-scroll";
 import { siteConfig } from "@/lib/site";
+import { siteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
@@ -21,6 +22,18 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.name, url: siteConfig.url }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
+  verification: {
+    google: siteConfig.verification.google,
+    other: siteConfig.verification.other,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
   openGraph: {
     type: "website",
     siteName: siteConfig.name,
@@ -29,7 +42,8 @@ export const metadata: Metadata = {
     url: "/",
     locale: "en_US",
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", title: `${siteConfig.name} — ${siteConfig.tagline}`, description: siteConfig.description },
+  formatDetection: { telephone: true, email: true, address: true },
 };
 
 export const viewport: Viewport = {
@@ -46,14 +60,7 @@ export const viewport: Viewport = {
 // Skipped for reduced motion; without JS, content simply stays visible.
 const revealBootstrap = `try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&'IntersectionObserver'in window){document.documentElement.classList.add('js-reveal')}}catch(e){}`;
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: siteConfig.name,
-  url: siteConfig.url,
-  description: siteConfig.description,
-  email: siteConfig.contact.email,
-};
+const jsonLd = siteJsonLd();
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -83,10 +90,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <BackToTop />
         <PetBot />
         <SmoothScroll />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
+        {jsonLd.map((block, i) => (
+          <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }} />
+        ))}
       </body>
     </html>
   );
