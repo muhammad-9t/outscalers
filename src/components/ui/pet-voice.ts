@@ -243,7 +243,7 @@ export type VoiceCommand =
   | { type: "faster" | "slower" }
   | { type: "stop" | "top" | "bottom" | "back" | "forward" | "reload" }
   | { type: "joke" | "help" | "where" | "hello" | "dance" | "thanks" | "mute" }
-  | { type: "game" }
+  | { type: "game" | "arcade" }
   | { type: "which" } // "open …" without a page it could make out
   | { type: "unknown" };
 
@@ -284,7 +284,8 @@ export function parseCommand(t: string): VoiceCommand {
   if (has(/\b(joke|funny|laugh)\b/)) return { type: "joke" };
   if (has(/\b(help|commands|what can i say|what can you do)\b/)) return { type: "help" };
   if (has(/\b(where am i|which page|what page)\b/)) return { type: "where" };
-  if (has(/\b(play|game|bug hunt)\b/)) return { type: "game" };
+  if (has(/\b(bug hunt|bug hunting)\b/)) return { type: "game" };
+  if (has(/\b(play|games?|arcade)\b/)) return { type: "arcade" };
   if (has(/\b(dance|spin|party)\b/)) return { type: "dance" };
   if (has(/\b(thanks|thank you|good job|well done|good bot|good robot)\b/)) return { type: "thanks" };
   const asked = has(/\b(open|go to|goto|show|take me|navigate|visit|bring me)\b/);

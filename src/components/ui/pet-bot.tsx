@@ -113,6 +113,17 @@ const GAME_TIP: Tip = {
   action: "game",
 };
 const GAME_OFFERED_KEY = "pet-game-offered";
+
+// The arcade: click and hold the pet this long to open it
+const HOLD_MS = 600;
+const ARCADE_HINT_KEY = "pet-arcade-hint";
+const ARCADE_HINT_MS = 900; // cursor resting on the pet this long before the hint
+const BUG_HUNT_BEST_KEY = "bug-hunt-best"; // written by the game
+const GAMES: { id: string; name: string; blurb: string; ready: boolean }[] = [
+  { id: "bug-hunt", name: "Bug Hunt", blurb: "Stop the bugs before they reach production.", ready: true },
+  { id: "deploy-run", name: "Deploy Run", blurb: "Dodge the blockers on the way to release.", ready: false },
+  { id: "ship-it", name: "Ship It", blurb: "Catch the good commits, dodge the bugs.", ready: false },
+];
 const JOKES_BEFORE_GAME = 3;
 
 // The game is only downloaded when it is opened
@@ -284,6 +295,35 @@ export function PetBot() {
     say("Thanks for playing! Production is safe… for now.", undefined, "happy", true);
   }, [say]);
 
+  // The arcade: a menu of games beside the pet, opened by clicking and holding it (or by voice)
+  const [arcade, setArcade] = useState(false);
+  const arcadeOpen = useRef(false);
+  const [bestScore, setBestScore] = useState(0);
+  const openArcade = useCallback(() => {
+    window.clearTimeout(tipTimer.current);
+    setTip(null);
+    tipOpen.current = true; // the pet stays put and quiet while the menu is open
+    arcadeOpen.current = true;
+    setTipBelow((pet.current?.getBoundingClientRect().top ?? 300) < 290);
+    try {
+      setBestScore(Number(localStorage.getItem(BUG_HUNT_BEST_KEY) ?? 0));
+    } catch {}
+    setArcade(true);
+    setMood("happy");
+  }, []);
+  const closeArcade = useCallback(() => {
+    tipOpen.current = false;
+    arcadeOpen.current = false;
+    setArcade(false);
+    setMood("idle");
+  }, []);
+  useEffect(() => {
+    if (!arcade) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeArcade();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [arcade, closeArcade]);
+
   // Voice commands: the pet answers each one in its speech bubble
   const router = useRouter();
   const scrollPace = useRef<{ speed: keyof typeof SCROLL_SPEED; up: boolean }>({ speed: "normal", up: false });
@@ -392,7 +432,12 @@ export function PetBot() {
           break;
         case "game":
           auto.stop();
+          if (arcadeOpen.current) closeArcade();
           openGame();
+          break;
+        case "arcade":
+          auto.stop();
+          openArcade();
           break;
         case "which":
           // A page name on its own works as the answer
@@ -411,7 +456,7 @@ export function PetBot() {
           say("Sorry, I didn't catch that. Say “help” for ideas.", 2600, "focus");
       }
     },
-    [auto, openGame, pathname, router, say, talk],
+    [auto, closeArcade, openArcade, openGame, pathname, router, say, talk],
   );
 
   const voice = useVoice(
@@ -467,27 +512,16 @@ export function PetBot() {
     [closeTip],
   );
 
-  /** A click on the pet: a punch while it is on, a grab while it is powered off. */
-  const onPetDown = useCallback(
-    (e: ReactPointerEvent<HTMLDivElement>) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
+  /** A punch from the cursor at (cx, cy). */
+  const punch = useCallback(
+    (cx: number, cy: number) => {
       const p = phys.current;
       const pos = posRef.current;
       const now = performance.now();
-      if (p.mode === "off") {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        p.drag = true;
-        p.gx = e.clientX - pos.x;
-        p.gy = e.clientY - pos.y;
-        setGrabbing(true);
-        return;
-      }
-      if (p.mode !== "on") return;
       if (tipOpen.current) closeTip();
       // Knocked away from the fist, with a spin, a squash and a wince
-      const dx = pos.x + SIZE / 2 - e.clientX;
-      const dy = pos.y + H / 2 - e.clientY;
+      const dx = pos.x + SIZE / 2 - cx;
+      const dy = pos.y + H / 2 - cy;
       const d = Math.hypot(dx, dy) || 1;
       const dir = dx >= 0 ? 1 : -1;
       p.kvx += (dx / d) * 560;
@@ -530,14 +564,75 @@ export function PetBot() {
     [closeTip, say],
   );
 
+  // While the pet is on, a quick click is a punch (on release) and click-and-hold opens the arcade
+  const [charging, setCharging] = useState(false);
+  const hold = useRef({ timer: 0, active: false });
+  const hintTimer = useRef(0);
+
+  /** Pressing the pet: starts a hold while it is on, grabs it while it is powered off. */
+  const onPetDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const p = phys.current;
+      const pos = posRef.current;
+      window.clearTimeout(hintTimer.current);
+      if (p.mode === "off") {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        p.drag = true;
+        p.gx = e.clientX - pos.x;
+        p.gy = e.clientY - pos.y;
+        setGrabbing(true);
+        return;
+      }
+      if (p.mode !== "on" || arcadeOpen.current) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      const h = hold.current;
+      h.active = true;
+      setCharging(true);
+      window.clearTimeout(h.timer);
+      h.timer = window.setTimeout(() => {
+        h.active = false;
+        setCharging(false);
+        store.set(ARCADE_HINT_KEY, "1"); // found it, no need for the hint
+        openArcade();
+      }, HOLD_MS);
+    },
+    [openArcade],
+  );
+
   const onPetUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     const p = phys.current;
-    if (!p.drag) return;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    const h = hold.current;
+    if (h.active) {
+      // Let go before the arcade opened: that was a punch (a lost capture just cancels)
+      h.active = false;
+      window.clearTimeout(h.timer);
+      setCharging(false);
+      if (e.type === "pointerup") punch(e.clientX, e.clientY);
+      return;
+    }
+    if (!p.drag) return;
     p.drag = false;
     // Thrown with the speed it was carried at; it lands before it wakes up
     p.wakeAt = Math.max(p.wakeAt, performance.now() + 1500);
     setGrabbing(false);
+  }, [punch]);
+
+  /** Resting the cursor on the pet: once per visit it mentions the arcade. */
+  const onPetEnter = useCallback(() => {
+    phys.current.hover = true;
+    if (store.get(ARCADE_HINT_KEY)) return;
+    window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => {
+      if (!phys.current.hover || phys.current.mode !== "on" || hold.current.active || tipOpen.current) return;
+      if (say("Psst… click and hold me for games.", 3200, "happy")) store.set(ARCADE_HINT_KEY, "1");
+    }, ARCADE_HINT_MS);
+  }, [say]);
+  const onPetLeave = useCallback(() => {
+    phys.current.hover = false;
+    window.clearTimeout(hintTimer.current);
   }, []);
 
   // A greeting about the page shortly after arriving, then one guide suggestion once the page has been read
@@ -877,6 +972,8 @@ export function PetBot() {
     () => () => {
       window.clearTimeout(hideTimer.current);
       window.clearTimeout(ouchTimer.current);
+      window.clearTimeout(hold.current.timer);
+      window.clearTimeout(hintTimer.current);
     },
     [],
   );
@@ -949,7 +1046,91 @@ export function PetBot() {
 
       {/* The pet */}
       <div ref={pet} className="absolute top-0 left-0 transition-opacity duration-300 will-change-transform">
-        {line && !tip && (
+        {/* Fills while the pet is held; full means the arcade opens */}
+        <svg
+          aria-hidden
+          viewBox="0 0 100 100"
+          className="pointer-events-none absolute top-1/2 left-1/2 size-24 -translate-x-1/2 -translate-y-[46%] -rotate-90"
+        >
+          <circle
+            cx={50}
+            cy={50}
+            r={46}
+            pathLength={100}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeDasharray="100 100"
+            className="fill-none stroke-brand-300"
+            style={{
+              opacity: charging ? 1 : 0,
+              strokeDashoffset: charging ? 0 : 100,
+              transition: charging ? `stroke-dashoffset ${HOLD_MS}ms linear, opacity 0.15s` : "opacity 0.15s",
+            }}
+          />
+        </svg>
+        {arcade && (
+          <div
+            role="dialog"
+            aria-label="Arcade"
+            className={cn(
+              "pointer-events-auto absolute w-72 border border-brand-400/50 bg-ink-950/95 p-3.5 shadow-[0_0_30px_-8px_var(--color-brand-500)] backdrop-blur-sm",
+              tipBelow ? "top-full mt-2" : "bottom-full mb-2",
+              flip ? "left-2" : "right-2",
+            )}
+          >
+            <span aria-hidden className="absolute -top-px -left-px size-2 border-t-2 border-l-2 border-brand-300" />
+            <span aria-hidden className="absolute -right-px -bottom-px size-2 border-r-2 border-b-2 border-brand-300" />
+            <button
+              type="button"
+              aria-label="Close the arcade"
+              onClick={closeArcade}
+              className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded text-fg-subtle transition-colors hover:text-fg"
+            >
+              <X aria-hidden className="size-3.5" />
+            </button>
+            <p className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">
+              <Gamepad2 aria-hidden className="size-3.5" />
+              Arcade
+            </p>
+            <p className="mt-1 pr-5 text-sm leading-snug text-fg">Pick a game. More are on the way.</p>
+            <ul className="mt-3 grid gap-2">
+              {GAMES.map((g) => (
+                <li
+                  key={g.id}
+                  className={cn(
+                    "flex items-center gap-3 border p-2.5",
+                    g.ready ? "border-line-strong bg-ink-850/60" : "border-line opacity-60",
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-fg">
+                      {g.name}
+                      {g.id === "bug-hunt" && bestScore > 0 && (
+                        <span className="ml-2 font-mono text-xs font-normal text-fg-subtle">best {bestScore}</span>
+                      )}
+                    </p>
+                    <p className="text-xs leading-snug text-fg-muted">{g.blurb}</p>
+                  </div>
+                  {g.ready ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeArcade();
+                        openGame();
+                      }}
+                      className="btn btn-primary btn-sm shrink-0"
+                    >
+                      Play
+                    </button>
+                  ) : (
+                    <span className="shrink-0 font-mono text-[10px] tracking-[0.14em] text-fg-subtle uppercase">Soon</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {line && !tip && !arcade && (
           <p
             aria-hidden
             className={cn(
@@ -1039,8 +1220,8 @@ export function PetBot() {
             onPointerDown={onPetDown}
             onPointerUp={onPetUp}
             onLostPointerCapture={onPetUp}
-            onPointerEnter={() => (phys.current.hover = true)}
-            onPointerLeave={() => (phys.current.hover = false)}
+            onPointerEnter={onPetEnter}
+            onPointerLeave={onPetLeave}
             className={cn(
               "pointer-events-auto touch-none select-none",
               power === "on" && "cursor-pointer",
