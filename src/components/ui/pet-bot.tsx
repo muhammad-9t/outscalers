@@ -100,10 +100,18 @@ type Tip = { href: string; text: string; cta: string; voice?: boolean };
 // Offered once per visit, early on, in browsers that can do speech recognition
 const VOICE_TIP: Tip = {
   href: "",
-  text: "Tired of using the mouse? Turn on voice and just tell me: “open portfolio”, “scroll”, “stop”, “go back”…",
+  text: "Tired of using the mouse? Turn on voice and just tell me: “open portfolio”, “scroll”, “stop”, “go back”… The Voice button bottom left does it too.",
   cta: "Turn on voice",
   voice: true,
 };
+// Said when the cursor rests on the Voice button
+const VOICE_NUDGES = [
+  "Go on, try it. Freedom from the mouse awaits!",
+  "Click it, and your voice becomes the remote control.",
+  "Hands off the mouse! Just talk to me.",
+  "Try it. I promise I'm a good listener.",
+  "One click and you can browse like a sci-fi captain.",
+];
 const VOICE_OFFERED_KEY = "pet-voice-offered";
 const VOICE_OFFER_MS = 6000; // on the page this long before the offer
 const VOICE_HELP =
@@ -253,6 +261,8 @@ export function PetBot() {
     say(scrollPace.current.up ? "We're at the top." : "That's the end of the page. Say “go to top” to go back up.", undefined, "happy", true),
   );
   const stopVoice = useRef<() => void>(() => {});
+  const nudgeAt = useRef(0);
+  const nudgeIdx = useRef(0);
   const voiceState = useRef({ supported: false, listening: false });
 
   const onCommand = useCallback(
@@ -830,7 +840,30 @@ export function PetBot() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
-      {/* While voice is on: what it heard, and a way to turn it off */}
+      {/* Voice: a mic button that is always there; while on it becomes a bar with what it heard */}
+      {voice.supported && !voice.listening && (
+        <button
+          type="button"
+          onClick={() => {
+            if (tipOpen.current) closeTip();
+            voice.start();
+            say("I'm listening! Say “help” to hear what I can do.", undefined, "happy", true);
+          }}
+          onMouseEnter={() => {
+            // A nudge from the pet, at most every few seconds
+            const now = performance.now();
+            if (phys.current.mode !== "on" || now < nudgeAt.current) return;
+            nudgeAt.current = now + 5000;
+            say(VOICE_NUDGES[nudgeIdx.current++ % VOICE_NUDGES.length], 3000, "happy", true);
+          }}
+          title="Voice commands"
+          className="group pointer-events-auto absolute bottom-5 left-5 flex items-center gap-2 border border-line-strong bg-ink-950/90 py-1.5 pr-3 pl-2.5 text-xs text-fg-muted backdrop-blur-sm transition-colors hover:border-brand-400/50 hover:text-fg"
+        >
+          <Mic aria-hidden className="size-3.5 text-brand-300" />
+          <span className="font-mono text-[10px] tracking-[0.16em] uppercase">Voice</span>
+          <span className="sr-only">Turn on voice commands</span>
+        </button>
+      )}
       {voice.listening && (
         <div
           role="status"
