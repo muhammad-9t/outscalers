@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, Mic, X } from "lucide-react";
+import { ArrowRight, Gamepad2, Mic, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { scrollToY } from "@/lib/smooth-scroll";
 import { PAGE_NAMES, SCROLL_SPEED, parseCommand, useAutoScroll, useVoice, type VoiceCommand } from "./pet-voice";
@@ -96,14 +97,26 @@ const CHASE_LINES = [
 const CHASE_STAGES = [1, 3.5, 6]; // seconds of chasing before each line
 
 // Guide tips: a question and a button to another page. Pages not yet visited this session come first.
-type Tip = { href: string; text: string; cta: string; voice?: boolean };
+type Tip = { href: string; text: string; cta: string; action?: "voice" | "game" };
 // Offered once per visit, early on, in browsers that can do speech recognition
 const VOICE_TIP: Tip = {
   href: "",
   text: "Tired of using the mouse? Turn on voice and just tell me: “open portfolio”, “scroll”, “stop”, “go back”… The Voice button bottom left does it too.",
   cta: "Turn on voice",
-  voice: true,
+  action: "voice",
 };
+// Offered once per visit, after a few jokes
+const GAME_TIP: Tip = {
+  href: "",
+  text: "Want to play? Bugs are heading for production, and I need a co-pilot to stop them.",
+  cta: "Play Bug Hunt",
+  action: "game",
+};
+const GAME_OFFERED_KEY = "pet-game-offered";
+const JOKES_BEFORE_GAME = 3;
+
+// The game is only downloaded when it is opened
+const BugHunt = dynamic(() => import("@/components/game/bug-hunt").then((m) => m.BugHunt), { ssr: false });
 // Said when the cursor rests on the Voice button
 const VOICE_NUDGES = [
   "Go on, try it. Freedom from the mouse awaits!",
@@ -115,7 +128,7 @@ const VOICE_NUDGES = [
 const VOICE_OFFERED_KEY = "pet-voice-offered";
 const VOICE_OFFER_MS = 6000; // on the page this long before the offer
 const VOICE_HELP =
-  "Try: “open portfolio”, “scroll”, “scroll slow”, “faster”, “stop”, “go to top”, “go back”, “next page”, “reload”, “tell me a joke”, or “stop listening”.";
+  "Try: “open portfolio”, “scroll”, “scroll slow”, “faster”, “stop”, “go to top”, “go back”, “next page”, “reload”, “tell me a joke”, “play a game”, or “stop listening”.";
 const TIPS: Tip[] = [
   { href: "/portfolio", text: "Have you seen our portfolio yet?", cta: "Open portfolio" },
   { href: "/services", text: "Want to see what we can build for you?", cta: "View services" },
@@ -221,6 +234,10 @@ export function PetBot() {
 
   const busyUntil = useRef(0); // a line is on screen until then
   const jokeIdx = useRef(-1);
+  const jokesTold = useRef(0);
+  const gameDue = useRef(false); // enough jokes told: offer the game at the next chance
+  const [game, setGame] = useState(false);
+  const gameOpen = useRef(false);
   const secretTimers = useRef<number[]>([]);
 
   /** Shows a line. Returns false if it was skipped so as not to talk over something still being read. */
@@ -252,6 +269,19 @@ export function PetBot() {
     }
     if (jokeIdx.current < 0) jokeIdx.current = Math.floor(Math.random() * JOKES.length);
     say(JOKES[jokeIdx.current++ % JOKES.length], undefined, "happy", true);
+    if (++jokesTold.current >= JOKES_BEFORE_GAME) gameDue.current = true;
+  }, [say]);
+
+  const openGame = useCallback(() => {
+    gameOpen.current = true;
+    gameDue.current = false;
+    store.set(GAME_OFFERED_KEY, "1");
+    setGame(true);
+  }, []);
+  const closeGame = useCallback(() => {
+    gameOpen.current = false;
+    setGame(false);
+    say("Thanks for playing! Production is safe… for now.", undefined, "happy", true);
   }, [say]);
 
   // Voice commands: the pet answers each one in its speech bubble
@@ -269,6 +299,7 @@ export function PetBot() {
     (cmd: VoiceCommand) => {
       const p = phys.current;
       if (p.mode !== "on" && cmd.type !== "mute") return; // knocked out: can't hear a thing
+      if (gameOpen.current && cmd.type !== "mute") return; // busy playing
       const ok = (text: string, ms = 2200) => say(text, ms, "happy", true);
       const scroll = (speed: keyof typeof SCROLL_SPEED, up: boolean) => {
         scrollPace.current = { speed, up };
@@ -359,6 +390,10 @@ export function PetBot() {
             }, t),
           );
           break;
+        case "game":
+          auto.stop();
+          openGame();
+          break;
         case "which":
           // A page name on its own works as the answer
           ok("Which page? Just say “portfolio”, “services”, “how we work”, “about” or “contact”.", 4500);
@@ -376,7 +411,7 @@ export function PetBot() {
           say("Sorry, I didn't catch that. Say “help” for ideas.", 2600, "focus");
       }
     },
-    [auto, pathname, router, say, talk],
+    [auto, openGame, pathname, router, say, talk],
   );
 
   const voice = useVoice(
@@ -533,6 +568,16 @@ export function PetBot() {
         setTipBelow(el.getBoundingClientRect().top < 190);
         tipOpen.current = true;
         setTip(VOICE_TIP);
+        setMood("happy");
+        holdTip(TIP_SHOW_MS + 4000);
+        return;
+      }
+      if (gameDue.current && !gameOpen.current && !store.get(GAME_OFFERED_KEY)) {
+        store.set(GAME_OFFERED_KEY, "1");
+        gameDue.current = false;
+        setTipBelow(el.getBoundingClientRect().top < 170);
+        tipOpen.current = true;
+        setTip(GAME_TIP);
         setMood("happy");
         holdTip(TIP_SHOW_MS + 4000);
         return;
@@ -791,7 +836,7 @@ export function PetBot() {
       }
 
       // Cursor at rest: lock on with a beam that tugs the cursor spot toward the pet
-      if (!hidden && readyRef.current && !tipOpen.current && !beamedThisRest && now - lastMove > IDLE_MS) {
+      if (!hidden && readyRef.current && !tipOpen.current && !gameOpen.current && !beamedThisRest && now - lastMove > IDLE_MS) {
         beamedThisRest = true;
         beamAt = now;
         setBeaming(true);
@@ -840,6 +885,7 @@ export function PetBot() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
+      {game && <BugHunt onClose={closeGame} />}
       {/* Voice: a mic button that is always there; while on it becomes a bar with what it heard */}
       {voice.supported && !voice.listening && (
         <button
@@ -940,7 +986,19 @@ export function PetBot() {
             </button>
             <p className="font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">Guide</p>
             <p className="mt-1 pr-5 text-sm leading-snug text-fg">{tip.text}</p>
-            {tip.voice ? (
+            {tip.action === "game" ? (
+              <button
+                type="button"
+                onClick={() => {
+                  closeTip();
+                  openGame();
+                }}
+                className="btn btn-primary btn-sm mt-3 w-full justify-center"
+              >
+                <Gamepad2 aria-hidden className="size-3.5" />
+                {tip.cta}
+              </button>
+            ) : tip.action === "voice" ? (
               <>
                 <button
                   type="button"

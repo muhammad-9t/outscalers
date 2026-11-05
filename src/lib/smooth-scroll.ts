@@ -17,6 +17,15 @@ export function scrollToY(top: number, { smooth = true }: { smooth?: boolean } =
   else window.scrollTo({ top, behavior: smooth && !reduce ? "smooth" : "instant" });
 }
 
+/** Freezes page scrolling (for full-screen overlays such as the game), or lets it go again. */
+export function lockScroll(locked: boolean) {
+  if (lenis) {
+    if (locked) lenis.stop();
+    else lenis.start();
+  }
+  document.documentElement.style.overflow = locked ? "hidden" : "";
+}
+
 /** Scrolls the page by `dy` pixels at once (for animations that move the page a little every frame). */
 export function scrollByY(dy: number) {
   if (lenis) lenis.scrollTo(lenis.targetScroll + dy, { immediate: true, force: true });
