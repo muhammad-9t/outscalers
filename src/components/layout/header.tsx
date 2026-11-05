@@ -26,6 +26,21 @@ function ActiveCorners() {
   );
 }
 
+/** A nav label with two coloured copies that slice and shift while its link is hovered (see .nav-glitch). */
+function GlitchLabel({ text }: { text: string }) {
+  return (
+    <span className="nav-glitch">
+      {text}
+      <span aria-hidden className="nav-glitch-a">
+        {text}
+      </span>
+      <span aria-hidden className="nav-glitch-b">
+        {text}
+      </span>
+    </span>
+  );
+}
+
 export function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -108,7 +123,7 @@ export function Header() {
                     if (!e.currentTarget.contains(e.relatedTarget as Node)) setServicesOpen(false);
                   }}
                 >
-                  <div className="relative flex items-center">
+                  <div className={cn("relative flex items-center", !isActive(pathname, item.href) && "nav-holo rounded-lg")}>
                     {isActive(pathname, item.href) && <ActiveCorners />}
                     <Link
                       href={item.href}
@@ -118,7 +133,7 @@ export function Header() {
                         isActive(pathname, item.href) ? "text-fg" : "text-fg-muted",
                       )}
                     >
-                      {item.label}
+                      <GlitchLabel text={item.label} />
                     </Link>
                     <button
                       type="button"
@@ -199,11 +214,11 @@ export function Header() {
                     aria-current={isActive(pathname, item.href) ? "page" : undefined}
                     className={cn(
                       "relative rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-fg",
-                      isActive(pathname, item.href) ? "text-fg" : "text-fg-muted",
+                      isActive(pathname, item.href) ? "text-fg" : "nav-holo text-fg-muted",
                     )}
                   >
                     {isActive(pathname, item.href) && <ActiveCorners />}
-                    {item.label}
+                    <GlitchLabel text={item.label} />
                   </Link>
                 </li>
               ),

@@ -1,16 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ArrowRight, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowRight, Mic, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { scrollToY } from "@/lib/smooth-scroll";
+import { PAGE_NAMES, SCROLL_SPEED, parseCommand, useAutoScroll, useVoice, type VoiceCommand } from "./pet-voice";
 
 // Only with a real mouse, and never for reduced motion
 const QUERY = "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
 const IDLE_MS = 4500; // cursor still this long: the pet locks on with its beam and tells a joke
 const BEAM_MS = 1600;
 const SIZE = 64; // rendered width of the pet
+const H = (SIZE * 82) / 72; // rendered height of the pet
+
+// Punching: three quick punches knock the pet out; it lies powered off, can be dragged around, then reboots
+const PUNCHES_TO_KO = 3;
+const PUNCH_RESET_MS = 4000; // punches further apart than this start the count again
+const OFF_MS = 7000;
+const BOOT_MS = 1300;
+const PUNCH_LINES = ["Ouch! What was that for?", "Hey! Robots have feelings too."];
+const KO_LINE = "Critical hit… powering down.";
+const BOOT_LINE = "Rebooting… systems coming back online.";
+const WAKE_LINES = [
+  "I'm back! Let's pretend that never happened.",
+  "Systems online. I felt that in every circuit.",
+  "Back online. Nice combo, but I want a rematch.",
+];
 
 const GREETINGS: Record<string, string> = {
   "/": "Hi! I'm your Outscalers guide.",
@@ -79,7 +96,18 @@ const CHASE_LINES = [
 const CHASE_STAGES = [1, 3.5, 6]; // seconds of chasing before each line
 
 // Guide tips: a question and a button to another page. Pages not yet visited this session come first.
-type Tip = { href: string; text: string; cta: string };
+type Tip = { href: string; text: string; cta: string; voice?: boolean };
+// Offered once per visit, early on, in browsers that can do speech recognition
+const VOICE_TIP: Tip = {
+  href: "",
+  text: "Tired of using the mouse? Turn on voice and just tell me: “open portfolio”, “scroll”, “stop”, “go back”…",
+  cta: "Turn on voice",
+  voice: true,
+};
+const VOICE_OFFERED_KEY = "pet-voice-offered";
+const VOICE_OFFER_MS = 6000; // on the page this long before the offer
+const VOICE_HELP =
+  "Try: “open portfolio”, “scroll”, “scroll slow”, “faster”, “stop”, “go to top”, “go back”, “next page”, “reload”, “tell me a joke”, or “stop listening”.";
 const TIPS: Tip[] = [
   { href: "/portfolio", text: "Have you seen our portfolio yet?", cta: "Open portfolio" },
   { href: "/services", text: "Want to see what we can build for you?", cta: "View services" },
@@ -115,6 +143,7 @@ const store = {
 };
 
 type Mood = "idle" | "happy" | "focus";
+type Power = "on" | "off" | "boot";
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
@@ -143,8 +172,36 @@ export function PetBot() {
   const [tipBelow, setTipBelow] = useState(false);
   const tipOpen = useRef(false);
   const tipTimer = useRef<number>(0);
+  const [power, setPower] = useState<Power>("on");
+  const [ouch, setOuch] = useState(false); // wincing eyes right after a punch
+  const [grabbing, setGrabbing] = useState(false);
+  const ouchTimer = useRef<number>(0);
+  // Punch and fall physics. Kept across page changes, like the position.
+  const phys = useRef({
+    mode: "on" as Power,
+    vx: 0, // fall velocity while powered off, px/s
+    vy: 0,
+    rot: 0, // tilt of the whole body, deg
+    rotV: 0,
+    kx: 0, // knock-back offset from a punch, springs back to 0
+    ky: 0,
+    kvx: 0,
+    kvy: 0,
+    hits: 0,
+    lastHit: 0,
+    stunUntil: 0, // stays put after a punch so the next one can land
+    wakeAt: 0,
+    bootAt: 0,
+    drag: false,
+    gx: 0, // where it was grabbed, relative to its top-left corner
+    gy: 0,
+    lie: 1, // which side it falls on
+    hover: false,
+  });
 
   const pet = useRef<HTMLDivElement>(null);
+  const tumble = useRef<HTMLDivElement>(null);
+  const squash = useRef<HTMLDivElement>(null);
   const body = useRef<SVGGElement>(null);
   const eyes = useRef<SVGGElement>(null);
   const lids = useRef<SVGGElement>(null);
@@ -189,6 +246,157 @@ export function PetBot() {
     say(JOKES[jokeIdx.current++ % JOKES.length], undefined, "happy", true);
   }, [say]);
 
+  // Voice commands: the pet answers each one in its speech bubble
+  const router = useRouter();
+  const scrollPace = useRef<{ speed: keyof typeof SCROLL_SPEED; up: boolean }>({ speed: "normal", up: false });
+  const auto = useAutoScroll(() =>
+    say(scrollPace.current.up ? "We're at the top." : "That's the end of the page. Say “go to top” to go back up.", undefined, "happy", true),
+  );
+  const stopVoice = useRef<() => void>(() => {});
+  const voiceState = useRef({ supported: false, listening: false });
+
+  const onCommand = useCallback(
+    (cmd: VoiceCommand) => {
+      const p = phys.current;
+      if (p.mode !== "on" && cmd.type !== "mute") return; // knocked out: can't hear a thing
+      const ok = (text: string, ms = 2200) => say(text, ms, "happy", true);
+      const scroll = (speed: keyof typeof SCROLL_SPEED, up: boolean) => {
+        scrollPace.current = { speed, up };
+        auto.run((up ? -1 : 1) * SCROLL_SPEED[speed]);
+      };
+      const history = (window as unknown as { navigation?: { canGoBack: boolean; canGoForward: boolean } }).navigation;
+      switch (cmd.type) {
+        case "open":
+          auto.stop();
+          ok(`Opening ${cmd.label}.`);
+          router.push(cmd.href);
+          break;
+        case "scroll":
+          scroll(cmd.speed, cmd.up);
+          ok(
+            cmd.up
+              ? "Scrolling up."
+              : cmd.speed === "slow"
+                ? "Scrolling slowly. Say “stop” when you're done."
+                : cmd.speed === "fast"
+                  ? "Full speed ahead!"
+                  : "Scrolling. Say “slower”, “faster” or “stop”.",
+            2800,
+          );
+          break;
+        case "faster":
+        case "slower": {
+          const { speed, up } = scrollPace.current;
+          const next = cmd.type === "faster" ? (speed === "slow" ? "normal" : "fast") : speed === "fast" ? "normal" : "slow";
+          scroll(next, up);
+          ok(cmd.type === "faster" ? (next === "fast" ? "Full speed ahead!" : "A bit faster.") : "Nice and slow.", 1800);
+          break;
+        }
+        case "stop":
+          auto.stop();
+          ok("Stopped.", 1500);
+          break;
+        case "top":
+          auto.stop();
+          scrollToY(0);
+          ok("Back to the top.", 1800);
+          break;
+        case "bottom":
+          auto.stop();
+          scrollToY(document.documentElement.scrollHeight);
+          ok("All the way down.", 1800);
+          break;
+        case "back":
+          auto.stop();
+          if (history ? history.canGoBack : window.history.length > 1) {
+            ok("Going back.", 1500);
+            router.back();
+          } else ok("There's no previous page yet. Try “open services”.");
+          break;
+        case "forward":
+          auto.stop();
+          if (history && !history.canGoForward) ok("There's no next page in your history. Try “open portfolio”.");
+          else {
+            ok("Going forward.", 1500);
+            router.forward();
+          }
+          break;
+        case "reload":
+          ok("Reloading…", 1500);
+          window.setTimeout(() => window.location.reload(), 500);
+          break;
+        case "joke":
+          talk();
+          break;
+        case "help":
+          say(VOICE_HELP, undefined, "happy", true);
+          break;
+        case "where": {
+          const key = Object.keys(PAGE_NAMES).find((k) => k !== "/" && pathname.startsWith(k));
+          ok(`You're on ${key ? PAGE_NAMES[key] : pathname === "/" ? PAGE_NAMES["/"] : "a page off the map"}.`);
+          break;
+        }
+        case "hello":
+          ok("Hi! Say “help” to hear what I can do.");
+          break;
+        case "dance":
+          ok("Watch this!", 1800);
+          [0, 240, 480, 720].forEach((t, i) =>
+            window.setTimeout(() => {
+              if (p.mode !== "on") return;
+              p.rotV += (i % 2 ? -1 : 1) * 900;
+              p.kvy -= 320;
+            }, t),
+          );
+          break;
+        case "which":
+          // A page name on its own works as the answer
+          ok("Which page? Just say “portfolio”, “services”, “how we work”, “about” or “contact”.", 4500);
+          break;
+        case "thanks":
+          ok("Anytime! That's what I'm here for.");
+          break;
+        case "mute":
+          auto.stop();
+          stopVoice.current();
+          ok("Okay, I've stopped listening.");
+          break;
+        default:
+          // Often just background talk, so it never interrupts a line still being read
+          say("Sorry, I didn't catch that. Say “help” for ideas.", 2600, "focus");
+      }
+    },
+    [auto, pathname, router, say, talk],
+  );
+
+  const voice = useVoice(
+    (guesses) => {
+      // The first guess that is a real command wins; "open …" without a clear page, then nothing, come last
+      const parsed = guesses.map((text) => ({ text, cmd: parseCommand(text) }));
+      const rank = (c: VoiceCommand) => (c.type === "unknown" ? 2 : c.type === "which" ? 1 : 0);
+      const pick = parsed.reduce((a, b) => (rank(b.cmd) < rank(a.cmd) ? b : a));
+      onCommand(pick.cmd);
+      return pick.text;
+    },
+    (err) =>
+      say(
+        err === "blocked"
+          ? "I can't hear you: the microphone is blocked. Allow it in the address bar, then try again."
+          : "My speech service is offline right now. Try again in a moment.",
+        undefined,
+        "focus",
+        true,
+      ),
+  );
+  useEffect(() => {
+    stopVoice.current = voice.stop;
+    voiceState.current = { supported: voice.supported, listening: voice.listening };
+  }, [voice.stop, voice.supported, voice.listening]);
+  // No pet on touch screens (or with reduced motion), so no listening there either
+  useEffect(() => {
+    if (!on && voice.listening) voice.stop();
+  }, [on, voice]);
+
   useEffect(() => {
     const mq = window.matchMedia(QUERY);
     const sync = () => setOn(mq.matches);
@@ -214,6 +422,79 @@ export function PetBot() {
     [closeTip],
   );
 
+  /** A click on the pet: a punch while it is on, a grab while it is powered off. */
+  const onPetDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const p = phys.current;
+      const pos = posRef.current;
+      const now = performance.now();
+      if (p.mode === "off") {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        p.drag = true;
+        p.gx = e.clientX - pos.x;
+        p.gy = e.clientY - pos.y;
+        setGrabbing(true);
+        return;
+      }
+      if (p.mode !== "on") return;
+      if (tipOpen.current) closeTip();
+      // Knocked away from the fist, with a spin, a squash and a wince
+      const dx = pos.x + SIZE / 2 - e.clientX;
+      const dy = pos.y + H / 2 - e.clientY;
+      const d = Math.hypot(dx, dy) || 1;
+      const dir = dx >= 0 ? 1 : -1;
+      p.kvx += (dx / d) * 560;
+      p.kvy += (dy / d) * 560 - 140;
+      p.rotV += dir * 560;
+      p.stunUntil = now + 900;
+      p.hits = now - p.lastHit > PUNCH_RESET_MS ? 1 : p.hits + 1;
+      p.lastHit = now;
+      squash.current?.animate(
+        [
+          { transform: "scale(1, 1)" },
+          { transform: "scale(1.2, 0.78)", offset: 0.2 },
+          { transform: "scale(0.9, 1.1)", offset: 0.55 },
+          { transform: "scale(1.03, 0.98)", offset: 0.8 },
+          { transform: "scale(1, 1)" },
+        ],
+        { duration: 480, easing: "ease-out" },
+      );
+      setOuch(true);
+      window.clearTimeout(ouchTimer.current);
+      ouchTimer.current = window.setTimeout(() => setOuch(false), 500);
+      if (p.hits < PUNCHES_TO_KO) {
+        say(PUNCH_LINES[p.hits - 1] ?? PUNCH_LINES[0], 2200, "focus", true);
+        return;
+      }
+      // Knockout: the punch carries it off and it drops, powered off
+      p.hits = 0;
+      p.mode = "off";
+      p.wakeAt = now + OFF_MS;
+      p.lie = dir;
+      pos.x += p.kx;
+      pos.y += p.ky;
+      p.vx = p.kvx * 1.2;
+      p.vy = Math.min(p.kvy, -260);
+      p.kx = p.ky = p.kvx = p.kvy = 0;
+      setPower("off");
+      setBeaming(false);
+      say(KO_LINE, 2000, "idle", true);
+    },
+    [closeTip, say],
+  );
+
+  const onPetUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    const p = phys.current;
+    if (!p.drag) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    p.drag = false;
+    // Thrown with the speed it was carried at; it lands before it wakes up
+    p.wakeAt = Math.max(p.wakeAt, performance.now() + 1500);
+    setGrabbing(false);
+  }, []);
+
   // A greeting about the page shortly after arriving, then one guide suggestion once the page has been read
   useEffect(() => {
     if (!on || !ready) return;
@@ -230,11 +511,24 @@ export function PetBot() {
     let settle = 0;
     const maybeTip = () => {
       const now = performance.now();
-      if (tipped || tipOpen.current || now < busyUntil.current + 1000) return;
-      if (now - lastScroll < SCROLL_SETTLE_MS || now - enteredAt < TIP_MIN_ON_PAGE_MS) return;
-      if (Number(store.get(TIPS_OFF_KEY) ?? 0) >= 2) return;
+      if (tipped || tipOpen.current || phys.current.mode !== "on" || now < busyUntil.current + 1000) return;
+      if (now - lastScroll < SCROLL_SETTLE_MS) return;
       const el = pet.current;
       if (!el || el.style.opacity === "0") return; // the pet is hidden right now
+      // Voice is offered once per visit, early, before any page suggestion
+      const v = voiceState.current;
+      if (v.supported && !v.listening && !store.get(VOICE_OFFERED_KEY)) {
+        if (now - enteredAt < VOICE_OFFER_MS) return;
+        store.set(VOICE_OFFERED_KEY, "1");
+        setTipBelow(el.getBoundingClientRect().top < 190);
+        tipOpen.current = true;
+        setTip(VOICE_TIP);
+        setMood("happy");
+        holdTip(TIP_SHOW_MS + 4000);
+        return;
+      }
+      if (now - enteredAt < TIP_MIN_ON_PAGE_MS) return;
+      if (Number(store.get(TIPS_OFF_KEY) ?? 0) >= 2) return;
       const max = document.documentElement.scrollHeight - window.innerHeight;
       if (max > 300 && window.scrollY / max < TIP_AT_PROGRESS) return; // not read far enough yet
       tipped = true;
@@ -308,10 +602,98 @@ export function PetBot() {
       }
     };
 
+    /** Springs the body's tilt toward a target angle. */
+    const spin = (target: number, k: number, damp: number, dt: number) => {
+      const p = phys.current;
+      p.rotV += ((target - p.rot) * k - p.rotV * damp) * dt;
+      p.rot += p.rotV * dt;
+      if (tumble.current) tumble.current.style.transform = `rotate(${p.rot.toFixed(2)}deg)`;
+    };
+
+    /** Powered off: falls, bounces and lies on its side, or dangles while carried. Then reboots. */
+    const powered = (now: number, dt: number, el: HTMLDivElement) => {
+      const p = phys.current;
+      const W = window.innerWidth;
+      const VH = window.innerHeight;
+      const rad = (p.rot * Math.PI) / 180;
+      // How far the body reaches below its centre; less once it has tipped over
+      const reach = 34 * Math.abs(Math.cos(rad)) + 27 * Math.abs(Math.sin(rad));
+      const floor = VH - 4 - H / 2 - reach;
+      if (p.mode === "boot") {
+        const t = Math.min(1, (now - p.bootAt) / BOOT_MS);
+        pos.y += (floor - 28 - pos.y) * Math.min(1, dt * 4);
+        spin(0, 90, 11, dt);
+        if (flame.current) flame.current.style.transform = `scaleY(${(t * 0.6).toFixed(3)})`;
+        if (t >= 1) {
+          p.mode = "on";
+          vel.x = vel.y = 0;
+          setPower("on");
+          say(WAKE_LINES[Math.floor(Math.random() * WAKE_LINES.length)], undefined, "happy", true);
+        }
+      } else if (p.drag) {
+        const tx = clamp(mouse.x - p.gx, -SIZE / 2, W - SIZE / 2);
+        const ty = clamp(mouse.y - p.gy, -H / 2, VH - H / 2);
+        const nx = pos.x + (tx - pos.x) * 0.55;
+        const ny = pos.y + (ty - pos.y) * 0.55;
+        if (dt > 0.001) {
+          p.vx = p.vx * 0.5 + clamp((nx - pos.x) / dt, -2400, 2400) * 0.5;
+          p.vy = p.vy * 0.5 + clamp((ny - pos.y) / dt, -2400, 2400) * 0.5;
+        }
+        pos.x = nx;
+        pos.y = ny;
+        // Limp: it swings against the motion, like something being carried
+        spin(clamp(-p.vx * 0.045, -65, 65) + p.lie * 12, 55, 4.5, dt);
+      } else {
+        p.vy += 2600 * dt;
+        pos.x += p.vx * dt;
+        pos.y += p.vy * dt;
+        if (pos.x < 4 || pos.x > W - SIZE - 4) {
+          pos.x = clamp(pos.x, 4, W - SIZE - 4);
+          p.vx *= -0.45;
+          p.rotV -= p.lie * 90;
+        }
+        const grounded = pos.y >= floor - 0.5;
+        if (pos.y >= floor) {
+          pos.y = floor;
+          if (p.vy > 320) {
+            p.vy *= -0.3; // a small bounce
+            p.rotV += p.lie * 140;
+          } else p.vy = 0;
+          p.vx *= Math.max(0, 1 - 7 * dt);
+        }
+        spin(p.lie * 84, grounded ? 140 : 16, grounded ? 13 : 2.5, dt);
+        if (flame.current) flame.current.style.transform = "scaleY(0)";
+        if (now >= p.wakeAt && grounded) {
+          p.mode = "boot";
+          p.bootAt = now;
+          setPower("boot");
+          say(BOOT_LINE, BOOT_MS + 400, "idle", true);
+          // The eyes flicker back on
+          eyes.current?.animate(
+            [
+              { opacity: 0 },
+              { opacity: 1, offset: 0.12 },
+              { opacity: 0.1, offset: 0.24 },
+              { opacity: 0.9, offset: 0.4 },
+              { opacity: 0.25, offset: 0.55 },
+              { opacity: 1 },
+            ],
+            { duration: 900, easing: "linear" },
+          );
+        }
+      }
+      el.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
+      if (body.current) body.current.style.transform = "";
+      if (eyes.current) eyes.current.style.transform = "";
+    };
+
     const loop = (now: number) => {
       frame = requestAnimationFrame(loop);
       const el = pet.current;
       if (!el) return;
+      const p = phys.current;
+      const dt = Math.min(0.05, (now - lastNow) / 1000);
+      lastNow = now;
 
       // Hide while any section with its own robot or stage (services and phase rails, the workflow stage) fills
       // the screen. Looked up every frame: those sections only switch the marker on once they are active.
@@ -322,20 +704,38 @@ export function PetBot() {
       el.style.opacity = hidden || !readyRef.current ? "0" : "1";
       if (!readyRef.current) return; // nothing to follow yet
 
+      // Knock-back from a punch: a spring that pulls the pet back to where it was hit
+      p.kvx += (-p.kx * 170 - p.kvx * 13) * dt;
+      p.kvy += (-p.ky * 170 - p.kvy * 13) * dt;
+      p.kx += p.kvx * dt;
+      p.ky += p.kvy * dt;
+
+      if (p.mode !== "on") {
+        if (beamAt) {
+          beamAt = 0;
+          setBeaming(false);
+        }
+        powered(now, dt, el);
+        return;
+      }
+
       // Keep to one side of the cursor so it never covers what is being pointed at
       if (mouse.x < 150) side = -1;
       else if (mouse.x > window.innerWidth - 150) side = 1;
       if (side !== shownSide && !tipOpen.current) setFlip((shownSide = side) < 0);
-      // While a suggestion is open the pet stays put, so its button can be reached
-      const tx = tipOpen.current ? pos.x : clamp(mouse.x - side * 78 - SIZE / 2, 8, window.innerWidth - SIZE - 8);
-      const ty = tipOpen.current ? pos.y : clamp(mouse.y - 92, 8, window.innerHeight - SIZE - 24);
+      // Stays put while a suggestion is open (so its button can be reached), while the cursor is on it
+      // and right after a punch (so it can be punched again)
+      const still = tipOpen.current || p.hover || now < p.stunUntil;
+      const tx = still ? pos.x : clamp(mouse.x - side * 78 - SIZE / 2, 8, window.innerWidth - SIZE - 8);
+      const ty = still ? pos.y : clamp(mouse.y - 92, 8, window.innerHeight - SIZE - 24);
       const nx = pos.x + (tx - pos.x) * 0.075;
       const ny = pos.y + (ty - pos.y) * 0.075;
       vel.x = vel.x * 0.8 + (nx - pos.x) * 0.2;
       vel.y = vel.y * 0.8 + (ny - pos.y) * 0.2;
       pos.x = nx;
       pos.y = ny;
-      el.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
+      el.style.transform = `translate3d(${pos.x + p.kx}px, ${pos.y + p.ky}px, 0)`;
+      spin(0, 120, 10, dt);
 
       // Lean with the motion; thrusters flare with speed
       const speed = Math.hypot(vel.x, vel.y);
@@ -351,8 +751,6 @@ export function PetBot() {
       if (eyes.current) eyes.current.style.transform = `translate(${(dx / d) * 4}px, ${(dy / d) * 3}px)`;
 
       // Chasing: the cursor keeps moving toward the pet while close to it
-      const dt = Math.min(0.1, (now - lastNow) / 1000);
-      lastNow = now;
       const mdx = mouse.x - lastMx;
       const mdy = mouse.y - lastMy;
       lastMx = mouse.x;
@@ -420,12 +818,44 @@ export function PetBot() {
     };
   }, [on, pathname, say, talk]);
 
-  useEffect(() => () => window.clearTimeout(hideTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(hideTimer.current);
+      window.clearTimeout(ouchTimer.current);
+    },
+    [],
+  );
 
   if (!on) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
+      {/* While voice is on: what it heard, and a way to turn it off */}
+      {voice.listening && (
+        <div
+          role="status"
+          className="pointer-events-auto absolute bottom-5 left-5 flex max-w-[calc(100vw-2.5rem)] items-center gap-2.5 border border-brand-400/40 bg-ink-950/90 py-1.5 pr-1.5 pl-3 text-xs text-fg shadow-[0_0_24px_-8px_var(--color-brand-500)] backdrop-blur-sm"
+        >
+          <span aria-hidden className="relative flex size-2.5 shrink-0">
+            <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/70" />
+            <span className="relative size-2.5 rounded-full bg-brand-400" />
+          </span>
+          <Mic aria-hidden className="size-3.5 shrink-0 text-brand-300" />
+          <span className="font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">Listening</span>
+          {voice.heard && <span className="max-w-56 truncate text-fg-muted">“{voice.heard}”</span>}
+          <button
+            type="button"
+            aria-label="Turn off voice commands"
+            onClick={() => {
+              auto.stop();
+              voice.stop();
+            }}
+            className="grid size-6 shrink-0 place-items-center rounded text-fg-subtle transition-colors hover:text-fg"
+          >
+            <X aria-hidden className="size-3.5" />
+          </button>
+        </div>
+      )}
       {/* Beam from the pet's eyes to the resting cursor */}
       <svg aria-hidden className={cn("absolute inset-0 size-full transition-opacity duration-300", beaming ? "opacity-100" : "opacity-0")}>
         <line ref={beamGlow} className="stroke-brand-400/25" strokeWidth={9} strokeLinecap="round" />
@@ -477,19 +907,64 @@ export function PetBot() {
             </button>
             <p className="font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">Guide</p>
             <p className="mt-1 pr-5 text-sm leading-snug text-fg">{tip.text}</p>
-            <Link
-              href={tip.href}
-              onClick={() => closeTip()}
-              className="btn btn-primary btn-sm mt-3 w-full justify-center"
-            >
-              {tip.cta}
-              <ArrowRight aria-hidden className="size-3.5" />
-            </Link>
+            {tip.voice ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeTip();
+                    voice.start();
+                    say("I'm listening! Say “help” to hear what I can do.", undefined, "happy", true);
+                  }}
+                  className="btn btn-primary btn-sm mt-3 w-full justify-center"
+                >
+                  <Mic aria-hidden className="size-3.5" />
+                  {tip.cta}
+                </button>
+                <p className="mt-2 text-xs leading-snug text-fg-subtle">
+                  Your browser asks for the microphone, and its speech service turns what you say into text.
+                </p>
+              </>
+            ) : (
+              <Link
+                href={tip.href}
+                onClick={() => closeTip()}
+                className="btn btn-primary btn-sm mt-3 w-full justify-center"
+              >
+                {tip.cta}
+                <ArrowRight aria-hidden className="size-3.5" />
+              </Link>
+            )}
           </div>
         )}
-        <div aria-hidden className="animate-[hover-bob_2.4s_ease-in-out_infinite]">
+        <div
+          aria-hidden
+          className="animate-[hover-bob_2.4s_ease-in-out_infinite]"
+          style={{ animationPlayState: power === "on" ? "running" : "paused" }}
+        >
+          {/* Punch it while it's on; grab and drag it while it's powered off */}
+          <div
+            ref={tumble}
+            onPointerDown={onPetDown}
+            onPointerUp={onPetUp}
+            onLostPointerCapture={onPetUp}
+            onPointerEnter={() => (phys.current.hover = true)}
+            onPointerLeave={() => (phys.current.hover = false)}
+            className={cn(
+              "pointer-events-auto touch-none select-none",
+              power === "on" && "cursor-pointer",
+              power === "off" && (grabbing ? "cursor-grabbing" : "cursor-grab"),
+            )}
+          >
+          <div ref={squash}>
           <svg viewBox="0 0 72 82" width={SIZE} className="block overflow-visible">
-            <ellipse cx={36} cy={80} rx={15} ry={2} className="fill-brand-500/25" />
+            <ellipse
+              cx={36}
+              cy={80}
+              rx={15}
+              ry={2}
+              className={cn("fill-brand-500/25 transition-opacity duration-500", power !== "on" && "opacity-0")}
+            />
             <g ref={body} style={{ transformOrigin: "36px 40px" }}>
               {/* Thrusters */}
               <g ref={flame} style={{ transformOrigin: "36px 58px" }}>
@@ -502,19 +977,48 @@ export function PetBot() {
               <rect x={1} y={34} width={8} height={14} rx={4} className="fill-ink-800 stroke-line-strong" />
               <g
                 style={{ transformOrigin: "67px 40px" }}
-                className={cn(mood === "happy" && "animate-[pet-wave_0.9s_ease-in-out_2]")}
+                className={cn(power === "on" && mood === "happy" && "animate-[pet-wave_0.9s_ease-in-out_2]")}
               >
                 <rect x={63} y={34} width={8} height={14} rx={4} className="fill-ink-800 stroke-line-strong" />
               </g>
               {/* Antenna */}
               <line x1={36} y1={16} x2={36} y2={6} className="stroke-line-strong" strokeWidth={1.5} />
-              <circle cx={36} cy={5} r={2.6} className={cn("fill-brand-400", mood === "focus" ? "animate-ping" : "animate-pulse")} />
+              <circle
+                cx={36}
+                cy={5}
+                r={2.6}
+                className={cn(
+                  "transition-colors duration-500",
+                  power === "off" ? "fill-line-strong" : "fill-brand-400",
+                  power === "on" && (mood === "focus" ? "animate-ping" : "animate-pulse"),
+                  power === "boot" && "animate-ping",
+                )}
+              />
               {/* Head */}
               <rect x={8} y={16} width={56} height={42} rx={20} className="fill-ink-850 stroke-line-strong" strokeWidth={1.5} />
               {/* Face screen */}
-              <rect x={15} y={24} width={42} height={26} rx={12} className="fill-ink-950 stroke-brand-400/50" />
+              <rect
+                x={15}
+                y={24}
+                width={42}
+                height={26}
+                rx={12}
+                className={cn("fill-ink-950 transition-colors duration-500", power === "off" ? "stroke-line-strong" : "stroke-brand-400/50")}
+              />
               <g ref={eyes}>
-                {mood === "happy" ? (
+                {power === "off" ? (
+                  // Knocked out
+                  <g className="fill-none stroke-fg-muted" strokeWidth={2.4} strokeLinecap="round">
+                    <path d="M25 31l6 6m0-6-6 6" />
+                    <path d="M41 31l6 6m0-6-6 6" />
+                  </g>
+                ) : ouch ? (
+                  // Wincing after a punch
+                  <g className="fill-none stroke-brand-300" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M25 31l6 4.5-6 4.5" />
+                    <path d="M47 31l-6 4.5 6 4.5" />
+                  </g>
+                ) : mood === "happy" ? (
                   <g className="fill-none stroke-brand-300" strokeWidth={2.6} strokeLinecap="round">
                     <path d="M24 38q4-6 8 0" />
                     <path d="M40 38q4-6 8 0" />
@@ -527,10 +1031,14 @@ export function PetBot() {
                 )}
               </g>
               {/* Blush, in the human-accent colour */}
-              <circle cx={21} cy={44} r={2.2} className="fill-human-accent/40" />
-              <circle cx={51} cy={44} r={2.2} className="fill-human-accent/40" />
+              <g className={cn("transition-opacity duration-500", power === "off" && "opacity-0")}>
+                <circle cx={21} cy={44} r={2.2} className="fill-human-accent/40" />
+                <circle cx={51} cy={44} r={2.2} className="fill-human-accent/40" />
+              </g>
             </g>
           </svg>
+          </div>
+          </div>
         </div>
       </div>
     </div>

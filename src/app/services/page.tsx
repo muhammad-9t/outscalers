@@ -67,7 +67,7 @@ const plans = [
       "Junior and senior developers, dedicated to your project",
       "Working with AI tools every day",
       "Review by a second developer for every change",
-      "Project management from Mannheim",
+      "A dedicated project lead who keeps delivery on track",
       "Working directly in your Jira, GitHub, Slack or Teams",
       "Maintenance standard included",
     ],

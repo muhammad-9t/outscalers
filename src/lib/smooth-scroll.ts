@@ -16,3 +16,9 @@ export function scrollToY(top: number, { smooth = true }: { smooth?: boolean } =
   if (lenis) lenis.scrollTo(top, { immediate: !smooth || reduce, force: true });
   else window.scrollTo({ top, behavior: smooth && !reduce ? "smooth" : "instant" });
 }
+
+/** Scrolls the page by `dy` pixels at once (for animations that move the page a little every frame). */
+export function scrollByY(dy: number) {
+  if (lenis) lenis.scrollTo(lenis.targetScroll + dy, { immediate: true, force: true });
+  else window.scrollBy(0, dy);
+}
