@@ -7,6 +7,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Gamepad2, Mic, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { scrollToY } from "@/lib/smooth-scroll";
+import { ArcadeLauncher } from "@/components/game/arcade-launcher";
+import { GAMES, readBest } from "@/components/game/games";
 import { PAGE_NAMES, SCROLL_SPEED, parseCommand, useAutoScroll, useVoice, type VoiceCommand } from "./pet-voice";
 
 // Only with a real mouse, and never for reduced motion
@@ -118,12 +120,7 @@ const GAME_OFFERED_KEY = "pet-game-offered";
 const HOLD_MS = 600;
 const ARCADE_HINT_KEY = "pet-arcade-hint";
 const ARCADE_HINT_MS = 900; // cursor resting on the pet this long before the hint
-const BUG_HUNT_BEST_KEY = "bug-hunt-best"; // written by the game
-const GAMES: { id: string; name: string; blurb: string; ready: boolean }[] = [
-  { id: "bug-hunt", name: "Bug Hunt", blurb: "Stop the bugs before they reach production.", ready: true },
-  { id: "deploy-run", name: "Deploy Run", blurb: "Dodge the blockers on the way to release.", ready: false },
-  { id: "ship-it", name: "Ship It", blurb: "Catch the good commits, dodge the bugs.", ready: false },
-];
+
 const JOKES_BEFORE_GAME = 3;
 
 // The game is only downloaded when it is opened
@@ -189,7 +186,7 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
  */
 export function PetBot() {
   const pathname = usePathname();
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState<boolean | null>(null);
   // The page only learns where the cursor is once it moves, so the pet stays hidden until then
   const [ready, setReady] = useState(false);
   const readyRef = useRef(false);
@@ -305,9 +302,7 @@ export function PetBot() {
     tipOpen.current = true; // the pet stays put and quiet while the menu is open
     arcadeOpen.current = true;
     setTipBelow((pet.current?.getBoundingClientRect().top ?? 300) < 290);
-    try {
-      setBestScore(Number(localStorage.getItem(BUG_HUNT_BEST_KEY) ?? 0));
-    } catch {}
+    setBestScore(readBest());
     setArcade(true);
     setMood("happy");
   }, []);
@@ -978,7 +973,15 @@ export function PetBot() {
     [],
   );
 
-  if (!on) return null;
+  if (on === null) return null;
+  // No pet on touch screens (or with reduced motion): the arcade gets a button of its own
+  if (!on)
+    return (
+      <>
+        <ArcadeLauncher onPlay={openGame} />
+        {game && <BugHunt onClose={closeGame} />}
+      </>
+    );
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">

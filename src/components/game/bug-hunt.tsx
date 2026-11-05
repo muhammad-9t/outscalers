@@ -225,6 +225,8 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
   const [sprint, setSprint] = useState(1);
   const [best, setBest] = useState(0);
   const [newBest, setNewBest] = useState(false);
+  // Touch screens get finger controls and their own instructions
+  const [touch] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
   const [line, setLine] = useState<string | null>(null);
   const [powers, setPowers] = useState<{ review: number; ai: boolean; coffee: boolean }>({ review: 0, ai: false, coffee: false });
   const lineTimer = useRef(0);
@@ -269,6 +271,7 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     let c = readColors();
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
     let W = 0;
     let H = 0;
     const resize = () => {
@@ -307,7 +310,7 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       drops: [] as Drop[],
       sparks: [] as Spark[],
     };
-    const input = { left: false, right: false, fire: false, mx: null as number | null };
+    const input = { left: false, right: false, fire: false, tap: false, mx: null as number | null };
 
     reset.current = () => {
       Object.assign(g, { t: 0, score: 0, lives: LIVES, sprint: 1, kills: 0, px: W / 2, lastPx: W / 2, tilt: 0, nextShot: 0, spawnIn: 1 });
@@ -321,12 +324,21 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
     };
     g.px = g.lastPx = W / 2;
 
-    const robotY = () => H - 96;
-    const prodY = () => H - 34;
-    const reviewY = () => H - 150;
+    // Phones: keep clear of the home bar, fewer bugs on narrow screens, fewer particles
+    const safeBottom = () => parseFloat(getComputedStyle(rootRef.current ?? document.body).paddingBottom) || 0;
+    const narrow = () => Math.min(1, Math.max(0.55, W / 1100)); // 1 on desktops, ~0.55 on phones
+    const robotY = () => H - 96 - safeBottom();
+    const prodY = () => H - 34 - safeBottom();
+    const reviewY = () => H - 150 - safeBottom();
+    const buzz = (ms: number) => {
+      try {
+        navigator.vibrate?.(ms);
+      } catch {}
+    };
 
     const burst = (x: number, y: number, color: string, n: number, speed = 220) => {
-      for (let i = 0; i < n; i++) {
+      const count = coarse ? Math.ceil(n * 0.6) : n;
+      for (let i = 0; i < count; i++) {
         const a = Math.random() * Math.PI * 2;
         const s = rand(speed * 0.3, speed);
         g.sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0, max: rand(0.3, 0.7), color });
@@ -349,6 +361,7 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       g.hurt = 0.5;
       burst(x, prodY(), c.danger, 18, 260);
       setLives(g.lives);
+      buzz(g.lives <= 0 ? 320 : 110);
       if (g.lives <= 0) {
         g.shake = 0.5;
         try {
@@ -385,7 +398,8 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       g.lastPx = g.px;
 
       // Fire while the button or Space is held
-      if (input.fire && g.t >= g.nextShot) {
+      if ((input.fire || input.tap) && g.t >= g.nextShot) {
+        input.tap = false; // a quick tap still fires once
         g.nextShot = g.t + (g.coffee > 0 ? 0.11 : 0.21);
         const y = robotY() - 36;
         const angles = g.ai > 0 ? [-0.2, 0, 0.2] : [0];
@@ -401,7 +415,7 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       g.spawnIn -= dt;
       if (g.spawnIn <= 0) {
         spawn();
-        g.spawnIn = Math.max(0.32, 1.25 - g.sprint * 0.11) * rand(0.7, 1.3);
+        g.spawnIn = (Math.max(0.32, 1.25 - g.sprint * 0.11) * rand(0.7, 1.3)) / narrow();
       }
       for (const b of g.bugs) {
         b.t += dt;
@@ -635,11 +649,15 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       input.fire = true;
+      input.tap = true;
       onMove(e);
     };
     const onUp = () => (input.fire = false);
     // Switching tabs pauses
     const onHide = () => document.hidden && phaseRef.current === "playing" && go("paused");
+    // Turning a phone pauses too, so nothing slips through while the screen re-lays out
+    const onTurn = () => phaseRef.current === "playing" && go("paused");
+    screen.orientation?.addEventListener("change", onTurn);
 
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
@@ -659,6 +677,7 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("blur", onUp);
       document.removeEventListener("visibilitychange", onHide);
+      screen.orientation?.removeEventListener("change", onTurn);
     };
   }, [comment, go, onClose, start]);
 
@@ -671,7 +690,8 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       aria-modal="true"
       aria-label="Bug Hunt game"
       tabIndex={-1}
-      className="pointer-events-auto fixed inset-0 z-[100] bg-ink-950 outline-none"
+      style={{ WebkitTouchCallout: "none" }}
+      className="pointer-events-auto fixed inset-0 z-100 touch-none bg-ink-950 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] outline-none select-none"
     >
       <canvas
         ref={canvasRef}
@@ -681,8 +701,8 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
       />
 
       {/* Scoreboard */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-4 p-4 sm:p-6">
-        <div className="flex gap-6">
+      <div className="pointer-events-none absolute inset-x-0 top-[env(safe-area-inset-top)] flex items-start justify-between gap-3 p-4 sm:gap-4 sm:p-6">
+        <div className="flex gap-4 sm:gap-6">
           <div>
             <p className={hudLabel}>Score</p>
             <p className="font-mono text-2xl font-semibold text-fg tabular-nums">{score}</p>
@@ -761,10 +781,16 @@ export function BugHunt({ onClose }: { onClose: () => void }) {
                   Bugs are heading for production. Stop them before three get through.
                 </p>
                 <ul className="mt-5 grid gap-1.5 text-left text-sm text-fg-muted">
-                  <li><span className="text-fg">Move:</span> mouse, or ← → / A D</li>
-                  <li><span className="text-fg">Fire:</span> hold the mouse button, or Space</li>
+                  {touch ? (
+                    <li><span className="text-fg">Play:</span> drag your finger to move. It fires while your finger is down.</li>
+                  ) : (
+                    <>
+                      <li><span className="text-fg">Move:</span> mouse, or ← → / A D</li>
+                      <li><span className="text-fg">Fire:</span> hold the mouse button, or Space</li>
+                    </>
+                  )}
                   <li><span className="text-fg">Power-ups:</span> catch them. <span className="text-human-accent">CR</span> code review, <span className="text-brand-300">AI</span> triple beam, <span className="text-signal">☕</span> faster fire</li>
-                  <li><span className="text-fg">Pause:</span> P · <span className="text-fg">Quit:</span> Esc</li>
+                  {!touch && <li><span className="text-fg">Pause:</span> P · <span className="text-fg">Quit:</span> Esc</li>}
                 </ul>
               </>
             )}

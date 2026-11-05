@@ -771,6 +771,10 @@ html.lenis { scroll-behavior: auto; }
   91% { transform: none; }
 }
 
+/* Arcade sheet on touch screens */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes arcade-sheet { from { transform: translateY(100%); } }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
