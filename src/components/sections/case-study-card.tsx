@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { CaseStudy } from "@/content/case-studies";
-import { CaseVisual } from "@/components/illustrations/case-visual";
+import { CaseArt } from "@/components/illustrations/case-art";
 
 export function CaseStudyCard({ study }: { study: CaseStudy }) {
   return (
     <Link href={`/case-studies/${study.slug}`} className="card card-interactive group flex h-full flex-col overflow-hidden">
       <div className="relative border-b border-line bg-ink-900/60 p-4">
-        <CaseVisual visual={study.visual} />
+        <CaseArt study={study} />
         {study.status === "draft" && (
           <span className="absolute right-3 top-3 rounded-full border border-brand-300/40 bg-ink-950/80 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-brand-300">
             Draft profile

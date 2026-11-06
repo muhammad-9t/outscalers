@@ -2,11 +2,12 @@ import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 /** Brand mark: the Outscalers "O" (gradient) over the "S" swoosh and arrow. */
-export function LogoMark({ className }: { className?: string }) {
+/** `bare` drops the rounded tile, leaving just the mark (e.g. on the back of a device). */
+export function LogoMark({ className, bare }: { className?: string; bare?: boolean }) {
   const gradientId = `logo-grad-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
     <svg viewBox="0 0 32 32" className={cn("size-8", className)} aria-hidden focusable="false">
-      <rect x="0.5" y="0.5" width="31" height="31" rx="9" className="fill-logo-tile stroke-logo-tile-line" />
+      {!bare && <rect x="0.5" y="0.5" width="31" height="31" rx="9" className="fill-logo-tile stroke-logo-tile-line" />}
       <svg x="6.5" y="4" width="19" height="24" viewBox="150 235 295 375">
         <defs>
           <linearGradient id={gradientId} x1="165.76" y1="373.45" x2="428.34" y2="373.45" gradientUnits="userSpaceOnUse">

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import type { PortfolioProject } from "@/content/portfolio";
 import { services, type ServiceSlug } from "@/content/services";
-import { CaseVisual } from "@/components/illustrations/case-visual";
+import { CaseArt } from "@/components/illustrations/case-art";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { cn } from "@/lib/cn";
 
@@ -41,7 +41,7 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
   const body = (
     <>
       <div className="relative border-b border-line bg-ink-900/60 p-4">
-        {project.caseStudy ? <CaseVisual visual={project.caseStudy.visual} /> : <ProjectVisual service={project.services[0]} />}
+        {project.caseStudy ? <CaseArt study={project.caseStudy} /> : <ProjectVisual service={project.services[0]} />}
         {badge && (
           <span className="absolute right-3 top-3 rounded-full border border-brand-300/40 bg-ink-950/80 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-brand-300">
             {badge}

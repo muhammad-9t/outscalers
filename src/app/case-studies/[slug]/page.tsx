@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { Check, FileClock } from "lucide-react";
 import { caseStudies, getCaseStudy } from "@/content/case-studies";
@@ -9,7 +10,8 @@ import { breadcrumbJsonLd } from "@/lib/seo";
 import { PageHero } from "@/components/sections/page-hero";
 import { CaseStudyCard } from "@/components/sections/case-study-card";
 import { CtaBand } from "@/components/sections/cta-band";
-import { CaseVisual } from "@/components/illustrations/case-visual";
+import { CaseArt } from "@/components/illustrations/case-art";
+import { ProductLaptop } from "@/components/illustrations/product-laptop";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export function generateStaticParams() {
@@ -64,9 +66,13 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
           { label: study.industry, href: `/case-studies/${study.slug}` },
         ]}
         visual={
-          <div className="card p-4 sm:p-6">
-            <CaseVisual visual={study.visual} />
-          </div>
+          study.cover ? (
+            <ProductLaptop image={study.cover} />
+          ) : (
+            <div className="card p-4 sm:p-6">
+              <CaseArt study={study} priority />
+            </div>
+          )
         }
       />
 
@@ -149,6 +155,38 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
           </aside>
         </div>
       </Section>
+
+      {study.gallery && study.gallery.length > 0 && (
+        <Section labelledBy="gallery-title">
+          <div className="container-site">
+            <SectionHeading id="gallery-title" eyebrow="Inside the product" title="What we built" />
+            <ul className="mt-12 space-y-16 sm:space-y-20">
+              {study.gallery.map((g, i) => (
+                <li key={g.src} data-reveal>
+                  <figure>
+                    <div className="card overflow-hidden p-0">
+                      <Image
+                        src={g.src}
+                        alt={g.alt}
+                        width={g.width}
+                        height={g.height}
+                        sizes="(min-width: 1280px) 1200px, 100vw"
+                        className="h-auto w-full"
+                      />
+                    </div>
+                    <figcaption className="mt-5 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-4">
+                      <span className="font-mono text-xs uppercase tracking-wider text-brand-300">
+                        {String(i + 1).padStart(2, "0")} · {g.title}
+                      </span>
+                      <span className="text-[1.0625rem] leading-relaxed text-fg-muted">{g.caption}</span>
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Section>
+      )}
 
       {related.length > 0 && (
         <Section tone="raised" labelledBy="related-cs-title">

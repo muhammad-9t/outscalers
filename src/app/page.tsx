@@ -361,7 +361,7 @@ export default function HomePage() {
             </Reveal>
           </div>
           <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {caseStudies.map((c, i) => (
+            {caseStudies.slice(0, 3).map((c, i) => (
               <li key={c.slug} data-reveal style={{ "--reveal-delay": `${i * 80}ms` } as CSSProperties}>
                 <CaseStudyCard study={c} />
               </li>
