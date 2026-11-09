@@ -11,6 +11,21 @@ import { readContact, validateContact, type ContactValues } from "@/lib/contact"
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+/**
+ * Parse CONTACT_FROM into nodemailer's structured address.
+ * Unquoted parentheses in a display name are RFC comments (e.g. "(PVT)" is
+ * stripped → "OUTSCALERS LTD."), so we always pass { name, address }.
+ */
+function parseFrom(raw: string | undefined, fallbackAddress: string) {
+  const value = (raw ?? "").trim();
+  const match = value.match(/^(?:"([^"]+)"|(.+?))\s*<([^>]+)>$/);
+  if (match) {
+    return { name: (match[1] ?? match[2]).trim(), address: match[3].trim() };
+  }
+  if (value.includes("@")) return { address: value };
+  return { name: value || "Outscalers Website", address: fallbackAddress };
+}
+
 function buildEmail(v: ContactValues) {
   const rows: [string, string][] = [
     ["Name", `${v.firstName} ${v.lastName}`],
@@ -55,10 +70,11 @@ export async function POST(req: Request) {
     auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
 
+  const from = parseFrom(process.env.CONTACT_FROM, SMTP_USER);
   const { text, html } = buildEmail(values);
   try {
     await transport.sendMail({
-      from: process.env.CONTACT_FROM || `Outscalers Website <${SMTP_USER}>`,
+      from,
       to: process.env.CONTACT_TO || siteConfig.contact.email,
       replyTo: values.email,
       subject: `Project enquiry: ${values.interest || "General"} (${values.firstName} ${values.lastName})`,
