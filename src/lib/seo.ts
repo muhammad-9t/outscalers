@@ -42,7 +42,7 @@ const sitelinkPages = [
 
 /** Organization + WebSite + sitelink navigation JSON-LD for the root layout. */
 export function siteJsonLd() {
-  const logo = absoluteUrl("/icon.svg");
+  const logo = absoluteUrl("/icon-192.png");
   const primaryPhone = siteConfig.offices[0]?.phone;
 
   return [
