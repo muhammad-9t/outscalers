@@ -115,11 +115,11 @@
    ------------------------------------------------------------------ */
 [data-theme="light"] {
   color-scheme: light;
-  /* Soft cool-grey page so white cards and panels stand out; firmer lines and text */
-  --color-ink-950: #eceff4;
-  --color-ink-900: #f7f8fb;
+  /* Pure white page; cards and panels are white too and stand out by their border and soft shadow */
+  --color-ink-950: #ffffff;
+  --color-ink-900: #f8f9fb;
   --color-ink-850: #ffffff;
-  --color-ink-800: #e8ecf2;
+  --color-ink-800: #f1f3f7;
   --color-ink-750: #ffffff;
   --color-ink-700: #dde3eb;
   --color-ink-600: #c9d1dc;
