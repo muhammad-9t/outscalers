@@ -167,37 +167,48 @@ function Rocket({ cx, cy }: { cx: number; cy: number }) {
   );
 }
 
-/** "Speed to launch": typical timeline chart plus what makes delivery fast. */
-export function LaunchTimeline({ headingId = "launch-title" }: { headingId?: string }) {
+/** "Speed to launch": typical timeline chart plus what makes delivery fast.
+ *  `compact` (home page): title beside the lead + stats, and the speed factors as a strip of titles only. */
+export function LaunchTimeline({ headingId = "launch-title", compact }: { headingId?: string; compact?: boolean }) {
+  const lead = (
+    <p className={cn("max-w-xl text-lead text-fg-muted", !compact && "mt-5")}>
+      AI takes on the repetitive groundwork, so working software arrives sooner — while every release still goes
+      through human review and testing.
+    </p>
+  );
+  const statList = (
+    <Reveal as="dl" delay={120} className={cn("grid grid-cols-3 divide-x divide-line border-y border-line", compact && "mt-6")}>
+      {stats.map((st) => (
+        <div key={st.label} className="px-4 py-3 first:pl-0 sm:min-w-38 sm:px-6">
+          <dt className="sr-only">{st.label}</dt>
+          <dd className="font-display text-2xl font-semibold sm:text-3xl">{st.value}</dd>
+          <dd aria-hidden className="mt-1 text-sm leading-snug text-fg-muted">{st.label}</dd>
+        </div>
+      ))}
+    </Reveal>
+  );
   return (
     <div>
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-16">
-        <div>
-          <SectionHeading
-            id={headingId}
-            eyebrow="Speed to launch"
-            title="Fast to launch. Never rushed."
-          />
-          <Reveal delay={80}>
-            <p className="mt-5 max-w-xl text-lead text-fg-muted">
-              AI takes on the repetitive groundwork, so working software arrives sooner — while every release still
-              goes through human review and testing.
-            </p>
-          </Reveal>
+      {compact ? (
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:gap-16">
+          <SectionHeading id={headingId} eyebrow="Speed to launch" title="Fast to launch. Never rushed." />
+          <div>
+            <Reveal delay={80}>{lead}</Reveal>
+            {statList}
+          </div>
         </div>
-        <Reveal as="dl" delay={120} className="grid grid-cols-3 gap-3">
-          {stats.map((st) => (
-            <div key={st.label} className="card-flat px-4 py-3.5 sm:min-w-[9.5rem]">
-              <dt className="sr-only">{st.label}</dt>
-              <dd className="font-display text-2xl font-semibold sm:text-3xl">{st.value}</dd>
-              <dd aria-hidden className="mt-1 text-sm leading-snug text-fg-muted">{st.label}</dd>
-            </div>
-          ))}
-        </Reveal>
-      </div>
+      ) : (
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-16">
+          <div>
+            <SectionHeading id={headingId} eyebrow="Speed to launch" title="Fast to launch. Never rushed." />
+            <Reveal delay={80}>{lead}</Reveal>
+          </div>
+          {statList}
+        </div>
+      )}
 
       {/* Chart (tablet and up) */}
-      <Reveal className="card mt-8 hidden p-5 md:block lg:p-6">
+      <Reveal className="card mt-6 hidden p-5 md:block lg:p-6">
         <TimelineChart />
         <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line pt-4 text-sm text-fg-muted">
           <span className="flex items-center gap-2">
@@ -235,15 +246,23 @@ export function LaunchTimeline({ headingId = "launch-title" }: { headingId?: str
       </ol>
 
       {/* What makes it fast */}
-      <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="panel mt-4 grid overflow-hidden rounded-card border border-line sm:grid-cols-2 lg:grid-cols-4">
         {speedFactors.map((f, i) => {
           const Icon = factorIcons[i % factorIcons.length];
           return (
-            <Reveal as="li" key={f.title} delay={i * 70} className="card-flat flex gap-3 p-4">
-              <Icon aria-hidden className="mt-0.5 size-5 shrink-0 text-brand-300" />
+            <Reveal as="li" key={f.title} delay={i * 70} className={cn(
+                "flex gap-3 border-line",
+                // Dividers between the cells: 1 column, then 2, then 4
+                i > 0 && "max-sm:border-t",
+                i % 2 === 1 && "sm:border-l",
+                i >= 2 && "sm:max-lg:border-t",
+                i === 2 && "lg:border-l",
+                compact ? "items-center px-4 py-3" : "p-4",
+              )}>
+              <Icon aria-hidden className={cn("size-5 shrink-0 text-brand-300", !compact && "mt-0.5")} />
               <div>
                 <h3 className="font-semibold">{f.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-fg-muted">{f.body}</p>
+                {!compact && <p className="mt-1 text-sm leading-relaxed text-fg-muted">{f.body}</p>}
               </div>
             </Reveal>
           );

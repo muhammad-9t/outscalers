@@ -194,8 +194,8 @@ export function WorkflowScreen({ step }: { step: number }) {
     <div aria-hidden className="relative">
       {/* Glow behind the screen */}
       <div className="glow-brand pointer-events-none absolute -inset-10 opacity-40" />
-      <div className="relative rounded-2xl border border-line-strong bg-ink-850 p-2.5 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.8)]">
-        <div className="relative h-[19.5rem] overflow-hidden rounded-xl border border-line bg-ink-950 font-mono text-[0.8125rem]">
+      <div className="glass relative rounded-2xl border border-line-strong bg-ink-850 p-2.5 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.8)]">
+        <div className="glass-inner relative h-[19.5rem] overflow-hidden rounded-xl border border-line bg-ink-950 font-mono text-[0.8125rem]">
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <span className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-ink-700" />

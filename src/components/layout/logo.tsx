@@ -2,11 +2,17 @@ import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 /** Brand mark: the Outscalers "O" (gradient) over the "S" swoosh and arrow. */
-/** `bare` drops the rounded tile, leaving just the mark (e.g. on the back of a device). */
-export function LogoMark({ className, bare }: { className?: string; bare?: boolean }) {
+/** `bare` drops the rounded tile, leaving just the mark (e.g. on the back of a device).
+ *  `tight` (with bare) crops the box to the mark itself, so it fills its height (header and footer logo). */
+export function LogoMark({ className, bare, tight }: { className?: string; bare?: boolean; tight?: boolean }) {
   const gradientId = `logo-grad-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   return (
-    <svg viewBox="0 0 32 32" className={cn("size-8", className)} aria-hidden focusable="false">
+    <svg
+      viewBox={bare && tight ? "6.5 4 19 24" : "0 0 32 32"}
+      className={cn(bare && tight ? "h-8 w-auto" : "size-8", className)}
+      aria-hidden
+      focusable="false"
+    >
       {!bare && <rect x="0.5" y="0.5" width="31" height="31" rx="9" className="fill-logo-tile stroke-logo-tile-line" />}
       <svg x="6.5" y="4" width="19" height="24" viewBox="150 235 295 375">
         <defs>
@@ -35,7 +41,7 @@ export function LogoMark({ className, bare }: { className?: string; bare?: boole
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark className="size-9" />
+      <LogoMark bare tight className="h-9 w-7" />
       <span className="flex flex-col leading-none">
         <span className="font-display text-[1.1rem] font-semibold tracking-tight text-fg">Outscalers</span>
         <span className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brand-300/90">

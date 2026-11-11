@@ -8,8 +8,8 @@ import { mainNav } from "@/lib/site";
 import { services, serviceHref } from "@/content/services";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { Logo } from "./logo";
-// Theme switcher hidden for now; uncomment this and <ThemeToggle /> below to bring it back.
-// import { ThemeToggle } from "@/components/ui/theme-toggle";
+// Theme switcher (dark default, light via html[data-theme="light"]).
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/cn";
 
 function isActive(pathname: string, href: string) {
@@ -99,8 +99,9 @@ export function Header() {
 
   return (
     <header
+      data-site-header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-300",
+        "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter,transform] duration-300",
         scrolled || mobileOpen
           ? "border-b border-line/80 bg-ink-900/85 backdrop-blur-xl"
           : "border-b border-transparent bg-transparent",
@@ -227,7 +228,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* <ThemeToggle /> */}
+          <ThemeToggle />
           <Link href="/contact#start-project" className="btn btn-primary btn-sm hidden sm:inline-flex">
             Start a Project
           </Link>

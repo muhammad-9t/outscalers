@@ -13,6 +13,9 @@ import { CtaBand } from "@/components/sections/cta-band";
 import { CaseArt } from "@/components/illustrations/case-art";
 import { ProductLaptop } from "@/components/illustrations/product-laptop";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
+import { ProjectStory } from "@/components/case-studies/project-story";
+import { projectStories } from "@/content/project-stories";
+import { getTeam } from "@/lib/team-store";
 
 export function generateStaticParams() {
   return caseStudies.map((c) => ({ slug: c.slug }));
@@ -47,6 +50,8 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
   if (!study) notFound();
 
   const related = caseStudies.filter((c) => c.slug !== study.slug).slice(0, 2);
+  const story = projectStories[study.slug];
+  const team = story ? await getTeam() : [];
   const studyServices = services.filter((s) => study.services.includes(s.slug));
   const crumbsLd = breadcrumbJsonLd([
     { name: "Home", path: "/" },
@@ -123,6 +128,22 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
                 <dt className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Client</dt>
                 <dd className="mt-1.5">{study.client ?? "Confidential"}</dd>
               </div>
+              {study.url && (
+                <div className="p-5">
+                  <dt className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Website</dt>
+                  <dd className="mt-1.5">
+                    <a
+                      href={study.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-300 hover:text-brand-200"
+                    >
+                      {study.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  </dd>
+                </div>
+              )}
               <div className="p-5">
                 <dt className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Industry</dt>
                 <dd className="mt-1.5">{study.industry}</dd>
@@ -155,6 +176,13 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
           </aside>
         </div>
       </Section>
+
+      {/* Project story: slides sideways on large screens, a vertical timeline elsewhere */}
+      {story && (
+        <section aria-labelledby="story-title" className="relative bg-ink-950 max-lg:py-20 motion-reduce:py-20">
+          <ProjectStory story={story} people={team} project={study.client ?? "this project"} />
+        </section>
+      )}
 
       {study.gallery && study.gallery.length > 0 && (
         <Section labelledBy="gallery-title">

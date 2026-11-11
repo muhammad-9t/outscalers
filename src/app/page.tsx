@@ -13,15 +13,14 @@ import {
   BrainCircuit,
   AppWindow,
   Wrench,
+  ArrowUpRight,
 } from "lucide-react";
-import { HeroCircuit } from "@/components/hero/hero-circuit";
 import { HeroScene } from "@/components/hero/hero-scene";
 import { EventHorizon } from "@/components/hero/event-horizon";
 import { ScrollRocket } from "@/components/hero/scroll-rocket";
-import { HeroControl } from "@/components/illustrations/hero-control";
+import { HeroHub } from "@/components/hero/hero-hub";
 import { HudServices } from "@/components/hero/hud-services";
-import { HudLog } from "@/components/hero/hero-hud";
-import { ServiceCard } from "@/components/sections/service-cards";
+import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { DeliveryModel } from "@/components/sections/delivery-model";
 import { LaunchTimeline } from "@/components/sections/launch-timeline";
 import { CaseStudyCard } from "@/components/sections/case-study-card";
@@ -116,38 +115,29 @@ export default function HomePage() {
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="bg-grid absolute inset-0 opacity-60" />
         </div>
-        <HeroCircuit />
-        <div className="container-site relative">
-          {/* The message comes first: the headline runs across the top, then the lead and services sit beside
-              the human-control animation. Small screens stack them: message, services, animation. */}
+        {/* Two columns that line up: the whole message on the left, the operations hub on the right,
+            both centred in the same row. Small screens stack them: message, services, hub. */}
+        <div className="container-site relative grid items-center gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-6">
           <div className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
-            {/* Live session log in the empty top right, beside the headline, on wide screens only.
-                Inside this block (not the padded container) so it lines up with the content edge. */}
-            <div className="absolute top-0 right-0 hidden w-72 text-left xl:block">
-              <HudLog />
-            </div>
             <p className="eyebrow">Human + AI engineering company</p>
             <h1 id="hero-title" className="mt-5 text-display-xl font-semibold lg:text-[clamp(2.75rem,4.4vw,4.75rem)] short:mt-3 short:text-[clamp(2.5rem,min(4.4vw,8vh),4.5rem)]">
               Human Intelligence.
               <br />
               <span className="text-gradient">AI-Powered Engineering.</span>
             </h1>
-          </div>
-          <div className="mt-8 grid items-center gap-12 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-10 short:mt-5">
-            <div className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
-              <p className="max-w-xl text-lead text-fg-muted">
-                Experienced engineers and AI, building intelligent software that takes your ideas to production.
+            <p className="mt-6 max-w-xl text-lead text-fg-muted short:mt-4">
+              Experienced engineers and AI, building intelligent software that takes your ideas to production.
+            </p>
+            <div className="mt-10 flex flex-col items-center gap-3 lg:items-start short:mt-6">
+              <p aria-hidden className="font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
+                {"// Services"}
               </p>
-              <div className="mt-12 flex flex-col items-center gap-3 lg:items-start short:mt-6">
-                <p aria-hidden className="font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
-                  {"// Services"}
-                </p>
-                <HudServices className="justify-center lg:justify-start" />
-              </div>
+              <HudServices className="justify-center lg:justify-start" />
             </div>
-            <div data-reveal className="mx-auto w-full max-w-md sm:max-w-xl lg:mx-0 lg:w-auto lg:max-w-none">
-              <HeroControl />
-            </div>
+          </div>
+          {/* Operations hub: sized to the screen height so it is never cut off */}
+          <div data-reveal className="mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none lg:justify-self-end">
+            <HeroHub className="lg:-mr-6 lg:w-[min(calc(100%_+_3rem),calc((100svh_-_8rem)_*_1.15))] xl:-mr-12" />
           </div>
         </div>
       </section>
@@ -273,7 +263,7 @@ export default function HomePage() {
       </Section>
 
       {/* Services */}
-      <Section tone="raised" labelledBy="services-title">
+      <Section tone="raised" tight labelledBy="services-title">
         <div className="container-site">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <SectionHeading
@@ -286,35 +276,46 @@ export default function HomePage() {
               <ArrowLink href="/services">All services</ArrowLink>
             </Reveal>
           </div>
-          <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {services.map((s, i) => (
-              <li key={s.slug} data-reveal style={{ "--reveal-delay": `${(i % 3) * 80}ms` } as CSSProperties}>
-                <ServiceCard slug={s.slug} index={i} />
+          {/* One panel, one row per service: icon, title, tagline, arrow */}
+          <ul data-reveal className="panel mt-10 grid gap-px overflow-hidden rounded-card border border-line !bg-line md:grid-cols-2">
+            {[
+              ...services.map((s) => ({
+                key: s.slug,
+                href: serviceHref(s.slug),
+                title: s.title,
+                text: s.tagline,
+                icon: <ServiceGlyph slug={s.slug} className="size-6" />,
+              })),
+              {
+                key: "team",
+                href: "/contact",
+                title: "Team augmentation",
+                text: "Engineers who join your team and tools",
+                icon: <Boxes aria-hidden className="size-6" />,
+              },
+            ].map((s) => (
+              <li key={s.key} className="bg-ink-850">
+                <Link
+                  href={s.href}
+                  className="group flex h-full items-center gap-4 px-5 py-4 transition-colors duration-300 hover:bg-ink-800 sm:px-6"
+                >
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-line-strong bg-ink-800 text-brand-300 transition-colors duration-300 group-hover:border-brand-500/50 group-hover:bg-brand-500/10">
+                    {s.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-xl font-semibold">{s.title}</h3>
+                    <p className="mt-0.5 text-[0.9375rem] text-fg-muted">{s.text}</p>
+                  </div>
+                  <ArrowUpRight aria-hidden className="size-5 shrink-0 text-brand-300 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </Link>
               </li>
             ))}
-            <li data-reveal style={{ "--reveal-delay": "160ms" } as CSSProperties}>
-              <div className="flex h-full flex-col justify-between rounded-card border border-dashed border-line-strong p-6 sm:p-7">
-                <div>
-                  <span className="grid size-12 place-items-center rounded-xl border border-line-strong text-fg-muted">
-                    <Boxes aria-hidden className="size-6" />
-                  </span>
-                  <h3 className="mt-6 text-xl font-semibold">Team augmentation</h3>
-                  <p className="mt-3 text-[0.9375rem] leading-relaxed text-fg-muted">
-                    Need extra engineering capacity? Our engineers can join your team and work within your processes and
-                    tools.
-                  </p>
-                </div>
-                <ArrowLink href="/contact" className="mt-6 text-sm">
-                  Discuss your team
-                </ArrowLink>
-              </div>
-            </li>
           </ul>
         </div>
       </Section>
 
       {/* Human + AI delivery model */}
-      <Section labelledBy="model-title" className="overflow-hidden">
+      <Section tight labelledBy="model-title" className="overflow-hidden">
         <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-30" />
         <div className="container-site relative">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr] lg:items-end">
@@ -330,19 +331,19 @@ export default function HomePage() {
               </p>
             </Reveal>
           </div>
-          <div className="mt-12">
+          <div className="mt-10">
             <DeliveryModel />
           </div>
-          <Reveal className="mt-10">
+          <Reveal className="mt-8">
             <ArrowLink href="/how-we-work">Read the full delivery process</ArrowLink>
           </Reveal>
         </div>
       </Section>
 
       {/* Speed to launch */}
-      <Section tone="raised" labelledBy="launch-title">
+      <Section tone="raised" tight labelledBy="launch-title">
         <div className="container-site">
-          <LaunchTimeline />
+          <LaunchTimeline compact />
         </div>
       </Section>
 

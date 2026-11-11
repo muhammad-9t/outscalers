@@ -146,12 +146,12 @@ export function HeroControl({ className }: { className?: string }) {
         </desc>
         <defs>
           <radialGradient id="hc-core" cx="45%" cy="40%" r="60%">
-            <stop offset="0%" style={{ stopColor: "var(--color-brand-200)" }} />
+            <stop offset="0%" style={{ stopColor: "var(--color-brand-tint)" }} />
             <stop offset="45%" style={{ stopColor: "var(--color-brand-400)" }} />
             <stop offset="100%" style={{ stopColor: "var(--color-brand-600)" }} />
           </radialGradient>
           <radialGradient id="hc-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" style={{ stopColor: "var(--color-brand-400)", stopOpacity: 0.45 }} />
+            <stop offset="0%" style={{ stopColor: "var(--color-brand-400)", stopOpacity: "var(--hc-glow, 0.45)" }} />
             <stop offset="100%" style={{ stopColor: "var(--color-brand-400)", stopOpacity: 0 }} />
           </radialGradient>
         </defs>

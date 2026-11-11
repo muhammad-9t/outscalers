@@ -6,6 +6,8 @@ export type CaseStudy = {
   industry: string;
   /** Client name is only shown once disclosure is approved. */
   client: string | null;
+  /** Public website of the product, shown as a link in the project details. */
+  url?: string;
   summary: string;
   overview: string;
   challenge: string[];
@@ -156,6 +158,71 @@ export const caseStudies: CaseStudy[] = [
         height: 1230,
         title: "Web app",
         caption: "A friendly home page that helps travellers rent a car or join a tour from trusted local companies.",
+      },
+    ],
+    status: "published",
+  },
+  {
+    slug: "yallasplit",
+    title: "YallaSplit: split group expenses and settle up in seconds",
+    industry: "Personal finance",
+    client: "YallaSplit",
+    url: "https://yallasplit.com/",
+    summary:
+      "A mobile app for iOS and Android where friends, roommates and travellers share expenses, see who owes what and settle up, with budgets and income tracking built in.",
+    overview:
+      "YallaSplit helps groups keep shared money fair. People create a group for a trip, a household or a night out, add expenses as they happen and settle up with as few payments as possible. Beyond splitting, it tracks personal income and budgets, in any currency.",
+    challenge: [
+      "Groups were tracking shared costs in chats and spreadsheets, and lost track of who paid and who owed what.",
+      "Settling up took many small payments between people.",
+      "Trips and households often mix currencies.",
+    ],
+    solution: [
+      "Groups for trips, households and events, with equal, percentage or custom splits.",
+      "Smart settlements that suggest who should pay whom, with fewer transactions.",
+      "Multi-currency expenses with automatic conversion.",
+      "Income and budget tracking by category, with recurring income and spending analytics.",
+      "A landing page that explains the app and links to the App Store and Google Play.",
+    ],
+    humanAiApproach: null,
+    stack: ["iOS & Android", "Landing page", "Cloud"],
+    implementation: [
+      "One app for shared expenses and personal finance, with Groups, Friends, Activity and More in the bottom navigation.",
+      "AI suggestions for expense categories, participants and split types.",
+      "Light and dark themes in the app and on the website.",
+    ],
+    results: [],
+    services: ["software-development", "ai-solutions"],
+    visual: "scale",
+    cover: {
+      src: "/portfolio/yallasplit/cover.webp",
+      alt: "YallaSplit landing page: Your Trusted Way to Split Expenses, with App Store and Google Play buttons beside two phones showing the app",
+      width: 1575,
+      height: 866,
+      cursor: [
+        [30, 62],
+        [64, 40],
+        [43, 5],
+        [82, 5],
+        [16, 73],
+      ],
+    },
+    gallery: [
+      {
+        src: "/portfolio/yallasplit/income-expense.webp",
+        alt: "Two phones on a teal background with the YallaSplit name: the Income screen with net balance, income and expenses in PKR, and the Add Expense screen with amount, title and paid by",
+        width: 1927,
+        height: 1226,
+        title: "Income & expenses",
+        caption: "Track income, add expenses in any currency and choose who paid.",
+      },
+      {
+        src: "/portfolio/yallasplit/groups.webp",
+        alt: "YallaSplit Groups screen in dark mode on a phone, with All, Just Me and With Others filters, next to the line Bringing Clarity to Every Expense",
+        width: 1927,
+        height: 1226,
+        title: "Groups",
+        caption: "Shared and personal groups in one list, in a clean dark theme.",
       },
     ],
     status: "published",

@@ -974,6 +974,8 @@ export function PetBot() {
   );
 
   if (on === null) return null;
+  // Not on the private admin screens
+  if (pathname.startsWith("/admin")) return null;
   // No pet on touch screens (or with reduced motion): the arcade gets a button of its own
   if (!on)
     return (

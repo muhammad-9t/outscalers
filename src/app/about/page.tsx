@@ -6,6 +6,8 @@ import { OfficeNetwork } from "@/components/illustrations/office-network";
 import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
 import { EvolutionJourney } from "@/components/about/evolution-journey";
 import { evolution } from "@/content/evolution";
+import { TeamBadges } from "@/components/about/team-badges";
+import { getTeam } from "@/lib/team-store";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -57,7 +59,7 @@ const howWeOperate = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
   return (
     <>
       <PageHero
@@ -171,22 +173,30 @@ export default function AboutPage() {
         </div>
       </Section>
 
-      {/* Team placeholder */}
-      <Section tone="raised" tight labelledBy="team-title">
-        <div className="container-narrow text-center">
-          <Reveal>
-            <p className="eyebrow">Our people</p>
-            <h2 id="team-title" className="mt-4 text-display-md font-semibold">
-              The engineers behind the work
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-fg-muted">
-              Team profiles are coming soon. In the meantime, the best way to meet us is a conversation about your
-              project.
-            </p>
-            <ButtonLink href="/contact" variant="secondary" className="mt-8">
-              Talk to an engineer
-            </ButtonLink>
-          </Reveal>
+      {/* Team: hanging ID badges that flip to a holographic profile */}
+      <Section tone="raised" labelledBy="team-title" className="overflow-hidden">
+        <div className="container-site">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <Reveal>
+              <p className="eyebrow">Our people</p>
+              <h2 id="team-title" className="mt-4 text-display-lg font-semibold">
+                Meet the people
+                <br />
+                <span className="text-gradient">behind the work.</span>
+              </h2>
+            </Reveal>
+            <Reveal delay={80} className="max-w-xs">
+              <p className="text-[0.9375rem] leading-relaxed text-fg-muted">
+                Different minds, shared curiosity. Engineers, designers and testers who own what reaches production.
+              </p>
+              <p className="mt-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
+                <span aria-hidden className="size-1.5 rounded-full bg-brand-400" /> One team, DE + PK
+              </p>
+            </Reveal>
+          </div>
+          <div className="mt-12 lg:mt-14">
+            <TeamBadges team={await getTeam()} />
+          </div>
         </div>
       </Section>
 

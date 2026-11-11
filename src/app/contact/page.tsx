@@ -2,6 +2,7 @@ import { MapPin, Phone } from "lucide-react";
 import { pageMetadata, siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { ContactForm } from "@/components/contact/contact-form";
+import { VenomTrail } from "@/components/contact/venom-trail";
 import { Reveal, Section } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -17,6 +18,10 @@ export default function ContactPage() {
 
   return (
     <>
+      {/* The venom trail grows down the page behind every section; the sections go transparent
+          and the cards turn to glass so it shows through. */}
+      <div className="glass-scope relative isolate bg-ink-950 [&>section]:bg-transparent">
+      <VenomTrail />
       <PageHero
         eyebrow="Contact"
         title="Let's talk about what you're building."
@@ -66,6 +71,7 @@ export default function ContactPage() {
           </ul>
         </div>
       </Section>
+      </div>
     </>
   );
 }

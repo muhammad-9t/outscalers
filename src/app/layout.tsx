@@ -56,9 +56,7 @@ export const viewport: Viewport = {
 };
 
 // Applies the visitor's saved theme before first paint; dark is the default.
-// Theme switcher is hidden, so a saved light choice is not restored either: everyone gets dark.
-// Uncomment this and the <script> below, along with <ThemeToggle /> in the header, to bring light mode back.
-// const themeBootstrap = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
+const themeBootstrap = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
 
 // Enables scroll reveals before first paint, so content never flashes in and out.
 // Skipped for reduced motion; without JS, content simply stays visible.
@@ -75,7 +73,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
     >
       <head>
-        {/* <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} /> */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
         <script dangerouslySetInnerHTML={{ __html: revealBootstrap }} />
       </head>
       <body className="flex min-h-dvh flex-col">
