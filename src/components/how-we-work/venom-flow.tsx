@@ -137,7 +137,7 @@ export function VenomFlow() {
         for (let j = 0; j < r.strands; j++) {
           const u = j / (r.strands - 1) - 0.5;
           const edge = 1 - Math.abs(u) * 1.6;
-          const a = (light ? 0.2 : 0.3) * Math.max(0.12, edge) + (light ? 0.02 : 0.015);
+          const a = (light ? 0.18 : 0.25) * Math.max(0.12, edge) + (light ? 0.02 : 0.015);
           ctx.beginPath();
           let started = false;
           for (let k = 0; k <= POINTS; k++) {
@@ -159,7 +159,7 @@ export function VenomFlow() {
             } else ctx.lineTo(x, y);
           }
           if (!started) continue;
-          ctx.lineWidth = Math.abs(u) < 0.08 ? 1.1 : 0.7;
+          ctx.lineWidth = Math.abs(u) < 0.08 ? 1.2 : 0.8;
           ctx.strokeStyle = `rgba(${cr},${cg},${cb},${a})`;
           ctx.stroke();
         }
@@ -224,7 +224,10 @@ export function VenomFlow() {
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-      <canvas ref={canvasRef} className="sticky top-0 block h-svh w-full" />
+      <canvas
+        ref={canvasRef}
+        className="sticky top-0 block h-svh w-full blur-[2px] opacity-80 will-change-transform"
+      />
     </div>
   );
 }

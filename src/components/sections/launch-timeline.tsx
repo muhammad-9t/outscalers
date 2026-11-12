@@ -191,8 +191,8 @@ export function LaunchTimeline({ headingId = "launch-title", compact }: { headin
     <div>
       {compact ? (
         <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:items-end lg:gap-16">
-          <SectionHeading id={headingId} eyebrow="Speed to launch" title="Fast to launch. Never rushed." />
-          <div>
+          <SectionHeading id={headingId} eyebrow="Speed to launch" title="Fast to launch. Never rushed." className="rounded-xl bg-ink-950/90 pr-3" />
+          <div className="rounded-xl bg-ink-950/90">
             <Reveal delay={80}>{lead}</Reveal>
             {statList}
           </div>

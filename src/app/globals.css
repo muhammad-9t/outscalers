@@ -582,14 +582,23 @@
    Motion utilities
    ------------------------------------------------------------------ */
 @layer utilities {
-  /* Scroll reveals only hide content once JS has confirmed it can reveal it */
+  /* Scroll reveals: Hero-grade cinematic blur-to-sharp spring entrance applied across all pages */
   .js-reveal [data-reveal] {
     opacity: 0;
-    transform: translateY(14px);
-    transition: opacity 0.7s var(--ease-out-soft), transform 0.7s var(--ease-out-soft);
+    transform: translateY(32px) scale(0.96);
+    filter: blur(10px);
+    transition:
+      opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.85s cubic-bezier(0.16, 1, 0.3, 1);
     transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform, filter;
   }
-  .js-reveal [data-reveal].is-visible { opacity: 1; transform: none; }
+  .js-reveal [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: blur(0px);
+  }
 
   .draw-path {
     stroke-dasharray: var(--path-length, 400);
@@ -887,7 +896,7 @@ html.lenis { scroll-behavior: auto; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .js-reveal [data-reveal] { opacity: 1; transform: none; }
+  .js-reveal [data-reveal] { opacity: 1; transform: none; filter: none; }
   .draw-path { stroke-dashoffset: 0; }
   .flow-dash { animation: none; }
   .anim-rocket, .anim-flame, .anim-burst { animation: none; }
@@ -903,7 +912,7 @@ html.lenis { scroll-behavior: auto; }
 }
 
 @media print {
-  .js-reveal [data-reveal] { opacity: 1; transform: none; }
+  .js-reveal [data-reveal] { opacity: 1; transform: none; filter: none; }
   header, .btn { display: none; }
 }
 
@@ -1104,7 +1113,7 @@ html.lenis { scroll-behavior: auto; }
   .tb-fade-both { mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
 }
 
-/* Hub projector light: additive glow in dark, softer in light */
+/* Hub projector light: additive glow in dark, clean translucent beam in light */
 @layer components {
   .hub-bloom { fill: none; stroke: var(--color-human-accent); opacity: 0.55; }
   .hub-edge-lit { stroke: color-mix(in oklab, var(--color-human-accent) 60%, white); animation: hub-breathe 3s ease-in-out infinite; }
@@ -1113,8 +1122,8 @@ html.lenis { scroll-behavior: auto; }
   .hub-cone { animation: hub-cone 4.2s ease-in-out var(--d, 0s) infinite; }
   .hub-ray { stroke: var(--color-human-accent); stroke-opacity: 0.35; }
   .hub-aperture { fill: color-mix(in oklab, var(--color-human-accent) 70%, white); opacity: 0.55; animation: hub-breathe 2.4s ease-in-out infinite; }
-  [data-theme="light"] .hub-light { mix-blend-mode: multiply; opacity: 0.55; }
-  [data-theme="light"] .hub-bloom { opacity: 0.35; }
+  [data-theme="light"] .hub-light { mix-blend-mode: normal; opacity: 0.45; }
+  [data-theme="light"] .hub-bloom { opacity: 0.25; }
 }
 @keyframes hub-cone { 0%, 100% { opacity: 0.7; } 45% { opacity: 1; } 50% { opacity: 0.82; } 55% { opacity: 1; } }
 
@@ -1147,22 +1156,64 @@ html.lenis { scroll-behavior: auto; }
 /* Full-screen story sections hide the site header while they are pinned */
 html[data-immersive] [data-site-header] { transform: translateY(-110%); }
 
-/* Hub, refined: the AI core glows brand orange; finer frames and larger labels on the screens */
-@layer components {
-  .hub .hub-label { font-size: 0.3px; letter-spacing: 0.07px; }
-  .hub .hub-value { font-size: 0.46px; }
-  .hub .hub-glass-r { fill: color-mix(in oklab, var(--color-brand-400) 22%, var(--color-ink-850)); }
-  .hub .hub-glass-l { fill: color-mix(in oklab, var(--color-brand-400) 12%, var(--color-ink-850)); }
-  .hub .hub-glass-t { fill: color-mix(in oklab, var(--color-brand-400) 30%, var(--color-ink-800)); }
-  .hub .hub-glass-lines { stroke: var(--color-brand-300); stroke-opacity: 0.5; }
-  .hub .hub-bloom { opacity: 0.35; }
-  .hub .hub-panel { stroke: color-mix(in oklab, var(--color-human-accent) 55%, transparent); }
-  [data-theme="light"] .hub .hub-shadow { opacity: 0.18; }
+/* Hub theme variables (unlayered so SVG fill/stroke attributes always resolve in dark and light mode) */
+:root {
+  --hub-deck-fill: #0b111b;
+  --hub-side-top: #1a2433;
+  --hub-side-bot: #04070c;
+  --hub-mod-t: #162030;
+  --hub-mod-l: #0f1724;
+  --hub-mod-r: #0b111b;
+  --hub-ai-t: #1c1a24;
+  --hub-ai-l: #14131c;
+  --hub-ai-r: #0e0e16;
+  --hub-core-t: #231c28;
+  --hub-core-l: #171420;
+  --hub-core-r: #100e18;
+  --hub-emitter-bg: #080d15;
+}
+[data-theme="light"] {
+  --hub-deck-fill: #f4f7fb;
+  --hub-side-top: #e2e8f0;
+  --hub-side-bot: #cbd5e1;
+  --hub-mod-t: #ffffff;
+  --hub-mod-l: #edf2f8;
+  --hub-mod-r: #dde6f0;
+  --hub-ai-t: #ffffff;
+  --hub-ai-l: #fdf1e6;
+  --hub-ai-r: #f5decb;
+  --hub-core-t: #fffaf5;
+  --hub-core-l: #fdebd9;
+  --hub-core-r: #f6d5b6;
+  --hub-emitter-bg: #ffffff;
 }
 
-/* Hub projector light, faded: a soft glow rather than solid beams */
 @layer components {
-  .hub .hub-light { opacity: 0.4; }
-  .hub .hub-ray { stroke-opacity: 0.12; }
-  [data-theme="light"] .hub .hub-light { opacity: 0.3; }
+  .hub .hub-label { font-size: 0.27px; letter-spacing: 0.05px; font-weight: 600; }
+  .hub .hub-value { font-size: 0.44px; }
+  .hub .hub-deck { fill: var(--hub-deck-fill); stroke: var(--color-line-strong); }
+  .hub .hub-glass-r { fill: var(--hub-core-r); }
+  .hub .hub-glass-l { fill: var(--hub-core-l); }
+  .hub .hub-glass-t { fill: var(--hub-core-t); }
+  .hub .hub-glass-lines { stroke: var(--color-brand-400); stroke-opacity: 0.78; }
+  .hub .hub-bloom { opacity: 0.38; }
+  .hub .hub-panel { stroke: color-mix(in oklab, var(--color-human-accent) 65%, transparent); }
+  [data-theme="light"] .hub .hub-shadow { opacity: 0.14; }
+}
+
+/* Hub projector light: luminous volumetric glow with crisp data rays */
+@layer components {
+  .hub .hub-light { opacity: 0.68; }
+  .hub .hub-ray { stroke-opacity: 0.26; }
+  [data-theme="light"] .hub .hub-light { opacity: 0.36; }
+}
+
+/* Hero Showcase (Mosey-inspired multi-slide stage) */
+.hs-orbit-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: orbit 36s linear infinite;
+}
+.hs-float {
+  animation: hover-bob 3.6s ease-in-out infinite;
 }

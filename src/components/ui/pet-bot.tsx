@@ -840,10 +840,13 @@ export function PetBot() {
       const dt = Math.min(0.05, (now - lastNow) / 1000);
       lastNow = now;
 
-      // Hide while any section with its own robot or stage (services and phase rails, the workflow stage) fills
+      // Hide while any section with its own robot or stage (hero, services and phase rails, the workflow stage) fills
       // the screen. Looked up every frame: those sections only switch the marker on once they are active.
       const hidden = Array.from(document.querySelectorAll("[data-pet-hide]")).some((h) => {
         const r = h.getBoundingClientRect();
+        if (h.getAttribute("data-pet-hide") === "hero") {
+          return r.bottom > window.innerHeight * 0.35 && r.top < window.innerHeight * 0.65;
+        }
         return r.top <= 1 && r.bottom >= window.innerHeight - 1;
       });
       el.style.opacity = hidden || !readyRef.current ? "0" : "1";

@@ -18,8 +18,7 @@ import {
 import { HeroScene } from "@/components/hero/hero-scene";
 import { EventHorizon } from "@/components/hero/event-horizon";
 import { ScrollRocket } from "@/components/hero/scroll-rocket";
-import { HeroHub } from "@/components/hero/hero-hub";
-import { HudServices } from "@/components/hero/hud-services";
+import { HeroShowcase } from "@/components/hero/hero-showcase";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { DeliveryModel } from "@/components/sections/delivery-model";
 import { LaunchTimeline } from "@/components/sections/launch-timeline";
@@ -110,37 +109,8 @@ const industries = ["Healthcare", "Banking", "Insurance", "Logistics", "Telecom"
 export default function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <section aria-labelledby="hero-title" className="relative flex flex-col justify-center overflow-hidden bg-ink-950 pb-16 pt-24 sm:pb-24 lg:min-h-svh lg:pb-14 lg:pt-28 short:pb-6 short:pt-20">
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="bg-grid absolute inset-0 opacity-60" />
-        </div>
-        {/* Two columns that line up: the whole message on the left, the operations hub on the right,
-            both centred in the same row. Small screens stack them: message, services, hub. */}
-        <div className="container-site relative grid items-center gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-6">
-          <div className="relative z-10 flex flex-col items-center text-center lg:items-start lg:text-left">
-            <p className="eyebrow">Human + AI engineering company</p>
-            <h1 id="hero-title" className="mt-5 text-display-xl font-semibold lg:text-[clamp(2.75rem,4.4vw,4.75rem)] short:mt-3 short:text-[clamp(2.5rem,min(4.4vw,8vh),4.5rem)]">
-              Human Intelligence.
-              <br />
-              <span className="text-gradient">AI-Powered Engineering.</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lead text-fg-muted short:mt-4">
-              Experienced engineers and AI, building intelligent software that takes your ideas to production.
-            </p>
-            <div className="mt-10 flex flex-col items-center gap-3 lg:items-start short:mt-6">
-              <p aria-hidden className="font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
-                {"// Services"}
-              </p>
-              <HudServices className="justify-center lg:justify-start" />
-            </div>
-          </div>
-          {/* Operations hub: sized to the screen height so it is never cut off */}
-          <div data-reveal className="mx-auto w-full max-w-xl lg:mx-0 lg:max-w-none lg:justify-self-end">
-            <HeroHub className="lg:-mr-6 lg:w-[min(calc(100%_+_3rem),calc((100svh_-_8rem)_*_1.15))] xl:-mr-12" />
-          </div>
-        </div>
-      </section>
+      {/* Hero: Mosey-inspired interactive multi-slide Human + AI Engineering showcase */}
+      <HeroShowcase />
 
       {/* Workflow in action: the animated editor scene, in its own section below the hero */}
       <Section tone="deep" tight labelledBy="scene-title" className="overflow-hidden !pt-6 sm:!pt-10">
