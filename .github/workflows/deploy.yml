@@ -2,13 +2,15 @@ name: 🚀 Deploy Outscalers Website
 
 # Deploys the Next.js site at /var/www/outscalers-testing (port 3004 → https://outscalers.com).
 # Does NOT touch the old Nuxt site (outscalers.service / port 3003).
-# Adapted from Outscalersdev/crm-outscalers deploy workflow (appleboy/ssh-action).
 
 on:
   push:
     branches:
       - master
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: deploy-outscalers-website
@@ -34,17 +36,12 @@ jobs:
             echo "=== Updating repository ==="
             cd "$APP_DIR"
 
-            # Ensure git trusts this directory when pulled as root
             git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 
-            git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/Outscalersdev/outscalers-testing.git
-
-            echo "Fetching latest master..."
-            git fetch --prune origin master
-            git checkout master
-            git reset --hard origin/master
-
-            # Drop embedded token from remote URL after pull
+            # Fetch with the job-scoped GitHub token. Do not store it in origin.
+            git fetch --prune "https://x-access-token:${{ github.token }}@github.com/Outscalersdev/outscalers-testing.git" master
+            git checkout -B master FETCH_HEAD
+            git reset --hard FETCH_HEAD
             git remote set-url origin https://github.com/Outscalersdev/outscalers-testing.git
 
             chmod +x scripts/deploy.sh
