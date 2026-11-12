@@ -181,7 +181,7 @@ function Stage() {
           <div aria-hidden>
             <div className="relative">
               <div className="glow-brand pointer-events-none absolute -inset-16 opacity-35" />
-              <div className="relative overflow-hidden rounded-2xl border border-line-strong bg-ink-950 shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)]">
+              <div className="glass relative overflow-hidden rounded-2xl border border-line-strong bg-ink-950 shadow-[0_40px_100px_-40px_rgb(0_0_0/0.9)]">
                 {/* Title bar */}
                 <div className="flex items-center gap-4 border-b border-line bg-ink-900/70 px-4 py-2.5 font-mono text-xs">
                   <span className="flex gap-1.5">

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# team editor data on the server (team.json + uploaded photos)
+/data/

@@ -9,6 +9,7 @@ import { WorkflowJourney } from "@/components/how-we-work/workflow-stage";
 import { LaunchTimeline } from "@/components/sections/launch-timeline";
 import { PhasePanel } from "@/components/how-we-work/phase-panel";
 import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
+import { VenomFlow } from "@/components/how-we-work/venom-flow";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -30,6 +31,10 @@ const principles = [
 export default function HowWeWorkPage() {
   return (
     <>
+      {/* One ink-950 background for the whole page, with the venom flow behind every section
+          (the sections themselves go transparent so it shows through). */}
+      <div className="glass-scope relative isolate bg-ink-950 [&>section]:bg-transparent">
+      <VenomFlow />
       <PageHero
         eyebrow="How we work"
         title={
@@ -107,6 +112,7 @@ export default function HowWeWorkPage() {
           </ul>
         </div>
       </Section>
+      </div>
 
       <CtaBand />
     </>

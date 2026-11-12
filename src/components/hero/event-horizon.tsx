@@ -65,7 +65,12 @@ export function EventHorizon({ className }: { className?: string }) {
       light = document.documentElement.dataset.theme === "light";
       const jet = css.getPropertyValue("--font-jetbrains-mono").trim();
       mono = jet ? `${jet}, ui-monospace, monospace` : "ui-monospace, monospace";
-      colors = { b200: get("brand-200"), b300: get("brand-300"), b400: get("brand-400"), b600: get("brand-600"), core: get("ink-950") };
+      colors = { b200: get("brand-200"), b300: get("brand-300"), b400: get("brand-400"), b500: get("brand-500"), b600: get("brand-600"), core: get("ink-950") };
+      // Light: the pale text shades are darkened for reading, which turns brown on a canvas, so use the vivid fills
+      if (light) {
+        colors.b200 = colors.b400;
+        colors.b300 = colors.b500;
+      }
       const [r, g, b] = colors.b200;
       colors.hot = light ? colors.b400 : [r + (255 - r) * 0.6, g + (255 - g) * 0.6, b + (255 - b) * 0.6];
     };
@@ -141,8 +146,8 @@ export function EventHorizon({ className }: { className?: string }) {
       const reach = reachOf(kOut);
       const g = gx.createLinearGradient(cx - reach, 0, cx + reach, 0);
       g.addColorStop(0, rgba("b400", 0));
-      g.addColorStop(0.25, rgba("b400", light ? 0.2 : 0.3));
-      g.addColorStop(0.75, rgba("b400", light ? 0.2 : 0.3));
+      g.addColorStop(0.25, rgba("b400", light ? 0.06 : 0.3));
+      g.addColorStop(0.75, rgba("b400", light ? 0.06 : 0.3));
       g.addColorStop(1, rgba("b400", 0));
       gx.fillStyle = g;
       gx.beginPath();
@@ -152,7 +157,7 @@ export function EventHorizon({ className }: { className?: string }) {
       gx.fill();
       // A brighter blurred line along the innermost strand: the white-hot part
       gx.lineWidth = r0 * 0.12;
-      gx.strokeStyle = rgba("hot", light ? 0.3 : 0.45);
+      gx.strokeStyle = rgba("hot", light ? 0.1 : 0.45);
       gx.beginPath();
       trace(1.04, true);
       gx.stroke();
@@ -223,7 +228,7 @@ export function EventHorizon({ className }: { className?: string }) {
         const k = (1 + (kMax() - 1) * Math.pow(f, 1.3)) * swell; // packed close together near the centre
         const sigma = s0() * k;
         const reach = reachOf(k);
-        const a = (light ? 0.28 : 0.38) * Math.pow(1 - f, 1.4) + 0.03;
+        const a = light ? 0.5 * Math.pow(1 - f, 1.2) + 0.06 : 0.38 * Math.pow(1 - f, 1.4) + 0.03;
         const key = f < 0.12 ? "hot" : f < 0.45 ? "b200" : f < 0.75 ? "b300" : "b400";
         const fade = ctx.createLinearGradient(cx - reach, 0, cx + reach, 0);
         fade.addColorStop(0, rgba(key, 0));
@@ -239,7 +244,7 @@ export function EventHorizon({ className }: { className?: string }) {
           else ctx.lineTo(cx + x, y);
         }
         // A wide, faint pass for the glow, then the fine line on top
-        ctx.globalAlpha = 0.08;
+        ctx.globalAlpha = light ? 0.02 : 0.08;
         ctx.lineWidth = 5;
         ctx.stroke();
         ctx.globalAlpha = 1;
@@ -248,7 +253,7 @@ export function EventHorizon({ className }: { className?: string }) {
         // Pulses of light running along the strand; inner strands flow faster
         ctx.setLineDash([24 + 40 * f, 180 + 120 * f]);
         ctx.lineDashOffset = -t * (0.09 - 0.05 * f) - i * 37;
-        const pa = (light ? 0.2 : 0.3) * (1 - f * 0.7);
+        const pa = (light ? 0.35 : 0.3) * (1 - f * 0.7);
         const pulse = ctx.createLinearGradient(cx - reach, 0, cx + reach, 0);
         pulse.addColorStop(0, rgba("hot", 0));
         pulse.addColorStop(0.28, rgba("hot", pa));
@@ -263,8 +268,8 @@ export function EventHorizon({ className }: { className?: string }) {
       // Flare along the horizon
       ctx.globalCompositeOperation = add;
       for (const [rx, ry, a, key] of [
-        [span * 0.5, 22, light ? 0.35 : 0.55, "b400"],
-        [span * 0.42, 5, 0.9, "b300"],
+        [span * 0.5, 22, light ? 0.12 : 0.55, "b400"],
+        [span * 0.42, 5, light ? 0.7 : 0.9, "b300"],
         [U * 1.6, 2, 1, "hot"],
       ] as const) {
         ctx.save();
@@ -313,8 +318,8 @@ export function EventHorizon({ className }: { className?: string }) {
         ctx.globalCompositeOperation = add;
         d = ctx.createRadialGradient(0, 0, 0, 0, 0, h0);
         d.addColorStop(0.5, rgba("b400", 0));
-        d.addColorStop(0.8, rgba("b400", light ? 0.16 : 0.24));
-        d.addColorStop(1, rgba("hot", light ? 0.3 : 0.42));
+        d.addColorStop(0.8, rgba("b400", light ? 0.05 : 0.24));
+        d.addColorStop(1, rgba("hot", light ? 0.14 : 0.42));
         ctx.fillStyle = d;
         ctx.fillRect(-h0 * 3, -h0, h0 * 6, h0);
         ctx.restore();
@@ -344,8 +349,8 @@ export function EventHorizon({ className }: { className?: string }) {
       ctx.globalCompositeOperation = add;
       // Each layer fades out before the canvas bottom, so there is no hard edge inside the editor.
       for (const [rx, depth, a, key] of [
-        [U * 1.6, 0.95, light ? 0.22 : 0.85, "b400"],
-        [U * 0.8, 0.6, light ? 0.18 : 0.6, "hot"],
+        [U * 1.6, 0.95, light ? 0.06 : 0.85, "b400"],
+        [U * 0.8, 0.6, light ? 0.05 : 0.6, "hot"],
       ] as const) {
         ctx.save();
         ctx.translate(cx, hy);
