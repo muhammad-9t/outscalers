@@ -20,6 +20,55 @@ const H = (SIZE * 82) / 72; // rendered height of the pet
 
 // Punching: three quick punches knock the pet out; it lies powered off, can be dragged around, then reboots
 const PUNCHES_TO_KO = 3;
+
+/** Shakes the page (everything except the pet) for a hard impact. Strength in px. */
+function shakeScreen(strength: number, ms: number, pet: HTMLElement | null) {
+  const frames: Keyframe[] = [];
+  const steps = Math.round(ms / 40);
+  for (let i = 0; i <= steps; i++) {
+    const k = i === steps ? 0 : strength * (1 - i / steps) ** 1.6;
+    const x = (Math.random() * 2 - 1) * k;
+    const y = (Math.random() * 2 - 1) * k;
+    const r = (Math.random() * 2 - 1) * k * 0.06;
+    frames.push({ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${r.toFixed(2)}deg)` });
+  }
+  for (const node of Array.from(document.body.children)) {
+    if (!(node instanceof HTMLElement) || (pet && node.contains(pet)) || node.tagName === "SCRIPT") continue;
+    node.animate(frames, { duration: ms, easing: "linear", composite: "add" });
+  }
+}
+
+/** A shockwave ring and sparks where the pet hits a wall, the ceiling or the floor. */
+function impactBurst(x: number, y: number, size: number) {
+  const ring = document.createElement("div");
+  ring.setAttribute("aria-hidden", "true");
+  ring.style.cssText = `position:fixed;left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px;border-radius:9999px;border:3px solid var(--color-brand-400);box-shadow:0 0 24px var(--color-brand-400),inset 0 0 18px var(--color-brand-400);pointer-events:none;z-index:9998`;
+  document.body.appendChild(ring);
+  ring
+    .animate(
+      [
+        { transform: "scale(0.15)", opacity: 1 },
+        { transform: "scale(1)", opacity: 0 },
+      ],
+      { duration: 520, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" },
+    )
+    .finished.finally(() => ring.remove());
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement("div");
+    const a = Math.random() * Math.PI * 2;
+    const d = size * (0.45 + Math.random() * 0.5);
+    s.setAttribute("aria-hidden", "true");
+    s.style.cssText = `position:fixed;left:${x - 3}px;top:${y - 3}px;width:6px;height:6px;border-radius:2px;background:var(--color-signal);box-shadow:0 0 8px var(--color-brand-400);pointer-events:none;z-index:9998`;
+    document.body.appendChild(s);
+    s.animate(
+      [
+        { transform: "translate(0, 0) scale(1)", opacity: 1 },
+        { transform: `translate(${Math.cos(a) * d}px, ${Math.sin(a) * d}px) scale(0.2)`, opacity: 0 },
+      ],
+      { duration: 420 + Math.random() * 260, easing: "cubic-bezier(0.1, 0.8, 0.3, 1)" },
+    ).finished.finally(() => s.remove());
+  }
+}
 const PUNCH_RESET_MS = 4000; // punches further apart than this start the count again
 const OFF_MS = 7000;
 const BOOT_MS = 1300;
@@ -219,6 +268,7 @@ export function PetBot() {
     hits: 0,
     lastHit: 0,
     stunUntil: 0, // stays put after a punch so the next one can land
+    freezeUntil: 0, // hit-stop: physics pauses for a few frames on a hard impact
     wakeAt: 0,
     bootAt: 0,
     drag: false,
@@ -549,8 +599,17 @@ export function PetBot() {
       p.lie = dir;
       pos.x += p.kx;
       pos.y += p.ky;
-      p.vx = p.kvx * 1.2;
-      p.vy = Math.min(p.kvy, -260);
+      // Launched along the line of the punch (from the fist through the pet), tilted upwards
+      // like an uppercut, with spin from hitting it off-centre
+      let ux = dir * Math.max(Math.abs(dx / d), 0.75);
+      let uy = Math.min(dy / d, -0.6);
+      const ul = Math.hypot(ux, uy);
+      ux /= ul;
+      uy /= ul;
+      const speed = 2300;
+      p.vx = ux * speed;
+      p.vy = uy * speed;
+      p.rotV = dir * (500 + Math.abs(dy / d) * 700);
       p.kx = p.ky = p.kvx = p.kvy = 0;
       setPower("off");
       setBeaming(false);
@@ -788,25 +847,76 @@ export function PetBot() {
         pos.y = ny;
         // Limp: it swings against the motion, like something being carried
         spin(clamp(-p.vx * 0.045, -65, 65) + p.lie * 12, 55, 4.5, dt);
+      } else if (now < p.freezeUntil) {
+        // Hit-stop: hold the impact for a few frames so the hit lands
       } else {
+        // Gravity and a little air drag
         p.vy += 2600 * dt;
+        const drag = 1 - 0.12 * dt;
+        p.vx *= drag;
+        p.vy *= drag;
         pos.x += p.vx * dt;
         pos.y += p.vy * dt;
+
+        /**
+         * One collision with a flat surface, as a spinning body: the normal speed bounces back
+         * by `e`, and friction at the contact point trades spin against sliding speed (a spinning
+         * robot kicks itself up or down a wall). `s` is which side of the body touches.
+         */
+        const R = 32;
+        const collide = (vn: number, vt: number, s: number, e: number) => {
+          const w = (p.rotV * Math.PI) / 180;
+          const slip = vt + s * w * R;
+          const maxF = 0.5 * (1 + e) * Math.abs(vn);
+          const dvt = clamp(-slip / 3, -maxF, maxF);
+          p.rotV += (((dvt * s) / (0.5 * R)) * 180) / Math.PI;
+          return [Math.abs(vn) < 220 ? 0 : -vn * e, vt + dvt] as const;
+        };
+        /** Screen shake, shockwave and hit-stop scaled by how hard it hit. */
+        const slam = (speed: number, x: number, y: number, squashKeys: Keyframe[]) => {
+          if (speed < 450) return;
+          shakeScreen(clamp((speed - 380) / 75, 3, 26), clamp(220 + speed * 0.2, 260, 720), pet.current);
+          impactBurst(x, y, clamp(70 + speed * 0.07, 90, 240));
+          if (speed > 900) p.freezeUntil = now + clamp(speed / 32, 30, 75);
+          squash.current?.animate(squashKeys, { duration: clamp(speed * 0.22, 260, 560), easing: "ease-out" });
+        };
+
         if (pos.x < 4 || pos.x > W - SIZE - 4) {
+          const left = pos.x < 4;
           pos.x = clamp(pos.x, 4, W - SIZE - 4);
-          p.vx *= -0.45;
-          p.rotV -= p.lie * 90;
+          const speed = Math.abs(p.vx);
+          [p.vx, p.vy] = collide(p.vx, p.vy, left ? -1 : 1, 0.42);
+          const k = Math.min(0.4, speed / 5000);
+          slam(speed, left ? 4 : W - 4, pos.y + H / 2, [
+            { transform: "scale(1, 1)" },
+            { transform: `scale(${1 - k}, ${1 + k * 0.6})`, offset: 0.18 },
+            { transform: "scale(1, 1)" },
+          ]);
+        }
+        if (pos.y < 4) {
+          pos.y = 4;
+          const speed = Math.abs(p.vy);
+          [p.vy, p.vx] = collide(p.vy, p.vx, 1, 0.35);
+          slam(speed, pos.x + SIZE / 2, 4, [{ transform: "scale(1, 1)" }, { transform: "scale(1.15, 0.85)", offset: 0.2 }, { transform: "scale(1, 1)" }]);
         }
         const grounded = pos.y >= floor - 0.5;
         if (pos.y >= floor) {
           pos.y = floor;
-          if (p.vy > 320) {
-            p.vy *= -0.3; // a small bounce
-            p.rotV += p.lie * 140;
-          } else p.vy = 0;
-          p.vx *= Math.max(0, 1 - 7 * dt);
+          const speed = p.vy;
+          if (speed > 0) [p.vy, p.vx] = collide(p.vy, p.vx, -1, 0.32);
+          const k = Math.min(0.42, speed / 5200);
+          slam(speed, pos.x + SIZE / 2, VH - 6, [
+            { transform: "scale(1, 1)" },
+            { transform: `scale(${1 + k}, ${1 - k})`, offset: 0.15 },
+            { transform: `scale(${1 - k * 0.2}, ${1 + k * 0.2})`, offset: 0.5 },
+            { transform: "scale(1, 1)" },
+          ]);
+          // Rolling friction once it is down
+          p.vx *= Math.max(0, 1 - 5 * dt);
         }
-        spin(p.lie * 84, grounded ? 140 : 16, grounded ? 13 : 2.5, dt);
+        // Free spin in the air; on the ground it settles on its side
+        if (grounded) spin(p.lie * 84, 140, 13, dt);
+        else spin(p.rot, 0, 0.3, dt);
         if (flame.current) flame.current.style.transform = "scaleY(0)";
         if (now >= p.wakeAt && grounded) {
           p.mode = "boot";
