@@ -1,12 +1,15 @@
-import { Compass, Globe2, HeartHandshake, MessagesSquare, Repeat, Target, Users } from "lucide-react";
+import { ChevronRight, Compass, Globe2, MessagesSquare } from "lucide-react";
 import { pageMetadata, siteConfig } from "@/lib/site";
-import { PageHero } from "@/components/sections/page-hero";
+import Link from "next/link";
 import { CtaBand } from "@/components/sections/cta-band";
 import { OfficeNetwork } from "@/components/illustrations/office-network";
-import { HumanAiCollab } from "@/components/illustrations/human-ai-collab";
+import { AboutJourney } from "@/components/about/about-journey";
 import { EvolutionJourney } from "@/components/about/evolution-journey";
 import { evolution } from "@/content/evolution";
 import { TeamBadges } from "@/components/about/team-badges";
+import { BeamSentence } from "@/components/about/beam-sentence";
+import { ValuesGrid } from "@/components/about/values-grid";
+import { OfficeCards } from "@/components/about/office-cards";
 import { getTeam } from "@/lib/team-store";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
@@ -17,29 +20,6 @@ export const metadata = pageMetadata({
   path: "/about",
   keywords: ["About Outscalers", "IT outsourcing partner", "software engineering team", "remote-first"],
 });
-
-const values = [
-  {
-    icon: Target,
-    title: "Excellence",
-    body: "We hold our work to high engineering standards — clean architecture, reviewed code and tested releases.",
-  },
-  {
-    icon: HeartHandshake,
-    title: "Customer-centric",
-    body: "We start from your goals and constraints, and measure success by what changes for your business.",
-  },
-  {
-    icon: Repeat,
-    title: "Continuous improvement",
-    body: "We keep learning — which is why AI is now part of how we work, applied with care.",
-  },
-  {
-    icon: Users,
-    title: "Accountability",
-    body: "People own decisions and outcomes. Tools, including AI, never carry the responsibility.",
-  },
-];
 
 const howWeOperate = [
   {
@@ -62,25 +42,65 @@ const howWeOperate = [
 export default async function AboutPage() {
   return (
     <>
-      <PageHero
-        eyebrow="About us"
-        title={
-          <>
-            Built on engineering talent. <span className="text-gradient">Evolving with AI.</span>
-          </>
-        }
-        lead={`Our journey began in 2017 with freelance software development. In ${siteConfig.founded} it became Outscalers, founded in Rawalpindi, Pakistan, to connect strong engineering talent from Germany and Pakistan with organisations around the world. Today we combine that human expertise with AI to deliver better software, faster.`}
-        crumbs={[
-          { label: "Home", href: "/" },
-          { label: "About Us", href: "/about" },
-        ]}
-        actions={
-          <ButtonLink href="/contact" arrow>
-            Work with us
-          </ButtonLink>
-        }
-        visual={<HumanAiCollab />}
-      />
+      {/* Hero: centred story on top, the journey as a rising staircase below */}
+      <section className="relative overflow-hidden bg-ink-950 pb-16 pt-28 sm:pb-20 lg:pb-24 lg:pt-36">
+        <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-50" />
+        <div aria-hidden className="glow-brand pointer-events-none absolute left-1/2 -top-48 size-[40rem] -translate-x-1/2 opacity-50" />
+        <div className="container-site relative">
+          <nav aria-label="Breadcrumb" className="mb-8 flex justify-center">
+            <ol className="flex flex-wrap items-center gap-1.5 text-sm text-fg-subtle">
+              <li>
+                <Link href="/" className="transition-colors hover:text-fg">
+                  Home
+                </Link>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <ChevronRight aria-hidden className="size-3.5" />
+                <span aria-current="page" className="text-fg-muted">
+                  About Us
+                </span>
+              </li>
+            </ol>
+          </nav>
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="eyebrow mx-auto mb-5">About us</p>
+            <h1 className="text-display-lg font-semibold">
+              Built on engineering talent. <span className="text-gradient">Evolving with <em className="about-accent">AI</em>.</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-3xl text-lead text-fg-muted">
+              Our journey began in 2017 with freelance software development. In {siteConfig.founded} it became Outscalers, founded in
+              Rawalpindi, Pakistan, to connect strong engineering talent from Germany and Pakistan with organisations around the world.
+              Today we combine that human expertise with AI to deliver better software, faster.
+            </p>
+            <div className="mt-9 flex justify-center">
+              <ButtonLink href="/contact" arrow>
+                Work with us
+              </ButtonLink>
+            </div>
+          </div>
+
+          <div data-reveal className="relative mt-16 lg:mt-20">
+            <AboutJourney variant="strip" />
+          </div>
+
+          {/* Quick facts */}
+          <dl className="mx-auto mt-14 grid max-w-3xl grid-cols-3 divide-x divide-line border-y border-line text-center">
+            {[
+              ["2017", "Building since"],
+              ["DE + PK", "Engineering teams"],
+              ["Human + AI", "On every project"],
+            ].map(([v, l]) => (
+              <div key={l} className="px-3 py-4">
+                <dt className="sr-only">{l}</dt>
+                <dd className="font-display text-xl font-semibold sm:text-2xl">{v}</dd>
+                <dd aria-hidden className="mt-0.5 text-sm text-fg-muted">
+                  {l}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
 
       {/* Mission & vision */}
       <Section labelledBy="mission-title">
@@ -106,6 +126,9 @@ export default async function AboutPage() {
         </div>
       </Section>
 
+      {/* Statement: slides past a beam of light as you scroll, lighting up letter by letter */}
+      <BeamSentence text="We help ambitious businesses scale faster and smarter." />
+
       {/* Evolution: a scroll story on large screens, cards on small ones */}
       <Section labelledBy="evolution-title" className="lg:pb-0">
         <div className="container-site">
@@ -124,15 +147,7 @@ export default async function AboutPage() {
       <Section tone="raised" labelledBy="values-title">
         <div className="container-site">
           <SectionHeading id="values-title" eyebrow="Values" title="What guides our work" />
-          <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {values.map((v, i) => (
-              <Reveal as="li" key={v.title} delay={i * 70} className="card p-6">
-                <v.icon aria-hidden className="size-6 text-brand-300" strokeWidth={1.7} />
-                <h3 className="mt-5 text-lg font-semibold">{v.title}</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{v.body}</p>
-              </Reveal>
-            ))}
-          </ul>
+          <ValuesGrid />
         </div>
       </Section>
 
@@ -150,9 +165,9 @@ export default async function AboutPage() {
             </Reveal>
             <ul className="space-y-4">
               {howWeOperate.map((h, i) => (
-                <Reveal as="li" key={h.title} delay={i * 80} className="flex gap-4">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-500/10 text-brand-300">
-                    <h.icon aria-hidden className="size-5" />
+                <Reveal as="li" key={h.title} delay={i * 80} className="op-item flex gap-4">
+                  <span className="hs-gloss op-tile" data-tone={(["human", "brand", "data"] as const)[i % 3]} aria-hidden>
+                    <h.icon className="size-[46%]" strokeWidth={1.8} />
                   </span>
                   <div>
                     <h3 className="font-semibold">{h.title}</h3>
@@ -162,14 +177,7 @@ export default async function AboutPage() {
               ))}
             </ul>
           </div>
-          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {siteConfig.offices.map((o, i) => (
-              <Reveal as="li" key={o.country} delay={i * 60} className="card-flat p-5">
-                <p className="font-mono text-xs uppercase tracking-wider text-brand-300">{o.country}</p>
-                <address className="mt-2 text-sm not-italic leading-relaxed text-fg-muted">{o.address}</address>
-              </Reveal>
-            ))}
-          </ul>
+          <OfficeCards />
         </div>
       </Section>
 
@@ -189,7 +197,7 @@ export default async function AboutPage() {
               <p className="text-[0.9375rem] leading-relaxed text-fg-muted">
                 Different minds, shared curiosity. Engineers, designers and testers who own what reaches production.
               </p>
-              <p className="mt-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-fg-subtle uppercase">
+              <p className="mt-3 flex items-center gap-2 text-sm font-medium text-fg-subtle">
                 <span aria-hidden className="size-1.5 rounded-full bg-brand-400" /> One team, DE + PK
               </p>
             </Reveal>

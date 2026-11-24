@@ -14,8 +14,33 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
  * Pins its panels to the screen and moves them sideways as the page scrolls down,
  * then lets the page continue once the last panel is in view. A small robot rides a
  * rail along the bottom, gliding after the scroll from stop to stop (one stop per panel).
+ *
+ * Optional: `speed` < 1 makes the section shorter (less page scroll per panel); `stage` is a decor
+ * layer drawn over the panels and under the rail, `backdrop` one drawn behind them; `dark` keeps
+ * the pinned stage a night scene (dark tokens) in both themes. `trackProgress` writes each panel's
+ * offset from the centre of the screen as --p (-1 entering from the left … 0 centred … 1 waiting on
+ * the right) and its size as --ap, so panels can animate with the slide itself. The panel the robot is at gets `data-active`
+ * (below lg / reduced motion: each panel as it scrolls into view), so panels can animate in.
  */
-export function HorizontalScroll({ children, label, stops }: { children: ReactNode; label: string; stops: string[] }) {
+export function HorizontalScroll({
+  children,
+  label,
+  stops,
+  speed = 1,
+  stage,
+  backdrop,
+  dark = false,
+  trackProgress = false,
+}: {
+  children: ReactNode;
+  label: string;
+  stops: string[];
+  speed?: number;
+  stage?: ReactNode;
+  backdrop?: ReactNode;
+  dark?: boolean;
+  trackProgress?: boolean;
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLOListElement>(null);
   const rail = useRef<HTMLDivElement>(null);
@@ -26,6 +51,7 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
   const flame = useRef<SVGGElement>(null);
   const [on, setOn] = useState(false);
   const [stop, setStop] = useState(0);
+  const [near, setNear] = useState(false); // the pinned section is (nearly) on screen
   const travel = useRef(0); // horizontal distance the track covers, mirrored for the rail buttons
 
   useEffect(() => {
@@ -47,10 +73,21 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
     let last = -1;
     let frame = 0;
     let visible = false;
+    let wasNear = false;
 
     const read = () => {
-      target = distance ? clamp(-o.getBoundingClientRect().top / distance, 0, 1) : 0;
+      const top = o.getBoundingClientRect().top;
+      target = distance ? clamp(-top / (distance * speed), 0, 1) : 0;
+      const isNear = top < window.innerHeight * 0.35 && top > -(distance * speed + window.innerHeight * 0.6);
+      if (isNear !== wasNear) setNear((wasNear = isNear));
       t.style.transform = `translate3d(${-target * distance}px, 0, 0)`;
+      if (trackProgress) {
+        for (const k of Array.from(t.children) as HTMLElement[]) {
+          const p = clamp((k.offsetLeft - target * distance) / Math.max(1, k.offsetWidth), -1.5, 1.5);
+          k.style.setProperty("--p", p.toFixed(4));
+          k.style.setProperty("--ap", Math.abs(p).toFixed(4));
+        }
+      }
       if (bar.current) bar.current.style.transform = `scaleX(${target})`;
     };
 
@@ -72,9 +109,11 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
 
     const measure = () => {
       // How far the track must travel so its last panel ends at the right edge
-      distance = Math.max(0, t.scrollWidth - t.clientWidth);
+      // Measured from the panels, not scrollWidth, so decor that overflows a panel adds no travel
+      const lastKid = t.lastElementChild as HTMLElement | null;
+      distance = Math.max(0, (lastKid ? lastKid.offsetLeft + lastKid.offsetWidth : t.scrollWidth) - t.clientWidth);
       travel.current = distance;
-      o.style.height = `${window.innerHeight + distance}px`;
+      o.style.height = `${window.innerHeight + distance * speed}px`;
       read();
     };
 
@@ -98,28 +137,58 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
       cancelAnimationFrame(frame);
       o.style.height = "";
       t.style.transform = "";
+      for (const k of Array.from(t.children) as HTMLElement[]) {
+        k.style.removeProperty("--p");
+        k.style.removeProperty("--ap");
+      }
     };
-  }, [on, stops.length]);
+  }, [on, stops.length, speed, trackProgress]);
+
+  // Mark the active panel. Pinned: the one the robot is at, once the section is on screen.
+  // Otherwise (stacked list): each panel as it scrolls into view, and it stays marked.
+  useEffect(() => {
+    const t = track.current;
+    if (!t) return;
+    const kids = Array.from(t.children) as HTMLElement[];
+    if (on) {
+      kids.forEach((k, i) => k.toggleAttribute("data-active", near && i === stop));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && e.target.setAttribute("data-active", "")),
+      { rootMargin: "0px 0px -20% 0px" },
+    );
+    kids.forEach((k) => io.observe(k));
+    return () => io.disconnect();
+  }, [on, near, stop]);
 
   // Scrolls the page to the point where panel `i` is in view; the robot then glides there on its own.
   const goTo = (i: number) => {
     const o = outer.current;
     if (!o) return;
     const top = o.getBoundingClientRect().top + window.scrollY;
-    scrollToY(top + (i / (stops.length - 1)) * travel.current);
+    scrollToY(top + (i / (stops.length - 1)) * travel.current * speed);
   };
 
   return (
     <div ref={outer} className="relative">
-      <div data-pet-hide={on || undefined} className={cn(on && "sticky top-0 h-svh overflow-hidden")}>
+      <div
+        data-pet-hide={on || undefined}
+        data-pinned={on || undefined}
+        data-theme={on && dark ? "dark" : undefined}
+        className={cn(on && "sticky top-0 isolate h-svh overflow-hidden", on && dark && "bg-ink-950 text-fg")}
+      >
+        {on && backdrop}
         <ol ref={track} aria-label={label} className={cn("flex", on ? "h-full will-change-transform" : "flex-col")}>
           {children}
         </ol>
+        {on && stage}
         {on && (
-          <div className="container-site absolute inset-x-0 bottom-9">
-            <div ref={rail} className="relative h-px w-full bg-line">
-              <span ref={bar} aria-hidden className="block h-full origin-left scale-x-0 bg-brand-400" />
-              {/* One stop per panel */}
+          <div className="container-site absolute inset-x-0 bottom-10 z-10">
+            {/* Rail: a soft track with a gradient fill, one round node per panel, its name below.
+                Styles: .hsr-* in globals.css. */}
+            <div ref={rail} className="hsr-track">
+              <span ref={bar} aria-hidden className="hsr-fill" />
               {stops.map((name, i) => (
                 <button
                   type="button"
@@ -127,42 +196,22 @@ export function HorizontalScroll({ children, label, stops }: { children: ReactNo
                   onClick={() => goTo(i)}
                   aria-label={name}
                   aria-current={i === stop ? "step" : undefined}
-                  className="group absolute top-0 -translate-x-1/2 cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-300"
+                  data-state={i === stop ? "current" : i < stop ? "done" : undefined}
+                  data-edge={i === 0 ? "start" : i === stops.length - 1 ? "end" : undefined}
+                  className="hsr-stop"
                   style={{ left: `${(i / (stops.length - 1)) * 100}%` }}
                 >
-                  {/* Larger hit area than the tiny diamond and number */}
-                  <span aria-hidden className="absolute -inset-x-4 -top-3 h-10" />
-                  <span
-                    className={cn(
-                      "block size-2 -translate-y-1/2 rotate-45 border transition-colors duration-300",
-                      i <= stop ? "border-brand-400 bg-brand-400" : "border-line-strong bg-ink-950 group-hover:border-brand-400",
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "absolute top-2.5 left-1/2 -translate-x-1/2 font-mono text-[10px] transition-colors duration-300",
-                      i === stop ? "text-brand-300" : "text-fg-subtle group-hover:text-fg",
-                    )}
-                  >
-                    {String(i + 1).padStart(2, "0")}
+                  <span aria-hidden className="hsr-node" />
+                  <span aria-hidden className="hsr-label">
+                    {name}
                   </span>
                 </button>
               ))}
               {/* The robot, riding the rail */}
-              {/* Zero-width anchor at the robot's centre, so the readout can sit a fixed gap to either side */}
-              <div ref={rider} aria-hidden className="pointer-events-none absolute bottom-1 left-0 w-0">
+              <div ref={rider} aria-hidden className="pointer-events-none absolute bottom-2 left-0 w-0">
                 <div className="absolute bottom-0 left-0 -translate-x-1/2 motion-safe:animate-[hover-bob_2.4s_ease-in-out_infinite]">
                   <ScrollRobot bodyRef={body} eyeRef={eye} flameRef={flame} />
                 </div>
-                {/* Readout of the current stop; flips to the left near the end of the rail */}
-                <span
-                  className={cn(
-                    "absolute bottom-7 border border-brand-400/40 bg-ink-950/90 px-2 py-1 font-mono text-[10px] tracking-[0.14em] whitespace-nowrap text-brand-200 uppercase",
-                    stop >= stops.length - 1 ? "right-9" : "left-9",
-                  )}
-                >
-                  {`${String(stop + 1).padStart(2, "0")} // ${stops[stop]}`}
-                </span>
               </div>
             </div>
           </div>

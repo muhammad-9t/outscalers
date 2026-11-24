@@ -4,21 +4,26 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import type { EvolutionStep } from "@/content/evolution";
 import { cn } from "@/lib/cn";
 import { scrollToY } from "@/lib/smooth-scroll";
-import { EvolutionNetwork } from "./evolution-network";
+import { EvolutionWidgets } from "./evolution-widgets";
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const STEP_SVH = 75; // scroll distance per chapter, in viewport heights (%)
 
-/** How visible chapter i is at progress p: fully at p = i, gone half a chapter away. */
-const chapterStyle = (i: number, p: number): CSSProperties => ({
-  opacity: clamp(1 - Math.abs(p - i) * 2.2, 0, 1),
-  transform: `translate3d(0, ${((i - p) * 48).toFixed(1)}px, 0)`,
-});
+/** How visible chapter i is at progress p: fully at p = i, gone (and blurred) half a chapter away. */
+const chapterStyle = (i: number, p: number): CSSProperties => {
+  const d = Math.abs(p - i);
+  return {
+    opacity: clamp(1 - d * 2.2, 0, 1),
+    transform: `translate3d(0, ${((i - p) * 48).toFixed(1)}px, 0)`,
+    // Blurs out as it leaves and sharpens as it arrives (none when settled, so text stays crisp)
+    filter: d < 0.02 ? "none" : `blur(${(clamp(d * 2.2, 0, 1) * 10).toFixed(1)}px)`,
+  };
+};
 
 /**
  * "Our evolution": on large screens the section pins and the page scroll moves through the
- * chapters, while the network on the right reshapes for each one. On smaller screens it is
- * a list of cards, each with its own network that grows into shape as it scrolls into view.
+ * chapters, while the widgets on the right change to tell each one. On smaller screens it is
+ * a list of cards, each with its own scene of widgets.
  */
 export function EvolutionJourney({ steps }: { steps: EvolutionStep[] }) {
   const outerRef = useRef<HTMLDivElement>(null);
@@ -68,7 +73,7 @@ export function EvolutionJourney({ steps }: { steps: EvolutionStep[] }) {
     <>
       {/* Large screens: pinned scroll story */}
       <div ref={outerRef} className="relative hidden lg:block" style={{ height: `${steps.length * STEP_SVH + 25}svh` }}>
-        <div className="sticky top-0 flex h-svh items-center pt-18">
+        <div className="sticky top-0 flex h-svh items-start pt-24 xl:pt-28">
           <div className="container-site grid w-full grid-cols-[auto_1fr_1fr] items-center gap-14 xl:gap-20">
             {/* Progress rail */}
             <nav aria-label="Chapters" className="relative flex h-[min(26rem,60svh)] flex-col justify-between">
@@ -122,7 +127,7 @@ export function EvolutionJourney({ steps }: { steps: EvolutionStep[] }) {
               ))}
             </div>
 
-            <EvolutionNetwork progressRef={progressRef} className="mx-auto aspect-square w-full max-w-[min(34rem,70svh)]" />
+            <EvolutionWidgets progressRef={progressRef} className="mx-auto w-full max-w-[min(34rem,70svh)]" />
           </div>
         </div>
       </div>
@@ -132,7 +137,7 @@ export function EvolutionJourney({ steps }: { steps: EvolutionStep[] }) {
         {steps.map((s, i) => (
           <li key={s.when} className="card overflow-hidden">
             <div className="border-b border-line bg-ink-900/60 px-6 py-4">
-              <EvolutionNetwork stage={i} startStage={Math.max(i - 1, 0)} className="mx-auto aspect-square w-full max-w-64" />
+              <EvolutionWidgets stage={i} className="mx-auto w-full max-w-80" />
             </div>
             <div className="p-6">
               <p className={cn("text-4xl font-semibold tracking-tight", i === last ? "text-gradient" : "text-fg")}>{s.when}</p>

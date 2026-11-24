@@ -18,8 +18,6 @@ const TONE = { ai: "text-brand-300", human: "text-human-accent", ok: "text-fg-mu
 function Frame({ title, className, children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
     <div aria-hidden className={cn("pointer-events-none relative border border-line bg-ink-950/50 p-3.5 font-mono backdrop-blur-sm", className)}>
-      <span className="absolute -top-px -left-px size-2 border-t-2 border-l-2 border-brand-400/70" />
-      <span className="absolute -right-px -bottom-px size-2 border-r-2 border-b-2 border-brand-400/70" />
       <p className="flex items-center gap-2 text-[10px] tracking-[0.18em] text-fg-subtle uppercase">
         <span className="size-1.5 rounded-full bg-brand-400 motion-safe:animate-pulse" />
         {title}

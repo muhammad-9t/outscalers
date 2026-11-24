@@ -8,10 +8,15 @@ import {
   Bot,
   Check,
   Code2,
+  CodeXml,
+  Cpu,
+  Database,
   Layers,
   Plus,
   ShieldCheck,
   Sparkles,
+  UserRound,
+  Workflow,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -201,7 +206,7 @@ function MiniDocWidget({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "hs-card-in pointer-events-none flex h-10 w-8 flex-col justify-center gap-1.5 rounded-lg border border-line-strong bg-ink-900/90 p-1.5 shadow-md backdrop-blur-sm",
+        "hs-card-in pointer-events-none flex h-10 w-8 flex-col justify-center gap-1.5 rounded-lg border border-line bg-ink-850 p-1.5 hs-widget",
         className,
       )}
     >
@@ -221,7 +226,7 @@ function MiniListWidget({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "hs-card-in pointer-events-none flex flex-col gap-1.5 rounded-lg border border-line-strong bg-ink-900/85 p-2 shadow-sm backdrop-blur-sm",
+        "hs-card-in pointer-events-none flex flex-col gap-1.5 rounded-lg border border-line bg-ink-850 p-2 hs-widget",
         className,
       )}
     >
@@ -243,7 +248,7 @@ function MiniSkeletonPill({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "hs-card-in pointer-events-none inline-flex flex-col gap-1 rounded-full border border-line bg-ink-900/80 px-3 py-1.5 shadow-sm backdrop-blur-sm",
+        "hs-card-in pointer-events-none inline-flex flex-col gap-1 rounded-full border border-line bg-ink-850 px-3 py-1.5 hs-widget",
         className,
       )}
     >
@@ -256,558 +261,77 @@ function MiniSkeletonPill({ className }: { className?: string }) {
   );
 }
 
-/**
- * Single Minimal Tech Core Illustration (Outscalers Human + AI Core)
- * One clean, balanced core node designed for both Light Mode and Dark Mode.
- */
-function CoreArchitectureArt({
-  showPin = false,
+type GlossTone = "brand" | "human" | "data";
+
+/** A glossy 3D icon tile (same look as the About page widgets). Carries .hs-monument for the entrance. */
+function GlossTile({
+  icon: Icon,
+  tone,
+  size = "lg",
   className,
 }: {
-  showPin?: boolean;
+  icon: typeof Bot;
+  tone: GlossTone;
+  size?: "lg" | "md";
   className?: string;
 }) {
   return (
-    <div className={cn("relative select-none", className)}>
+    <span aria-hidden className={cn("hs-gloss hs-monument", size === "lg" ? "hs-gloss-lg" : "hs-gloss-md", className)} data-tone={tone}>
+      <Icon className="size-[46%]" strokeWidth={1.7} />
+    </span>
+  );
+}
+
+/** Slide 2 centrepiece: the Human + AI core as a glossy tile on a soft shadow, with a clean label. */
+function CoreArchitectureArt({ showPin = false, className }: { showPin?: boolean; className?: string }) {
+  return (
+    <div className={cn("relative flex flex-col items-center select-none", className)}>
       {showPin && (
-        <div className="hs-pop absolute -top-[20px] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center whitespace-nowrap sm:-top-[18px]">
-          <span className="rounded-full bg-fg px-3 py-1 font-mono text-[11px] font-semibold tracking-tight text-ink-950 shadow-md">
-            Human + AI Core
+        // Badge: a person and the AI side by side, the label, and a live dot, in a gradient-ringed pill
+        <span className="hs-pop hs-core-badge mb-3">
+          <span className="flex -space-x-1.5" aria-hidden>
+            <span className="hs-core-av" data-tone="human">
+              <UserRound className="size-3" strokeWidth={2.2} />
+            </span>
+            <span className="hs-core-av" data-tone="brand">
+              <Bot className="size-3" strokeWidth={2.2} />
+            </span>
           </span>
-          <span className="mt-1 grid size-4 place-items-center rounded-full bg-fg text-ink-950 shadow">
-            <span className="size-1.5 rounded-full bg-brand-400" />
-          </span>
-        </div>
+          <span className="text-xs font-semibold text-fg">Human + AI core</span>
+          <span aria-hidden className="hs-core-live" />
+        </span>
       )}
-
-      <svg
-        viewBox="0 0 240 210"
-        className="hs-monument mx-auto h-44 w-48 overflow-visible sm:h-48 sm:w-52"
-        aria-hidden
-      >
-        {/* Vertical stem to top pin & bottom base */}
-        <line
-          x1="120"
-          y1="22"
-          x2="120"
-          y2="68"
-          className="stroke-line-strong"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        <line
-          x1="120"
-          y1="156"
-          x2="120"
-          y2="178"
-          className="stroke-line-strong"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        {!showPin && (
-          <circle
-            cx="120"
-            cy="20"
-            r="3.5"
-            className="fill-brand-400 stroke-ink-950"
-            strokeWidth="1.5"
-          />
-        )}
-
-        {/* Single Clean Core Tile (works seamlessly in Light & Dark themes) */}
-        <rect
-          x="76"
-          y="68"
-          width="88"
-          height="88"
-          rx="22"
-          className="fill-ink-900 stroke-line-strong"
-          strokeWidth="1.6"
-        />
-        <rect
-          x="84"
-          y="76"
-          width="72"
-          height="72"
-          rx="16"
-          className="fill-ink-950/60 stroke-brand-400/35"
-          strokeWidth="1.2"
-        />
-
-        {/* Minimal Human Code Brackets `</>` + Central AI Core Spark */}
-        <path
-          d="M104 101 L93 112 L104 123"
-          fill="none"
-          className="stroke-human-accent"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M136 101 L147 112 L136 123"
-          fill="none"
-          className="stroke-human-accent"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Center AI Spark / Core Node */}
-        <circle
-          cx="120"
-          cy="112"
-          r="9"
-          className="fill-brand-400/18 stroke-brand-400"
-          strokeWidth="1.6"
-        />
-        <circle cx="120" cy="112" r="3.8" className="fill-brand-400" />
-
-        {/* Clean minimal base line */}
-        <line
-          x1="68"
-          y1="178"
-          x2="172"
-          y2="178"
-          className="stroke-line-strong"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <circle cx="120" cy="178" r="3" className="fill-brand-400" />
-      </svg>
+      <GlossTile icon={CodeXml} tone="brand" />
+      <span aria-hidden className="hs-pedestal" />
     </div>
   );
 }
 
-/**
- * Slide 3 Center Monument: AI + Human Build Engine
- * Designed using the exact Outscalers custom software & HUD styling from `/services`:
- * - Spinning / dashed outer targeting ring with cardinal crosshair ticks (matching /services ServicePanel HUD)
- * - Custom Software Development IDE window frame with header divider (matching ServiceGlyph slug="software-development")
- * - 3 Window control dots (Brand Orange AI, Human Cyan Engineer, Neutral)
- * - Signature `< / >` code glyph with Human-accent brackets and Brand-orange slash
- * - AI 4-point sparkle star (matching ServiceGlyph slug="ai-solutions")
- * - Live AI code draft & Human PR review syntax stream bars with verification status dots
- */
-function BuildEngineArt({
-  showPin = false,
-  className,
-}: {
-  showPin?: boolean;
-  className?: string;
-}) {
+/** Slide 3 centrepiece: the build engine as a glossy tile with a small AI badge. */
+function BuildEngineArt({ className }: { showPin?: boolean; className?: string }) {
   return (
-    <div className={cn("relative select-none", className)}>
-      {showPin && (
-        <div className="hs-pop absolute -top-[20px] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center whitespace-nowrap sm:-top-[18px]">
-          <span className="rounded-full bg-fg px-3 py-1 font-mono text-[11px] font-semibold tracking-tight text-ink-950 shadow-md">
-            AI + Human Build
-          </span>
-          <span className="mt-1 grid size-4 place-items-center rounded-full bg-fg text-ink-950 shadow">
-            <span className="size-1.5 rounded-full bg-brand-400" />
-          </span>
-        </div>
-      )}
-
-      <svg
-        viewBox="0 0 240 210"
-        className="hs-monument mx-auto h-44 w-48 overflow-visible sm:h-48 sm:w-52"
-        aria-hidden
-      >
-        {/* Vertical stem lines for optical balance */}
-        <line
-          x1="120"
-          y1="22"
-          x2="120"
-          y2="62"
-          className="stroke-line-strong"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        <line
-          x1="120"
-          y1="162"
-          x2="120"
-          y2="178"
-          className="stroke-line-strong"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-        {!showPin && (
-          <circle
-            cx="120"
-            cy="20"
-            r="3.5"
-            className="fill-brand-400 stroke-ink-950"
-            strokeWidth="1.5"
-          />
-        )}
-
-        {/* Clean minimal base line */}
-        <line
-          x1="68"
-          y1="178"
-          x2="172"
-          y2="178"
-          className="stroke-line-strong"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <circle cx="120" cy="178" r="3" className="fill-brand-400" />
-
-        {/* Main Software Console Tile (Styled like /services Software Development & Service Cards) */}
-        <rect
-          x="70"
-          y="62"
-          width="100"
-          height="100"
-          rx="20"
-          className="fill-ink-900 stroke-line-strong drop-shadow-[0_0_24px_rgba(255,112,14,0.14)]"
-          strokeWidth="1.6"
-        />
-        {/* Inner Editor Canvas */}
-        <rect
-          x="77"
-          y="69"
-          width="86"
-          height="86"
-          rx="15"
-          className="fill-ink-950/75 stroke-brand-400/30"
-          strokeWidth="1.2"
-        />
-
-        {/* Titlebar Header Separator */}
-        <line
-          x1="77"
-          y1="87"
-          x2="163"
-          y2="87"
-          className="stroke-line-strong"
-          strokeWidth="1.2"
-        />
-
-        {/* Window Control Dots (Orange AI + Cyan Human + Neutral) */}
-        <circle cx="87" cy="78" r="2.5" className="fill-brand-400" />
-        <circle cx="94.5" cy="78" r="2.5" className="fill-human-accent" />
-        <circle cx="102" cy="78" r="2.5" className="fill-fg/30" />
-
-        {/* Header Tab / Script indicator */}
-        <text
-          x="154"
-          y="81.5"
-          textAnchor="end"
-          className="fill-fg-subtle font-mono text-[8.5px] font-medium tracking-wider"
-        >
-          BUILD.TS
-        </text>
-
-        {/* --- Iconic Software Development Code Glyphs (matching /services) --- */}
-        {/* Opening Code Bracket `<` (Human engineering precision) */}
-        <path
-          d="M102 101 L91 112 L102 123"
-          fill="none"
-          className="stroke-human-accent"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Forward Slash `/` (Brand orange AI velocity) */}
-        <line
-          x1="125"
-          y1="100"
-          x2="115"
-          y2="124"
-          className="stroke-brand-400"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-
-        {/* Closing Code Bracket `>` (Human engineering precision) */}
-        <path
-          d="M138 101 L149 112 L138 123"
-          fill="none"
-          className="stroke-human-accent"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Subtle AI Sparkle Star (4-point sparkle matching ServiceGlyph slug="ai-solutions") */}
-        <path
-          d="M120 109 L121 111.5 L123.5 112.5 L121 113.5 L120 116 L119 113.5 L116.5 112.5 L119 111.5 Z"
-          className="fill-brand-300 drop-shadow-[0_0_4px_rgba(255,156,87,0.85)]"
-        />
-
-        {/* Mini Syntax Stream Lines (Simulating live AI code draft & human PR review) */}
-        {/* Line 1: AI Code Generation Line */}
-        <line
-          x1="88"
-          y1="135"
-          x2="114"
-          y2="135"
-          className="stroke-brand-400/70"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        {/* Line 2: Human Review Approved Line */}
-        <line
-          x1="119"
-          y1="135"
-          x2="148"
-          y2="135"
-          className="stroke-human-accent/70"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        {/* Line 3: Verified Test Gate Line */}
-        <line
-          x1="88"
-          y1="143"
-          x2="128"
-          y2="143"
-          className="stroke-fg/30"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <circle cx="134" cy="143" r="1.5" className="fill-human-accent" />
-        <circle cx="140" cy="143" r="1.5" className="fill-brand-400" />
-        <circle cx="146" cy="143" r="1.5" className="fill-fg/40" />
-      </svg>
+    <div className={cn("relative flex flex-col items-center select-none", className)}>
+      <div className="relative">
+        <GlossTile icon={Cpu} tone="human" />
+        <GlossTile icon={Sparkles} tone="brand" size="md" className="hs-gloss-badge" />
+      </div>
+      <span aria-hidden className="hs-pedestal" />
     </div>
   );
 }
 
-/**
- * Bespoke Tech Tool Illustration inside each of the 5 circular hubs on Slide 3:
- * - "ai": AI Neural Processor Chip & Agent Nodes
- * - "software": Code IDE Window & UI Layout
- * - "automation": Connected Workflow DAG Pipeline
- * - "data": Multi-tier Cloud Database & Server Cluster
- * - "security": Zero-Trust Cryptographic Shield & Verification Gate
- */
-function DisciplineMiniMonument({
-  variant,
-}: {
-  variant: "ai" | "software" | "automation" | "data" | "security";
-}) {
-  return (
-    <svg
-      viewBox="0 0 120 110"
-      className="hs-monument size-24 overflow-visible"
-      aria-hidden
-    >
-      {variant === "ai" && (
-        <g>
-          {/* Silicon chip pins */}
-          {[46, 60, 74].map((p) => (
-            <g key={p} className="stroke-fg/70" strokeWidth="1.5">
-              <line x1={p} y1="22" x2={p} y2="30" strokeLinecap="round" />
-              <line x1={p} y1="80" x2={p} y2="88" strokeLinecap="round" />
-              <line x1="27" y1={p - 5} x2="35" y2={p - 5} strokeLinecap="round" />
-              <line x1="85" y1={p - 5} x2="93" y2={p - 5} strokeLinecap="round" />
-            </g>
-          ))}
-          <rect
-            x="35"
-            y="30"
-            width="50"
-            height="50"
-            rx="10"
-            className="fill-ink-950 stroke-fg"
-            strokeWidth="1.6"
-          />
-          <rect
-            x="43"
-            y="38"
-            width="34"
-            height="34"
-            rx="6"
-            className="fill-ink-900 stroke-brand-400/75"
-            strokeWidth="1.3"
-          />
-          <circle
-            cx="60"
-            cy="55"
-            r="9"
-            className="fill-brand-400/20 stroke-brand-400"
-            strokeWidth="1.4"
-          />
-          <circle cx="60" cy="55" r="4" className="fill-brand-400" />
-        </g>
-      )}
+const DISCIPLINE: Record<"ai" | "software" | "automation" | "data" | "security", { icon: typeof Bot; tone: GlossTone }> = {
+  ai: { icon: Bot, tone: "brand" },
+  software: { icon: CodeXml, tone: "human" },
+  automation: { icon: Workflow, tone: "data" },
+  data: { icon: Database, tone: "human" },
+  security: { icon: ShieldCheck, tone: "brand" },
+};
 
-      {variant === "software" && (
-        <g>
-          {/* Code IDE Window */}
-          <rect
-            x="28"
-            y="28"
-            width="64"
-            height="52"
-            rx="7"
-            className="fill-ink-950 stroke-fg"
-            strokeWidth="1.6"
-          />
-          <line
-            x1="28"
-            y1="40"
-            x2="92"
-            y2="40"
-            className="stroke-fg/35"
-            strokeWidth="1.2"
-          />
-          <circle cx="36" cy="34" r="2" className="fill-brand-400" />
-          <circle cx="43" cy="34" r="2" className="fill-human-accent" />
-          <circle cx="50" cy="34" r="2" className="fill-fg/35" />
-          {/* </> Code symbol */}
-          <path
-            d="M49 52 L41 59 L49 66"
-            fill="none"
-            className="stroke-human-accent"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M71 52 L79 59 L71 66"
-            fill="none"
-            className="stroke-human-accent"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <line
-            x1="63"
-            y1="50"
-            x2="57"
-            y2="68"
-            className="stroke-brand-400"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-          />
-        </g>
-      )}
-
-      {variant === "automation" && (
-        <g>
-          {/* Workflow DAG connectors */}
-          <path
-            d="M44 55 H56 M60 55 C66 55, 66 38, 74 38 M60 55 C66 55, 66 72, 74 72"
-            fill="none"
-            className="stroke-fg/75"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-          {/* Left Trigger Node */}
-          <rect
-            x="24"
-            y="43"
-            width="24"
-            height="24"
-            rx="6"
-            className="fill-ink-950 stroke-brand-400"
-            strokeWidth="1.6"
-          />
-          <circle cx="36" cy="55" r="4.5" className="fill-brand-400" />
-          {/* Center Router Node */}
-          <circle
-            cx="58"
-            cy="55"
-            r="4"
-            className="fill-ink-950 stroke-fg"
-            strokeWidth="1.5"
-          />
-          {/* Top-right Action Node */}
-          <rect
-            x="72"
-            y="27"
-            width="22"
-            height="22"
-            rx="6"
-            className="fill-ink-950 stroke-human-accent"
-            strokeWidth="1.6"
-          />
-          <circle cx="83" cy="38" r="3.5" className="fill-human-accent" />
-          {/* Bottom-right Action Node */}
-          <rect
-            x="72"
-            y="61"
-            width="22"
-            height="22"
-            rx="6"
-            className="fill-ink-950 stroke-fg"
-            strokeWidth="1.6"
-          />
-          <circle cx="83" cy="72" r="3.5" className="fill-brand-400" />
-        </g>
-      )}
-
-      {variant === "data" && (
-        <g>
-          {/* 3 Stacked Cloud / Data Pipeline Server Blades */}
-          {[0, 1, 2].map((i) => {
-            const y = 26 + i * 20;
-            return (
-              <g key={i}>
-                <rect
-                  x="28"
-                  y={y}
-                  width="64"
-                  height="16"
-                  rx="4.5"
-                  className="fill-ink-950 stroke-fg"
-                  strokeWidth="1.5"
-                />
-                <circle
-                  cx="37"
-                  cy={y + 8}
-                  r="2.5"
-                  className={i === 1 ? "fill-brand-400" : "fill-human-accent"}
-                />
-                <line
-                  x1="46"
-                  y1={y + 8}
-                  x2="82"
-                  y2={y + 8}
-                  className={
-                    i === 1 ? "stroke-brand-400/75" : "stroke-human-accent/75"
-                  }
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </g>
-            );
-          })}
-        </g>
-      )}
-
-      {variant === "security" && (
-        <g>
-          {/* Zero-Trust Security Shield */}
-          <path
-            d="M60 22 L86 33 V53 C86 71 74 82 60 87 C46 82 34 71 34 53 V33 Z"
-            className="fill-ink-950 stroke-fg"
-            strokeWidth="1.7"
-          />
-          <circle
-            cx="60"
-            cy="54"
-            r="13"
-            className="fill-human-accent/15 stroke-human-accent"
-            strokeWidth="1.4"
-          />
-          <path
-            d="M54 54 L58 58 L67 49"
-            fill="none"
-            className="stroke-brand-400"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-      )}
-    </svg>
-  );
+/** Slide 4: one glossy tile per discipline. */
+function DisciplineMiniMonument({ variant }: { variant: keyof typeof DISCIPLINE }) {
+  const d = DISCIPLINE[variant];
+  return <GlossTile icon={d.icon} tone={d.tone} size="md" />;
 }
 
 /**
@@ -1665,7 +1189,7 @@ export function HeroShowcase() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-1/2 left-1/2 -z-10 size-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/8 blur-3xl [[data-theme=light]_&]:bg-sky-500/10"
+        className="pointer-events-none absolute top-1/2 left-1/2 -z-10 size-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/8 blur-3xl [[data-theme=light]_&]:bg-brand-300/6"
       />
 
       {/* ================= CENTER STAGE: 5 Animated Storytelling Slides ================= */}
@@ -1684,7 +1208,7 @@ export function HeroShowcase() {
         {/* Unified radial spotlight aura shared across all 5 slides */}
         <div
           aria-hidden
-          className="hs-title-glow pointer-events-none absolute top-1/2 left-1/2 -z-10 h-64 w-[38rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-400/14 blur-3xl [[data-theme=light]_&]:bg-indigo-500/12"
+          className="hs-title-glow pointer-events-none absolute top-1/2 left-1/2 -z-10 h-64 w-[38rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-400/14 blur-3xl [[data-theme=light]_&]:bg-brand-300/7"
         />
 
         {/* ----------------- SLIDE 0: DRAMATIC OPENING TITLE SLIDE ----------------- */}
@@ -1869,8 +1393,8 @@ export function HeroShowcase() {
               </svg>
 
               {/* Top-left card: Architecture & Data Model */}
-              <div className="hs-card-in flex items-center gap-3 rounded-full border border-line-strong bg-ink-900/95 px-4 py-2.5 shadow-lg backdrop-blur-md lg:absolute lg:top-3 lg:left-[210px]">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-human-accent/15 text-human-accent">
+              <div className="hs-card-in flex items-center gap-3 rounded-2xl border border-line bg-ink-850 px-4 py-2.5 hs-widget lg:absolute lg:top-3 lg:left-[210px]">
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-human-accent/15 text-human-accent">
                   <Layers className="size-4" />
                 </span>
                 <span className="text-xs leading-tight font-medium text-fg">
@@ -1881,8 +1405,8 @@ export function HeroShowcase() {
               </div>
 
               {/* Mid-left card: Security & Access Boundaries (placed cleanly above the S-curve bottom line) */}
-              <div className="hs-card-in flex items-center gap-3 rounded-full border border-line-strong bg-ink-900/95 px-4 py-2.5 shadow-lg backdrop-blur-md lg:absolute lg:top-[118px] lg:left-[140px]">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-fg/10 text-fg">
+              <div className="hs-card-in flex items-center gap-3 rounded-2xl border border-line bg-ink-850 px-4 py-2.5 hs-widget lg:absolute lg:top-[118px] lg:left-[140px]">
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-fg/10 text-fg">
                   <Plus className="size-4" />
                 </span>
                 <span className="text-xs leading-tight font-medium text-fg">
@@ -1898,7 +1422,7 @@ export function HeroShowcase() {
               </div>
 
               {/* Top-right card: Dedicated Lead Engineer */}
-              <div className="hs-card-in flex items-center gap-3.5 rounded-2xl border border-line-strong bg-ink-900/95 p-2.5 pr-5 shadow-xl backdrop-blur-md lg:absolute lg:top-2 lg:right-[135px]">
+              <div className="hs-card-in flex items-center gap-3.5 rounded-2xl border border-line bg-ink-850 p-2.5 pr-5 hs-widget lg:absolute lg:top-2 lg:right-[135px]">
                 <EngineerAvatar variant="marcus" />
                 <div>
                   <p className="text-xs font-semibold text-fg">
@@ -1911,8 +1435,8 @@ export function HeroShowcase() {
               </div>
 
               {/* Mid-right card: AI Model & Guardrails (placed cleanly above the right outgoing wave line) */}
-              <div className="hs-card-in flex items-center gap-3 rounded-full border border-line-strong bg-ink-900/95 px-4 py-2.5 shadow-lg backdrop-blur-md lg:absolute lg:top-[118px] lg:right-[115px]">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-400/15 text-brand-400">
+              <div className="hs-card-in flex items-center gap-3 rounded-2xl border border-line bg-ink-850 px-4 py-2.5 hs-widget lg:absolute lg:top-[118px] lg:right-[115px]">
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-brand-400/15 text-brand-400">
                   <Sparkles className="size-4" />
                 </span>
                 <span className="text-xs leading-tight font-medium text-fg">
@@ -1998,23 +1522,23 @@ export function HeroShowcase() {
               {/* Top-left stack: AI Velocity Pill + Breakdown Table */}
               <div className="hs-card-in space-y-2 lg:absolute lg:top-6 lg:left-[88px] lg:w-[268px]">
                 <div className="flex items-center gap-2.5 rounded-full border border-human-accent/40 bg-human-accent/12 px-3.5 py-2 shadow-sm backdrop-blur-md">
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-human-accent/20 text-human-accent">
+                  <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-human-accent/20 text-human-accent">
                     <Code2 className="size-3.5" />
                   </span>
                   <span className="text-xs font-semibold text-fg">
                     AI-accelerated sprint velocity
                   </span>
                 </div>
-                <div className="rounded-2xl border border-line-strong bg-ink-900/95 px-4 py-3 text-xs shadow-lg backdrop-blur-md">
+                <div className="rounded-2xl border border-line bg-ink-850 px-4 py-3 text-xs hs-widget">
                   <div className="flex items-center justify-between gap-3 text-fg-muted">
                     <span>AI code &amp; test drafts</span>
-                    <span className="shrink-0 font-mono font-semibold text-brand-300">
+                    <span className="shrink-0 font-semibold text-brand-300">
                       3.2× faster
                     </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-3 text-fg-muted">
                     <span>Human PR review</span>
-                    <span className="shrink-0 font-mono font-semibold text-human-accent">
+                    <span className="shrink-0 font-semibold text-human-accent">
                       100% required
                     </span>
                   </div>
@@ -2023,7 +1547,7 @@ export function HeroShowcase() {
 
               {/* Bottom-left alert pill: Edge-case caught in review */}
               <div className="hs-card-in flex items-start gap-3 rounded-2xl border border-brand-400/40 bg-brand-400/12 px-4 py-2.5 shadow-lg backdrop-blur-md lg:absolute lg:bottom-6 lg:left-[88px] lg:w-[276px]">
-                <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border border-brand-400 text-brand-300">
+                <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg border border-brand-400 text-brand-300">
                   <AlertCircle className="size-3.5" />
                 </span>
                 <div>
@@ -2043,27 +1567,27 @@ export function HeroShowcase() {
               </div>
 
               {/* Top-right dark card: Senior Engineer Reviewing PR */}
-              <div className="hs-card-in flex items-center gap-3.5 rounded-2xl bg-fg p-2.5 pr-5 text-ink-950 shadow-xl lg:absolute lg:top-6 lg:right-[135px]">
+              <div className="hs-card-in hs-widget flex items-center gap-3.5 rounded-2xl border border-brand-400/40 bg-ink-850 p-2.5 pr-5 text-fg lg:absolute lg:top-6 lg:right-[135px]">
                 <EngineerAvatar variant="sara" />
                 <div>
                   <p className="text-xs font-semibold">
                     Reviewing AI Pull Request #42
                   </p>
-                  <p className="mt-0.5 text-[11px] opacity-75">
+                  <p className="mt-0.5 text-[11px] text-fg-muted">
                     Sara Khan · Senior Engineer
                   </p>
                 </div>
               </div>
 
               {/* Mid-right card: Live Build & Review Checklist */}
-              <div className="hs-card-in rounded-2xl border border-line-strong bg-ink-900/95 p-4 shadow-xl backdrop-blur-md lg:absolute lg:bottom-6 lg:right-[115px] lg:w-[244px]">
+              <div className="hs-card-in rounded-2xl border border-line bg-ink-850 p-4 hs-widget lg:absolute lg:bottom-6 lg:right-[115px] lg:w-[244px]">
                 <ul className="space-y-2.5 text-xs">
                   <li className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2.5 font-medium text-fg">
                       <span className="size-2.5 rounded-full bg-human-accent" />
                       Scaffold API &amp; schema
                     </span>
-                    <span className="font-mono text-[10px] text-human-accent">
+                    <span className="text-[10px] text-human-accent">
                       Done
                     </span>
                   </li>
@@ -2072,7 +1596,7 @@ export function HeroShowcase() {
                       <span className="size-2.5 rounded-full bg-brand-400" />
                       Generate 212 unit tests
                     </span>
-                    <span className="font-mono text-[10px] text-brand-300">
+                    <span className="text-[10px] text-brand-300">
                       Pass
                     </span>
                   </li>
@@ -2081,7 +1605,7 @@ export function HeroShowcase() {
                       <span className="size-2.5 rounded-full bg-brand-400/60" />
                       Human security sign-off
                     </span>
-                    <span className="font-mono text-[10px] text-fg-subtle">
+                    <span className="text-[10px] text-fg-subtle">
                       Verified
                     </span>
                   </li>
@@ -2135,34 +1659,12 @@ export function HeroShowcase() {
               <div className="grid grid-cols-1 items-center gap-5 md:grid-cols-3 lg:gap-6">
                 {/* HUB 1: AI Solutions & Agents */}
                 <div className="relative mx-auto flex h-[156px] w-[260px] items-center justify-center">
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 180 180"
-                    className="pointer-events-none absolute size-[148px]"
-                  >
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="80"
-                      className="fill-none stroke-fg/20"
-                      strokeWidth="1"
-                      strokeDasharray="2 3"
-                    />
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="68"
-                      className="hs-orbit-spin fill-none stroke-fg/30"
-                      strokeWidth="1.1"
-                      strokeDasharray="3 4"
-                    />
-                  </svg>
 
                   <DisciplineMiniMonument variant="ai" />
 
                   {/* Primary Callout Pill */}
-                  <div className="hs-card-in absolute bottom-1 left-2 flex items-center gap-2.5 rounded-full border border-line-strong bg-ink-900/95 px-3.5 py-1.5 shadow-lg backdrop-blur-md">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-brand-400/15 text-brand-400">
+                  <div className="hs-card-in absolute bottom-1 left-2 flex items-center gap-2.5 rounded-full border border-line bg-ink-850 px-3.5 py-1.5 hs-widget">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-brand-400/15 text-brand-400">
                       <Bot className="size-3.5" />
                     </span>
                     <span className="text-xs font-semibold text-fg">
@@ -2173,35 +1675,13 @@ export function HeroShowcase() {
 
                 {/* HUB 2: Custom Software */}
                 <div className="relative mx-auto flex h-[156px] w-[270px] items-center justify-center">
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 180 180"
-                    className="pointer-events-none absolute size-[148px]"
-                  >
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="80"
-                      className="fill-none stroke-fg/20"
-                      strokeWidth="1"
-                      strokeDasharray="2 3"
-                    />
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="68"
-                      className="hs-orbit-spin fill-none stroke-fg/30"
-                      strokeWidth="1.1"
-                      strokeDasharray="3 4"
-                    />
-                  </svg>
 
                   <DisciplineMiniMonument variant="software" />
 
                   {/* Primary Callout Pill */}
-                  <div className="hs-card-in absolute top-1 right-0 flex items-center gap-2.5 rounded-2xl border border-line-strong bg-ink-900/95 px-3 py-1.5 shadow-lg backdrop-blur-md">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full border border-human-accent/50 bg-human-accent/15 font-mono text-[11px] font-bold text-human-accent">
-                      !
+                  <div className="hs-card-in absolute top-1 right-0 flex items-center gap-2.5 rounded-2xl border border-line bg-ink-850 px-3 py-1.5 hs-widget">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-human-accent/15 text-human-accent">
+                      <CodeXml className="size-3.5" />
                     </span>
                     <span className="text-[11px] leading-tight font-semibold text-fg">
                       Web, Mobile &amp; SaaS
@@ -2213,33 +1693,11 @@ export function HeroShowcase() {
 
                 {/* HUB 3: Process Automation */}
                 <div className="relative mx-auto flex h-[156px] w-[270px] items-center justify-center">
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 180 180"
-                    className="pointer-events-none absolute size-[148px]"
-                  >
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="80"
-                      className="fill-none stroke-fg/20"
-                      strokeWidth="1"
-                      strokeDasharray="2 3"
-                    />
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="68"
-                      className="hs-orbit-spin fill-none stroke-fg/30"
-                      strokeWidth="1.1"
-                      strokeDasharray="3 4"
-                    />
-                  </svg>
 
                   <DisciplineMiniMonument variant="automation" />
 
                   {/* Primary Callout Card with "Now" status */}
-                  <div className="hs-card-in absolute right-0 bottom-1 flex items-center gap-3 rounded-2xl border border-line-strong bg-ink-900/95 px-3.5 py-2 shadow-lg backdrop-blur-md">
+                  <div className="hs-card-in absolute right-0 bottom-1 flex items-center gap-3 rounded-2xl border border-line bg-ink-850 px-3.5 py-2 hs-widget">
                     <div>
                       <p className="text-[11px] leading-tight font-semibold text-fg">
                         CRM, ERP &amp; Finance
@@ -2247,7 +1705,7 @@ export function HeroShowcase() {
                         Workflow Orchestration
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-human-accent/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-human-accent">
+                    <span className="shrink-0 rounded-full bg-human-accent/15 px-2 py-0.5 text-[10px] font-semibold text-human-accent">
                       Now
                     </span>
                   </div>
@@ -2258,39 +1716,17 @@ export function HeroShowcase() {
               <div className="mx-auto grid w-full max-w-3xl grid-cols-1 items-center gap-5 md:grid-cols-2 lg:gap-10">
                 {/* HUB 4: Data & Cloud Platforms */}
                 <div className="relative mx-auto flex h-[156px] w-[290px] items-center justify-center">
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 180 180"
-                    className="pointer-events-none absolute size-[148px]"
-                  >
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="80"
-                      className="fill-none stroke-fg/20"
-                      strokeWidth="1"
-                      strokeDasharray="2 3"
-                    />
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="68"
-                      className="hs-orbit-spin fill-none stroke-fg/30"
-                      strokeWidth="1.1"
-                      strokeDasharray="3 4"
-                    />
-                  </svg>
 
                   <DisciplineMiniMonument variant="data" />
 
                   {/* Primary Callout Card with "Completed" badge */}
-                  <div className="hs-card-in absolute bottom-1 left-0 flex items-center gap-2.5 rounded-2xl border border-line-strong bg-ink-900/95 px-3.5 py-2 shadow-lg backdrop-blur-md">
+                  <div className="hs-card-in absolute bottom-1 left-0 flex items-center gap-2.5 rounded-2xl border border-line bg-ink-850 px-3.5 py-2 hs-widget">
                     <p className="text-[11px] leading-tight font-semibold text-fg">
                       AWS &amp; data pipeline
                       <br />
                       cluster autoscaling
                     </p>
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-human-accent/15 px-2.5 py-1 font-mono text-[10px] font-semibold text-human-accent">
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-human-accent/15 px-2.5 py-1 text-[10px] font-semibold text-human-accent">
                       <Check className="size-2.5 stroke-[3]" /> Completed
                     </span>
                   </div>
@@ -2298,34 +1734,12 @@ export function HeroShowcase() {
 
                 {/* HUB 5: Cybersecurity & QA */}
                 <div className="relative mx-auto flex h-[156px] w-[290px] items-center justify-center">
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 180 180"
-                    className="pointer-events-none absolute size-[148px]"
-                  >
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="80"
-                      className="fill-none stroke-fg/20"
-                      strokeWidth="1"
-                      strokeDasharray="2 3"
-                    />
-                    <circle
-                      cx="90"
-                      cy="90"
-                      r="68"
-                      className="hs-orbit-spin fill-none stroke-fg/30"
-                      strokeWidth="1.1"
-                      strokeDasharray="3 4"
-                    />
-                  </svg>
 
                   <DisciplineMiniMonument variant="security" />
 
                   {/* Primary Callout Pill */}
-                  <div className="hs-card-in absolute top-1 right-0 flex items-center gap-2.5 rounded-full border border-human-accent/40 bg-ink-900/95 px-3.5 py-1.5 shadow-lg backdrop-blur-md">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-human-accent/15 text-human-accent">
+                  <div className="hs-card-in absolute top-1 right-0 flex items-center gap-2.5 rounded-full border border-human-accent/40 bg-ink-850 px-3.5 py-1.5 hs-widget">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-human-accent/15 text-human-accent">
                       <ShieldCheck className="size-3.5" />
                     </span>
                     <span className="text-[11px] leading-tight font-semibold text-fg">
@@ -2435,7 +1849,7 @@ export function HeroShowcase() {
 
                     {/* Mono Stage Cue */}
                     <span className="hidden font-mono text-[10px] tracking-wider text-fg-subtle uppercase sm:inline">
-                      {"// SCROLL DOWN"}
+                      Scroll down
                     </span>
 
                     {/* Circular Glow Disc with Animated Arrow */}

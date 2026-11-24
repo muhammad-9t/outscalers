@@ -172,11 +172,11 @@ export function OfficeNetwork({ className }: { className?: string }) {
               <line x1={x} y1={y} x2={lx} y2={ly} className="stroke-line-strong" strokeWidth={1} />
               <circle cx={x} cy={y} r={4.5} className="fill-brand-400 stroke-ink-900" strokeWidth={2} />
               <g transform={`translate(${x + dx} ${y + dy})`}>
-                <rect width={width} height={36} rx={9} className="fill-ink-900/90 stroke-line-strong" strokeWidth={1} />
+                <rect width={width} height={36} rx={12} className="map-label fill-ink-850 stroke-line" strokeWidth={1} />
                 <text x={11} y={15} className="fill-fg font-sans" fontSize={13} fontWeight={600}>
                   {p.country}
                 </text>
-                <text x={11} y={29} className="fill-fg-subtle font-mono" fontSize={10}>
+                <text x={11} y={29} className="fill-fg-muted font-sans" fontSize={10.5}>
                   {sub}
                 </text>
               </g>
@@ -185,11 +185,10 @@ export function OfficeNetwork({ className }: { className?: string }) {
         })}
   
       </svg>
-      <figcaption className="mt-3 flex items-baseline gap-2 font-mono text-xs text-fg-subtle">
-        <span className="size-1.5 shrink-0 translate-y-[-1px] rounded-full bg-brand-400" aria-hidden />
-        <span>
-          {points.length} offices · {zones} time zones · overlapping working hours
-        </span>
+      <figcaption className="mt-5 flex flex-wrap gap-2 text-sm">
+        <span className="map-chip"><span className="map-chip-dot" aria-hidden />{points.length} offices</span>
+        <span className="map-chip">{zones} time zones</span>
+        <span className="map-chip">Overlapping working hours</span>
       </figcaption>
     </figure>
   );

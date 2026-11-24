@@ -11,27 +11,27 @@ import { cn } from "@/lib/cn";
 
 const badgeLabel = { sample: "Sample project", draft: "Draft profile", published: null } as const;
 
-/** Placeholder artwork for projects without a case-study diagram: a browser frame with the service glyph. */
+const serviceTone: Record<ServiceSlug, "brand" | "human" | "data"> = {
+  "ai-solutions": "brand",
+  "software-development": "human",
+  automation: "brand",
+  "data-cloud": "data",
+  "security-quality": "human",
+};
+
+/** Placeholder artwork for projects without a case-study cover: a floating glass card with a glossy service tile. */
 function ProjectVisual({ service }: { service: ServiceSlug }) {
+  const tone = serviceTone[service];
   return (
-    <div className="bg-dots grid aspect-[400/220] place-items-center rounded-lg">
-      <div className="w-3/4 overflow-hidden rounded-lg border border-line-strong bg-ink-900 shadow-lg">
-        <div className="flex h-5 items-center gap-1 border-b border-line px-2">
-          <span className="size-1.5 rounded-full bg-line-strong" />
-          <span className="size-1.5 rounded-full bg-line-strong" />
-          <span className="size-1.5 rounded-full bg-line-strong" />
-        </div>
-        <div className="flex items-center gap-4 p-4">
-          <span className="grid size-12 shrink-0 place-items-center rounded-xl border border-brand-500/30 bg-brand-500/10">
-            <ServiceGlyph slug={service} className="size-6 text-brand-400" />
-          </span>
-          <span className="flex-1 space-y-2">
-            <span className="block h-2 w-4/5 rounded bg-ink-700" />
-            <span className="block h-2 w-3/5 rounded bg-ink-700" />
-            <span className="block h-2 w-2/3 rounded bg-ink-800" />
-          </span>
-        </div>
-      </div>
+    <div className="pg-visual" data-tone={tone} aria-hidden>
+      <span className="pg-card">
+        <span className="hs-gloss pg-tile" data-tone={tone}>
+          <ServiceGlyph slug={service} className="size-6" />
+        </span>
+        <span className="pg-line" />
+        <span className="pg-line" />
+        <span className="pg-line" />
+      </span>
     </div>
   );
 }
@@ -43,13 +43,13 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
       <div className="relative border-b border-line bg-ink-900/60 p-4">
         {project.caseStudy ? <CaseArt study={project.caseStudy} /> : <ProjectVisual service={project.services[0]} />}
         {badge && (
-          <span className="absolute right-3 top-3 rounded-full border border-brand-300/40 bg-ink-950/80 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-brand-300">
+          <span className="pg-badge">
             {badge}
           </span>
         )}
       </div>
       <div className="flex flex-1 flex-col px-5 py-4">
-        <p className="font-mono text-[10.5px] uppercase tracking-wider text-fg-subtle">{project.industry}</p>
+        <p className="text-xs font-medium text-fg-subtle">{project.industry}</p>
         <h3 className="mt-1.5 text-base font-semibold leading-snug short:line-clamp-2">{project.name}</h3>
         <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-fg-muted short:hidden">{project.summary}</p>
         <div className="mt-auto flex flex-col items-start gap-2 pt-3">
@@ -78,7 +78,7 @@ function ProjectCard({ project }: { project: PortfolioProject }) {
       {body}
     </Link>
   ) : (
-    <article className="card flex h-full flex-col overflow-hidden">{body}</article>
+    <article className="card group flex h-full flex-col overflow-hidden">{body}</article>
   );
 }
 

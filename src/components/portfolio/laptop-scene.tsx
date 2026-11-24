@@ -3,8 +3,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { ShowcaseScreen } from "@/content/portfolio";
-import type { TunnelFocus } from "./perspective-tunnel";
+import type { FocusPoint } from "./focus-glow";
 import { tokenize } from "./code-tokens";
 
 /* ------------------------------------------------------------------
@@ -168,6 +170,111 @@ function drawScreen(ctx: CanvasRenderingContext2D, screen: ShowcaseScreen, t: nu
 
 /* ---------------------------- Laptop ---------------------------- */
 
+/** Rounded rectangle centred on the origin, for the MacBook-style outlines. */
+function roundedRect(w: number, h: number, r: number) {
+  const x = -w / 2;
+  const y = -h / 2;
+  const s = new THREE.Shape();
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r);
+  s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h);
+  s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r);
+  s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+
+/** The display inside the bezel: a thin, even black border (0.05) and a slim chin, with rounded corners.
+ *  The bezel spans y 0.04–2.06 on the lid; LaptopFrame's padding mirrors these proportions. */
+const SCREEN = { w: 3.02, h: 3.02 * (SCREEN_H / SCREEN_W), y: 2.01 - (3.02 * (SCREEN_H / SCREEN_W)) / 2, r: 0.05 };
+
+/** A rounded-rectangle panel whose UVs span 0–1 across it, so a texture fills it edge to edge. */
+function roundedPanel(w: number, h: number, r: number) {
+  const g = new THREE.ShapeGeometry(roundedRect(w, h, r), 12);
+  const pos = g.attributes.position;
+  const uv = g.attributes.uv;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, (pos.getX(i) + w / 2) / w, (pos.getY(i) + h / 2) / h);
+  uv.needsUpdate = true;
+  return g;
+}
+
+/** Height of the base top deck (the lid hinges here). */
+const DECK = 0.13;
+/** Where the lid hinges on the base (z). */
+const HINGE_Z = -1.05;
+/** Height of the HTML frame's base strip (h-4), which the 3D base matches at the hand-off. */
+const BASE_STRIP_PX = 16;
+const BEVEL = 0.015;
+const LID_T = 0.04;
+const LID_BEVEL = 0.012;
+
+/** Built once: rounded base and lid shells with soft bevels, rounded panels and keys. */
+const KEY_GEO = new RoundedBoxGeometry(0.18, 0.02, 0.16, 2, 0.008);
+function makeGeometries() {
+  const base = new THREE.ExtrudeGeometry(roundedRect(3.2, 2.15, 0.2), {
+    depth: DECK - BEVEL * 2,
+    bevelEnabled: true,
+    bevelThickness: BEVEL,
+    bevelSize: BEVEL,
+    bevelSegments: 3,
+    curveSegments: 14,
+  });
+  base.rotateX(-Math.PI / 2);
+  base.translate(0, BEVEL, 0);
+
+  const lid = new THREE.ExtrudeGeometry(roundedRect(3.2, 2.1, 0.18), {
+    depth: LID_T,
+    bevelEnabled: true,
+    bevelThickness: LID_BEVEL,
+    bevelSize: LID_BEVEL,
+    bevelSegments: 3,
+    curveSegments: 14,
+  });
+  // Front face on z = 0, like the flat box it replaces (the hand-off maths relies on it)
+  lid.translate(0, 1.05, -(LID_T + LID_BEVEL));
+
+  const flat = (w: number, h: number, r: number) => new THREE.ShapeGeometry(roundedRect(w, h, r), 14);
+  return {
+    base,
+    lid,
+    bezel: flat(3.12, 2.02, 0.14),
+    well: flat(2.9, 1.08, 0.06),
+    trackpad: flat(1.25, 0.66, 0.06),
+    shadow: new THREE.PlaneGeometry(4.6, 3.4),
+    screen: roundedPanel(SCREEN.w, SCREEN.h, SCREEN.r),
+    sheen: roundedPanel(SCREEN.w, SCREEN.h, SCREEN.r),
+  };
+}
+
+/** Soft contact shadow and screen-glass sheen, drawn once into small canvases. */
+function makeTextures() {
+  const shadow = document.createElement("canvas");
+  shadow.width = shadow.height = 128;
+  const sc = shadow.getContext("2d")!;
+  const g = sc.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, "rgba(0,0,0,0.55)");
+  g.addColorStop(0.55, "rgba(0,0,0,0.22)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  sc.fillStyle = g;
+  sc.fillRect(0, 0, 128, 128);
+
+  const sheen = document.createElement("canvas");
+  sheen.width = sheen.height = 256;
+  const hc = sheen.getContext("2d")!;
+  const lg = hc.createLinearGradient(0, 0, 256, 256);
+  lg.addColorStop(0, "rgba(255,255,255,0.10)");
+  lg.addColorStop(0.42, "rgba(255,255,255,0.03)");
+  lg.addColorStop(0.43, "rgba(255,255,255,0)");
+  lg.addColorStop(1, "rgba(255,255,255,0)");
+  hc.fillStyle = lg;
+  hc.fillRect(0, 0, 256, 256);
+
+  return { shadow: new THREE.CanvasTexture(shadow), sheen: new THREE.CanvasTexture(sheen) };
+}
+
 const KEY_ROWS = 5;
 const KEY_COLS = 13;
 
@@ -180,15 +287,15 @@ function Keys({ color }: { color: string }) {
     const m = new THREE.Matrix4();
     for (let r = 0; r < KEY_ROWS; r++) {
       for (let c = 0; c < KEY_COLS; c++) {
-        mesh.setMatrixAt(r * KEY_COLS + c, m.makeTranslation(-1.32 + c * 0.22, 0.112, -0.73 + r * 0.2));
+        mesh.setMatrixAt(r * KEY_COLS + c, m.makeTranslation(-1.32 + c * 0.22, DECK + 0.011, -0.73 + r * 0.2));
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, KEY_ROWS * KEY_COLS]}>
-      <boxGeometry args={[0.18, 0.02, 0.16]} />
-      <meshStandardMaterial color={color} roughness={0.7} />
+      <primitive object={KEY_GEO} attach="geometry" />
+      <meshStandardMaterial color={color} roughness={0.8} envMapIntensity={0.12} />
     </instancedMesh>
   );
 }
@@ -218,7 +325,7 @@ type Props = {
   /** The HTML laptop frame around the project grid, where the 3D laptop hands off. */
   frameRef: RefObject<HTMLDivElement | null>;
   /** Receives the laptop screen's position in viewport pixels, the vanishing point of the tunnel behind it. */
-  focusRef: RefObject<TunnelFocus | null>;
+  focusRef: RefObject<FocusPoint | null>;
   reducedMotion: boolean;
 };
 
@@ -238,8 +345,18 @@ const SCREEN_CENTRE = new THREE.Vector3();
 function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMotion }: Props) {
   const group = useRef<THREE.Group>(null);
   const lid = useRef<THREE.Group>(null);
+  const base = useRef<THREE.Group>(null);
   const screenMat = useRef<THREE.MeshBasicMaterial>(null);
   const { size, viewport } = useThree();
+  const geo = useMemo(() => makeGeometries(), []);
+  const tex = useMemo(() => makeTextures(), []);
+  useEffect(
+    () => () => {
+      Object.values(geo).forEach((g) => g.dispose());
+      Object.values(tex).forEach((t) => t.dispose());
+    },
+    [geo, tex],
+  );
   const device = useMemo(() => {
     const s = getComputedStyle(document.documentElement);
     const v = (name: string) => s.getPropertyValue(`--color-device-${name}`).trim();
@@ -292,7 +409,8 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
     const chapters = chaptersRef.current;
     const g = group.current;
     const l = lid.current;
-    if (!hero || !chapters || !g || !l) return;
+    const bs = base.current;
+    if (!hero || !chapters || !g || !l || !bs) return;
     const s = state.current;
     const now = frame.clock.elapsedTime;
     const vh = window.innerHeight;
@@ -363,14 +481,22 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
     const fr = frame3d(frameRef.current, vh);
     const upp = viewport.height / vh; // world units per CSS pixel at z = 0
     const frontScale = (fr.width * upp) / 3.2; // lid width ↔ frame width
+    // Seen head-on, the HTML frame's base is a slim strip (16px tall, 3% wider than the lid each side),
+    // so the 3D base folds into a matching lip: depth collapses toward the hinge, height shrinks to the strip
+    const lipY = frontScale > 0 ? Math.min(1, (BASE_STRIP_PX * upp) / (DECK * frontScale)) : 1;
     const front = {
       x: (fr.left + fr.width / 2 - size.width / 2) * upp,
-      y: (vh / 2 - fr.top) * upp - 2.2 * frontScale, // lid top ↔ frame top (the camera looks at the origin)
+      y: (vh / 2 - fr.top) * upp - (DECK * lipY + 2.1) * frontScale, // lid top ↔ frame top (the camera looks at the origin)
       z: 1.05 * frontScale, // brings the upright lid onto the z = 0 plane
     };
     const w = smooth(clamp(fr.progress / 0.8, 0, 1));
     const fade = clamp((fr.progress - 0.8) / 0.2, 0, 1);
 
+    const sy = lerp(1, lipY, w);
+    const sz = lerp(1, 0.03, w);
+    bs.scale.set(lerp(1, 1.06, w), sy, sz);
+    bs.position.z = HINGE_Z * (1 - sz); // folds toward the hinge, not the centre
+    l.position.y = DECK * sy;
     g.scale.setScalar(lerp(scale, frontScale, w));
     g.position.set(lerp(floating.x, front.x, w), lerp(floating.y, front.y, w), lerp(0, front.z, w));
     g.rotation.set(lerp(0.2, 0, w), lerp(floating.rotY, 0, w), 0);
@@ -385,7 +511,7 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
 
     // Tell the tunnel where the screen is so its vanishing point sits right behind it
     g.updateMatrixWorld();
-    const p = l.localToWorld(SCREEN_CENTRE.set(0, 1.05, 0)).project(frame.camera);
+    const p = l.localToWorld(SCREEN_CENTRE.set(0, SCREEN.y, 0)).project(frame.camera);
     focusRef.current = { x: ((p.x + 1) / 2) * size.width, y: ((1 - p.y) / 2) * size.height };
 
     // Screen: restart the typing when the project changes, and wait until the lid is open
@@ -414,49 +540,94 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
 
   return (
     <group ref={group}>
-      {/* Base */}
-      <mesh position={[0, 0.05, 0]}>
-        <boxGeometry args={[3.2, 0.1, 2.15]} />
-        <meshStandardMaterial color={device.metal} metalness={0.55} roughness={0.38} />
-      </mesh>
-      <mesh position={[0, 0.101, -0.32]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[2.86, 1.04]} />
-        <meshStandardMaterial color={device.keys} roughness={0.9} />
-      </mesh>
-      <Keys color={device.key} />
-      <mesh position={[0, 0.101, 0.6]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[1.1, 0.62]} />
-        <meshStandardMaterial color={device.trackpad} metalness={0.4} roughness={0.5} />
+      <group ref={base}>
+      {/* Soft contact shadow under the base */}
+      <mesh geometry={geo.shadow} position={[0, -0.005, 0.05]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={-1}>
+        <meshBasicMaterial map={tex.shadow} transparent depthWrite={false} toneMapped={false} />
       </mesh>
 
+      {/* Base: rounded aluminium shell, keyboard well, keys and trackpad */}
+      <mesh geometry={geo.base}>
+        <meshStandardMaterial color={device.metal} metalness={0.75} roughness={0.38} />
+      </mesh>
+      <mesh geometry={geo.well} position={[0, DECK + 0.001, -0.32]} rotation={[-Math.PI / 2, 0, 0]}>
+        <meshStandardMaterial color={device.keys} roughness={0.9} envMapIntensity={0.15} />
+      </mesh>
+      <Keys color={device.key} />
+      <mesh geometry={geo.trackpad} position={[0, DECK + 0.001, 0.62]} rotation={[-Math.PI / 2, 0, 0]}>
+        <meshStandardMaterial color={device.trackpad} metalness={0.55} roughness={0.38} />
+      </mesh>
+      {/* Hinge */}
+      <mesh position={[0, DECK - 0.01, -1.02]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.045, 0.045, 2.5, 20]} />
+        <meshStandardMaterial color={device.keys} metalness={0.6} roughness={0.4} />
+      </mesh>
+      </group>
+
       {/* Lid, hinged at the back edge of the base */}
-      <group ref={lid} position={[0, 0.1, -1.05]}>
-        <mesh position={[0, 1.05, -0.03]}>
-          <boxGeometry args={[3.2, 2.1, 0.06]} />
-          <meshStandardMaterial color={device.metal} metalness={0.55} roughness={0.38} />
+      <group ref={lid} position={[0, DECK, HINGE_Z]}>
+        <mesh geometry={geo.lid}>
+          <meshStandardMaterial color={device.metal} metalness={0.75} roughness={0.38} />
         </mesh>
-        <mesh position={[0, 1.05, 0.001]}>
-          <planeGeometry args={[3.1, 2.0]} />
-          <meshStandardMaterial color={device.bezel} roughness={0.25} />
+        <mesh geometry={geo.bezel} position={[0, 1.05, 0.001]}>
+          <meshStandardMaterial color={device.bezel} roughness={0.2} metalness={0.2} />
         </mesh>
-        <mesh position={[0, 1.08, 0.002]}>
-          <planeGeometry args={[2.9, 2.9 * (SCREEN_H / SCREEN_W)]} />
+        {/* Camera */}
+        <mesh position={[0, 2.035, 0.002]}>
+          <circleGeometry args={[0.014, 16]} />
+          <meshBasicMaterial color={device.keys} />
+        </mesh>
+        <mesh geometry={geo.screen} position={[0, SCREEN.y, 0.002]}>
           <meshBasicMaterial ref={screenMat} map={texture} toneMapped={false} />
+        </mesh>
+        {/* Glass sheen over the screen */}
+        <mesh geometry={geo.sheen} position={[0, SCREEN.y, 0.003]}>
+          <meshBasicMaterial map={tex.sheen} transparent depthWrite={false} toneMapped={false} />
         </mesh>
       </group>
     </group>
   );
 }
 
+const WHITE = new THREE.Color(1, 1, 1);
+
+/** Soft studio reflections for the aluminium, generated once (no image download). */
+function Environment() {
+  const get = useThree((st) => st.get);
+  useEffect(() => {
+    const { gl, scene, invalidate } = get();
+    const pmrem = new THREE.PMREMGenerator(gl);
+    const room = new RoomEnvironment();
+    const env = pmrem.fromScene(room, 0.04).texture;
+    scene.environment = env;
+    scene.environmentIntensity = 0.42;
+    invalidate();
+    return () => {
+      scene.environment = null;
+      env.dispose();
+      room.dispose();
+      pmrem.dispose();
+    };
+  }, [get]);
+  return null;
+}
+
 function Lights() {
   const colors = useMemo(() => {
     const s = getComputedStyle(document.documentElement);
-    return { brand: s.getPropertyValue("--color-brand-400").trim(), human: s.getPropertyValue("--color-human-accent").trim() };
+    return {
+      brand: s.getPropertyValue("--color-brand-400").trim(),
+      human: s.getPropertyValue("--color-human-accent").trim(),
+      ground: s.getPropertyValue("--color-device-bezel").trim(),
+    };
   }, []);
   return (
     <>
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[3, 5, 5]} intensity={1.8} />
+      <ambientLight intensity={0.3} />
+      <hemisphereLight args={[WHITE, colors.ground, 0.5]} />
+      <directionalLight position={[3, 5, 5]} intensity={2} />
+      {/* Rim light from behind, so the rounded edges catch a highlight */}
+      <directionalLight position={[-2, 3, -5]} intensity={1.4} />
       <pointLight position={[-4, 1.5, -2]} color={colors.brand} intensity={20} />
       <pointLight position={[4, -0.5, -2]} color={colors.human} intensity={18} />
     </>
@@ -473,6 +644,7 @@ export function LaptopScene({ active, ...props }: Props & { active: boolean }) {
       fallback={null}
     >
       <InvalidateOnScroll />
+      <Environment />
       <Lights />
       <Laptop {...props} />
     </Canvas>

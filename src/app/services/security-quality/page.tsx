@@ -1,4 +1,3 @@
-import { Check, Minus } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -11,6 +10,7 @@ import {
   ServiceFooter,
   ServiceHero,
 } from "@/components/sections/service-blocks";
+import { SecurityHeroVisual } from "@/components/services/security-hero-visual";
 
 const service = getService("security-quality");
 
@@ -31,27 +31,36 @@ const safeguards: { name: string; catches: string; automated: Coverage; human: C
   { name: "Monitoring & alerting", catches: "Issues that only appear in production", automated: "primary", human: "supporting" },
 ];
 
-function CoverageCell({ value, tone }: { value: Coverage; tone: "ai" | "human" }) {
-  if (value === "none")
-    return (
-      <span className="inline-flex items-center gap-1.5 text-fg-subtle">
-        <Minus aria-hidden className="size-4" /> Not applicable
-      </span>
-    );
+const level: Record<Coverage, { n: number; label: string }> = {
+  primary: { n: 2, label: "Lead" },
+  supporting: { n: 1, label: "Support" },
+  none: { n: 0, label: "Not used" },
+};
+
+/** How much a safeguard rests on automation or on people: two soft segments. Styles: .sdsq-meter. */
+function Meter({ who, value, tone }: { who: string; value: Coverage; tone: "brand" | "human" }) {
+  const l = level[value];
   return (
-    <span className={value === "primary" ? (tone === "ai" ? "text-brand-300" : "text-human-accent") : "text-fg-muted"}>
-      <span className="inline-flex items-center gap-1.5">
-        <Check aria-hidden className="size-4" />
-        {value === "primary" ? "Primary" : "Supporting"}
+    <div className="sdsq-meter" data-tone={tone} data-level={l.n}>
+      <p className="sdsq-meter-head">
+        {who}
+        <b>
+          {l.label}
+          <span className="sr-only"> ({value === "none" ? "not applicable" : value})</span>
+        </b>
+      </p>
+      <span className="sdsq-segs" aria-hidden>
+        <span data-on={l.n >= 1 || undefined} />
+        <span data-on={l.n >= 2 || undefined} />
       </span>
-    </span>
+    </div>
   );
 }
 
 export default function SecurityQualityPage() {
   return (
     <>
-      <ServiceHero service={service} />
+      <ServiceHero service={service} visual={<SecurityHeroVisual />} />
       <ProblemsBlock service={service} variant="numbered" title="Why quality needs more than one safeguard" />
 
       {/* Signature: safeguards matrix */}
@@ -63,29 +72,18 @@ export default function SecurityQualityPage() {
             title="Automated checks and human review cover different risks"
             lead="Automation is consistent and fast. People notice what was never written down. We rely on both."
           />
-          <Reveal className="mt-12 overflow-x-auto rounded-card border border-line">
-            <table className="w-full min-w-[40rem] text-left text-[0.9375rem]">
-              <caption className="sr-only">Which safeguards are led by automation and which by people</caption>
-              <thead className="bg-ink-800 font-mono text-xs uppercase tracking-wider text-fg-subtle">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-medium">Safeguard</th>
-                  <th scope="col" className="px-6 py-4 font-medium">Helps catch</th>
-                  <th scope="col" className="px-6 py-4 font-medium">Automated</th>
-                  <th scope="col" className="px-6 py-4 font-medium">Human</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line bg-ink-850">
-                {safeguards.map((s) => (
-                  <tr key={s.name}>
-                    <th scope="row" className="px-6 py-4 font-semibold">{s.name}</th>
-                    <td className="px-6 py-4 text-fg-muted">{s.catches}</td>
-                    <td className="px-6 py-4"><CoverageCell value={s.automated} tone="ai" /></td>
-                    <td className="px-6 py-4"><CoverageCell value={s.human} tone="human" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Reveal>
+          <ul className="mt-12 grid gap-3" aria-label="Which safeguards are led by automation and which by people">
+            {safeguards.map((g, i) => (
+              <Reveal as="li" key={g.name} delay={i * 60} className="sdsq-safe">
+                <div>
+                  <h3 className="font-semibold">{g.name}</h3>
+                  <p className="mt-1 text-[0.9375rem] text-fg-muted">Helps catch: {g.catches.charAt(0).toLowerCase() + g.catches.slice(1)}</p>
+                </div>
+                <Meter who="Automated" value={g.automated} tone="brand" />
+                <Meter who="People" value={g.human} tone="human" />
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </Section>
 

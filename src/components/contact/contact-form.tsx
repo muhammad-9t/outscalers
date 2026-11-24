@@ -77,7 +77,7 @@ export function ContactForm({ email }: { email: string }) {
     ) : null;
 
   return (
-    <form ref={formRef} noValidate onSubmit={onSubmit} className="space-y-5" aria-describedby={`${id}-note`} aria-busy={status === "sending"}>
+    <form ref={formRef} noValidate onSubmit={onSubmit} className="flex flex-1 flex-col gap-5" aria-describedby={`${id}-note`} aria-busy={status === "sending"}>
       {/* Honeypot for bots; hidden from people and assistive tech. */}
       <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
         <label>
@@ -157,7 +157,8 @@ export function ContactForm({ email }: { email: string }) {
         {errorText("interest")}
       </div>
 
-      <div>
+      {/* Grows to fill the card when the sidebar beside it is taller */}
+      <div className="flex flex-1 flex-col">
         <label htmlFor={fid("message")} className="text-sm font-medium">
           Tell us about your project <span aria-hidden className="text-brand-300">*</span>
         </label>
@@ -168,7 +169,7 @@ export function ContactForm({ email }: { email: string }) {
           required
           aria-invalid={Boolean(errors.message)}
           aria-describedby={describedBy("message", `${fid("message")}-hint`)}
-          className={cn(inputClass, "resize-y")}
+          className={cn(inputClass, "flex-1 resize-y")}
         />
         <p id={`${fid("message")}-hint`} className="mt-1.5 text-sm text-fg-subtle">
           What are you trying to achieve, and what&apos;s in the way? Rough timelines help too.

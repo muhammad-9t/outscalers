@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, ShieldCheck } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -11,6 +11,7 @@ import {
   ServiceFooter,
   ServiceHero,
 } from "@/components/sections/service-blocks";
+import { DataHeroVisual } from "@/components/services/data-hero-visual";
 
 const service = getService("data-cloud");
 
@@ -36,7 +37,7 @@ const readiness = [
 export default function DataCloudPage() {
   return (
     <>
-      <ServiceHero service={service} />
+      <ServiceHero service={service} visual={<DataHeroVisual />} />
       <ProblemsBlock service={service} />
 
       {/* Signature: pipeline stages + AI readiness */}
@@ -50,29 +51,34 @@ export default function DataCloudPage() {
           <ol className="mt-12 grid gap-3 md:grid-cols-5">
             {stages.map((s, i) => (
               <Reveal as="li" key={s.name} delay={i * 80} className="relative">
-                <div className="card h-full p-5">
-                  <span className="font-mono text-xs text-brand-300">0{i + 1}</span>
-                  <h3 className="mt-3 font-semibold">{s.name}</h3>
+                <div className="card card-interactive h-full p-5">
+                  <span className="sd-num">{i + 1}</span>
+                  <h3 className="mt-4 font-semibold">{s.name}</h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{s.body}</p>
                 </div>
                 {i < stages.length - 1 && (
-                  <span aria-hidden className="absolute -right-3 top-1/2 z-10 hidden h-px w-3 bg-brand-500/60 md:block" />
+                  <span aria-hidden className="sddc-link" />
                 )}
               </Reveal>
             ))}
           </ol>
 
-          <Reveal className="mt-12 grid gap-8 rounded-card border border-line bg-ink-850 p-6 sm:p-8 lg:grid-cols-[1fr_2fr] lg:items-center">
+          <Reveal className="card mt-12 grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_2fr] lg:items-center">
             <div>
-              <h3 className="text-xl font-semibold">Is your data ready for AI?</h3>
+              <span className="hs-gloss sd-tile" data-tone="data" aria-hidden>
+                <ShieldCheck className="size-[48%]" strokeWidth={1.8} />
+              </span>
+              <h3 className="mt-5 text-xl font-semibold">Is your data ready for AI?</h3>
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">
                 AI projects succeed or fail on their data foundation. We check these first.
               </p>
             </div>
             <ul className="grid gap-3 sm:grid-cols-2">
               {readiness.map((r) => (
-                <li key={r} className="flex items-start gap-2.5 text-[0.9375rem]">
-                  <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-brand-400" />
+                <li key={r} className="sddc-check">
+                  <span aria-hidden className="sd-mark sddc-mark">
+                    <Check className="size-3" strokeWidth={3} />
+                  </span>
                   {r}
                 </li>
               ))}

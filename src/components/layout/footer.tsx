@@ -46,7 +46,7 @@ export function Footer() {
           </div>
 
           <nav aria-label="Footer: company">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Company</h2>
+            <h2 className="text-sm font-semibold text-fg">Company</h2>
             <ul className="mt-4 space-y-2.5 text-sm">
               {mainNav.map((item) => (
                 <li key={item.href}>
@@ -59,7 +59,7 @@ export function Footer() {
           </nav>
 
           <nav aria-label="Footer: services">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Services</h2>
+            <h2 className="text-sm font-semibold text-fg">Services</h2>
             <ul className="mt-4 space-y-2.5 text-sm">
               {services.map((s) => (
                 <li key={s.slug}>
@@ -72,7 +72,7 @@ export function Footer() {
           </nav>
 
           <div>
-            <h2 className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Start a conversation</h2>
+            <h2 className="text-sm font-semibold text-fg">Start a conversation</h2>
             <p className="mt-4 text-sm leading-relaxed text-fg-muted">
               Tell us about the problem you are solving. An engineer — not a sales script — will reply.
             </p>

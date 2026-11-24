@@ -11,11 +11,6 @@ const anim = (name: string, duration: number, delay = 0, timing = "ease-in-out")
 export function CaseVisual({ visual, className }: { visual: CaseStudy["visual"]; className?: string }) {
   return (
     <svg viewBox="0 0 400 220" aria-hidden focusable="false" className={cn("h-auto w-full", className)}>
-      <g className="fill-line" opacity={0.8}>
-        {Array.from({ length: 6 }, (_, r) =>
-          Array.from({ length: 11 }, (_, c) => <circle key={`${r}-${c}`} cx={20 + c * 36} cy={20 + r * 36} r={1} />),
-        )}
-      </g>
       {visual === "scale" && <ScaleVisual />}
       {visual === "traffic" && <TrafficVisual />}
       {visual === "compliance" && <ComplianceVisual />}
@@ -45,8 +40,8 @@ function ScaleVisual() {
       {[72, 96, 120, 144].map((y, i) => (
         <rect key={y} x={56} y={y} width={58} height={10} rx={3} className="cv-anim fill-ink-700" style={anim("cv-shimmer", 3.2, i * 0.25)} />
       ))}
-      <text x={85} y={192} textAnchor="middle" className="fill-fg-subtle font-mono" fontSize={10}>
-        monolith
+      <text x={85} y={192} textAnchor="middle" className="fill-fg-subtle font-sans font-medium" fontSize={10}>
+        Monolith
       </text>
       <path d="M146 110H196" className="flow-dash fill-none stroke-brand-400" strokeWidth={1.6} />
 
@@ -110,7 +105,7 @@ function TrafficVisual() {
         d="M30 145H118V107H158V34H262V93H300V141H380"
         className="cv-anim fill-none stroke-brand-400"
         strokeWidth={1.8}
-        strokeDasharray="5 4"
+       
         style={anim("cv-dash", 1.2, 0, "linear")}
       />
       {/* A dot rides the traffic curve */}
@@ -124,14 +119,14 @@ function TrafficVisual() {
       </g>
       <g className="cv-anim" style={anim("cv-glow", 6, 2.1)}>
         <rect x={176} y={6} width={68} height={18} rx={9} className="fill-ink-850 stroke-human-accent/50" />
-        <text x={210} y={19} textAnchor="middle" className="fill-human-accent font-mono" fontSize={9.5}>
+        <text x={210} y={19} textAnchor="middle" className="fill-human-accent font-sans font-medium" fontSize={9.5}>
           peak event
         </text>
       </g>
-      <g className="font-mono" fontSize={9.5}>
+      <g className="font-sans font-medium" fontSize={9.5}>
         <line x1={40} y1={208} x2={56} y2={208} className="stroke-human-accent" strokeWidth={2} />
         <text x={62} y={211} className="fill-fg-subtle">traffic</text>
-        <line x1={120} y1={208} x2={136} y2={208} className="stroke-brand-400" strokeWidth={2} strokeDasharray="5 4" />
+        <line x1={120} y1={208} x2={136} y2={208} className="stroke-brand-400" strokeWidth={2} />
         <text x={142} y={211} className="fill-fg-subtle">capacity scales with demand</text>
       </g>
     </g>
@@ -172,8 +167,8 @@ function ComplianceVisual() {
         <circle cy={11} r={3} className="cv-anim fill-brand-300" style={anim("cv-lock-glow", AUDIT_S)} />
       </g>
       <rect x={252} y={48} width={124} height={128} rx={12} className="fill-ink-900 stroke-line-strong" strokeWidth={1.2} />
-      <text x={266} y={70} className="fill-fg-subtle font-mono" fontSize={9.5} letterSpacing="0.08em">
-        AUDIT LOG
+      <text x={266} y={70} className="fill-fg-subtle font-sans font-medium" fontSize={9.5}>
+        Audit log
       </text>
       {[90, 112, 134, 156].map((y, i) => (
         <g key={y} className="cv-anim" style={anim("cv-log", AUDIT_S, i * 0.3)}>

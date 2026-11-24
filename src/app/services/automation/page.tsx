@@ -1,4 +1,4 @@
-import { ArrowDown, Sparkles, UserRound } from "lucide-react";
+import { Clock3, Sparkles, UserRound, Zap } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -11,7 +11,7 @@ import {
   ServiceFooter,
   ServiceHero,
 } from "@/components/sections/service-blocks";
-import { cn } from "@/lib/cn";
+import { AutomationHeroVisual } from "@/components/services/automation-hero-visual";
 
 const service = getService("automation");
 
@@ -34,27 +34,20 @@ const after: Step[] = [
   { text: "Finance system updated, with an audit trail", kind: "auto" },
 ];
 
-const kindStyle: Record<Step["kind"], string> = {
-  manual: "border-line-strong text-fg-muted",
-  auto: "border-line-strong text-fg",
-  ai: "border-brand-500/50 text-fg",
-  human: "border-human-accent/50 text-fg",
-};
-
-function StepList({ steps }: { steps: Step[] }) {
+/** One workflow as a column of soft steps joined by a thin line. Styles: .sdau-flow in globals.css. */
+function StepList({ steps, tone }: { steps: Step[]; tone: "muted" | "brand" }) {
   return (
-    <ol className="space-y-2">
-      {steps.map((s, i) => (
-        <li key={s.text}>
-          <div className={cn("flex items-center gap-3 rounded-xl border bg-ink-900/60 px-4 py-3 text-[0.9375rem]", kindStyle[s.kind])}>
-            {s.kind === "ai" && <Sparkles aria-label="AI-assisted" className="size-4 shrink-0 text-brand-400" />}
-            {s.kind === "human" && <UserRound aria-label="Human decision" className="size-4 shrink-0 text-human-accent" />}
-            {(s.kind === "auto" || s.kind === "manual") && (
-              <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", s.kind === "auto" ? "bg-brand-400" : "bg-fg-subtle")} />
-            )}
+    <ol className="sdau-flow" data-tone={tone}>
+      {steps.map((s) => (
+        <li key={s.text} className="sdau-flow-step" data-kind={s.kind}>
+          <span className="sdau-flow-mark" aria-hidden>
+            {s.kind === "ai" ? <Sparkles className="size-3.5" /> : s.kind === "human" ? <UserRound className="size-3.5" /> : null}
+          </span>
+          <span>
             {s.text}
-          </div>
-          {i < steps.length - 1 && <ArrowDown aria-hidden className="mx-auto my-1 size-3.5 text-fg-subtle" />}
+            {s.kind === "ai" && <span className="sr-only"> (AI-assisted)</span>}
+            {s.kind === "human" && <span className="sr-only"> (a person decides)</span>}
+          </span>
         </li>
       ))}
     </ol>
@@ -64,7 +57,7 @@ function StepList({ steps }: { steps: Step[] }) {
 export default function AutomationPage() {
   return (
     <>
-      <ServiceHero service={service} />
+      <ServiceHero service={service} visual={<AutomationHeroVisual />} />
 
       {/* Signature: before / after */}
       <Section tone="dark" labelledBy="compare-title">
@@ -76,17 +69,29 @@ export default function AutomationPage() {
             lead="An illustrative invoice-handling workflow before and after automation. Your workflow will differ — we map it with you first."
           />
           <div className="mt-12 grid gap-5 lg:grid-cols-2">
-            <Reveal className="card p-6 sm:p-8">
-              <h3 className="font-mono text-xs uppercase tracking-wider text-fg-subtle">Before: manual</h3>
-              <div className="mt-6">
-                <StepList steps={before} />
+            <Reveal className="card flex flex-col p-6 sm:p-8">
+              <h3 className="flex items-center gap-3 text-lg font-semibold">
+                <span className="sdau-head-tile" aria-hidden>
+                  <Clock3 className="size-[48%]" strokeWidth={1.8} />
+                </span>
+                Before: by hand
+              </h3>
+              <div className="mt-6 flex-1">
+                <StepList steps={before} tone="muted" />
               </div>
+              <p className="sdau-sum">5 manual steps, approvals chased by email</p>
             </Reveal>
-            <Reveal delay={120} className="card border-brand-500/30 p-6 sm:p-8">
-              <h3 className="font-mono text-xs uppercase tracking-wider text-brand-300">After: automated, with checkpoints</h3>
-              <div className="mt-6">
-                <StepList steps={after} />
+            <Reveal delay={120} className="card sdau-after flex flex-col p-6 sm:p-8">
+              <h3 className="flex items-center gap-3 text-lg font-semibold">
+                <span className="hs-gloss sd-tile" data-tone="brand" aria-hidden>
+                  <Zap className="size-[48%]" strokeWidth={1.8} />
+                </span>
+                After: automated, with checkpoints
+              </h3>
+              <div className="mt-6 flex-1">
+                <StepList steps={after} tone="brand" />
               </div>
+              <p className="sdau-sum" data-tone="brand">One decision left for a person, with a full audit trail</p>
             </Reveal>
           </div>
         </div>

@@ -202,9 +202,9 @@ export function LaptopFrame({ frameRef, children }: { frameRef: RefObject<HTMLDi
         >
           {/* Lid: same 3.2 : 2.1 proportions as the 3D model */}
           <div className="flex flex-col lg:aspect-[3.2/2.1] lg:rounded-[clamp(14px,2vw,28px)] lg:bg-device-metal lg:p-[1.6%] lg:shadow-2xl">
-            <div className="relative flex min-h-0 flex-1 flex-col lg:rounded-[clamp(10px,1.6vw,22px)] lg:bg-device-bezel lg:px-[3%] lg:pb-[3%] lg:pt-[2.2%]">
+            <div className="relative flex min-h-0 flex-1 flex-col lg:rounded-[clamp(10px,1.6vw,22px)] lg:bg-device-bezel lg:px-[1.6%] lg:pb-[2.65%] lg:pt-[1.6%]">
               <span aria-hidden className="absolute left-1/2 top-[0.7%] hidden size-1.5 -translate-x-1/2 rounded-full bg-device-key lg:block" />
-              <div ref={screenRef} className="min-h-0 flex-1 lg:overflow-hidden lg:rounded-md lg:bg-ink-950">
+              <div ref={screenRef} className="min-h-0 flex-1 lg:overflow-hidden lg:rounded-[clamp(8px,1.4vw,18px)] lg:bg-ink-950">
                 <div ref={contentRef} className="lg:flex lg:h-full lg:flex-col lg:p-[3%]">
                   {children}
                 </div>

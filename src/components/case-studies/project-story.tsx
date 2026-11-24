@@ -232,13 +232,10 @@ function Pinned({ story, cast, project }: Props) {
       <div className="sticky top-0 h-svh overflow-hidden">
         <div ref={stage} className="absolute top-1/2 left-0 origin-left" style={{ height: H, marginTop: -H / 2, width: "100vw" }}>
           <div ref={track} className="absolute inset-y-0 left-0 will-change-transform" style={{ width: g.width }}>
-            {/* Faint rings and dots behind the story */}
+            {/* Soft glows and floating dots behind the story */}
             <svg aria-hidden width={g.width} height={H} className="absolute inset-0 overflow-visible">
               {g.nodes.map((n, i) => (
-                <g key={i} className="stroke-line" fill="none">
-                  <circle cx={n.x} cy={MID} r={150} strokeWidth={1} />
-                  <circle cx={n.x} cy={MID} r={210} strokeWidth={1} strokeDasharray="2 6" />
-                </g>
+                <circle key={i} cx={n.x} cy={MID} r={190} className="ps-halo" style={{ "--tone": KIND[story.milestones[i].kind].tone } as CSSProperties} />
               ))}
               {g.nodes.map((n, i) => (
                 <circle
@@ -251,7 +248,7 @@ function Pinned({ story, cast, project }: Props) {
                 />
               ))}
               {/* The line: a faint full track, then the drawn part that follows the scroll */}
-              <path d={g.d} fill="none" className="stroke-line-strong" strokeWidth={2} strokeDasharray="1 7" strokeLinecap="round" />
+              <path d={g.d} fill="none" className="ps-track" strokeWidth={3} strokeLinecap="round" />
               <path
                 ref={path}
                 d={g.d}
@@ -270,7 +267,7 @@ function Pinned({ story, cast, project }: Props) {
                   <g key={`n${i}`} data-ps-node className="ps-node" transform={`translate(${n.x} ${n.y})`}>
                     <circle r={15} className="fill-ink-950" style={{ stroke: k.tone }} strokeWidth={2.5} />
                     <circle r={5} style={{ fill: k.tone }} />
-                    <line x1={0} y1={n.up ? -15 : 15} x2={0} y2={n.up ? -CARD_GAP : CARD_GAP} style={{ stroke: k.tone }} strokeWidth={1.5} strokeDasharray="2 3" />
+                    <line x1={0} y1={n.up ? -15 : 15} x2={0} y2={n.up ? -CARD_GAP : CARD_GAP} style={{ stroke: k.tone }} strokeWidth={2} strokeLinecap="round" opacity={0.6} />
                   </g>
                 );
               })}
@@ -289,11 +286,11 @@ function Pinned({ story, cast, project }: Props) {
               </h2>
               <p className="mt-4 text-[1.0625rem] leading-relaxed text-fg-muted">{story.summary}</p>
               {story.sample && (
-                <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-line-strong px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-fg-subtle uppercase">
+                <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-line-strong px-3 py-1 text-sm font-medium text-fg-subtle">
                   Sample timeline
                 </p>
               )}
-              <p className="mt-6 flex items-center gap-2 font-mono text-xs tracking-[0.16em] text-brand-300 uppercase">
+              <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-brand-300">
                 Scroll to follow it <ArrowRight aria-hidden className="size-4" />
               </p>
             </div>
@@ -339,7 +336,7 @@ function Pinned({ story, cast, project }: Props) {
         <p
           ref={ticker}
           aria-live="polite"
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full border border-line bg-ink-950/70 px-4 py-1.5 font-mono text-xs tracking-[0.16em] whitespace-nowrap text-fg-muted uppercase backdrop-blur-sm"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full border border-line bg-ink-950/70 px-4 py-1.5 text-sm font-medium whitespace-nowrap text-fg-muted backdrop-blur-sm"
         >
           Scroll to follow the project
         </p>
@@ -357,11 +354,11 @@ function Vertical({ story, cast, project }: Props) {
       </h2>
       <p className="mt-4 max-w-2xl text-[1.0625rem] leading-relaxed text-fg-muted">{story.summary}</p>
       {story.sample && (
-        <p className="mt-4 inline-flex rounded-full border border-line-strong px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-fg-subtle uppercase">
+        <p className="mt-4 inline-flex rounded-full border border-line-strong px-3 py-1 text-sm font-medium text-fg-subtle">
           Sample timeline
         </p>
       )}
-      <ol className="relative mt-10 space-y-6 border-l-2 border-dashed border-line-strong pl-8">
+      <ol className="relative mt-10 space-y-6 border-l-2 border-line-strong pl-8">
         {story.milestones.map((m, i) => {
           const k = KIND[m.kind];
           return (
@@ -383,10 +380,10 @@ function MilestoneCard({ m, people }: { m: Milestone; people: TeamMember[] }) {
   return (
     <article className="ps-face rounded-2xl border border-line bg-ink-850 p-4">
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] uppercase" style={{ color: k.tone, background: `color-mix(in oklab, ${k.tone} 14%, transparent)` }}>
+        <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold" style={{ color: k.tone, background: `color-mix(in oklab, ${k.tone} 14%, transparent)` }}>
           <k.Icon aria-hidden className="size-3.5" /> {k.label}
         </span>
-        <span className="font-mono text-[11px] tracking-[0.12em] text-fg-subtle uppercase">{m.when}</span>
+        <span className="text-xs font-medium text-fg-subtle">{m.when}</span>
       </div>
       <h3 className="mt-2.5 font-semibold leading-snug">{m.title}</h3>
       <p className="mt-1 text-sm leading-relaxed text-fg-muted">{m.body}</p>

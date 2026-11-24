@@ -1,3 +1,4 @@
+import { BookOpen, FileCode2, FlaskConical, FolderTree, GitPullRequest, History, Sparkles, UserRound } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -10,6 +11,7 @@ import {
   ServiceFooter,
   ServiceHero,
 } from "@/components/sections/service-blocks";
+import { SoftwareHeroVisual } from "@/components/services/software-hero-visual";
 
 const service = getService("software-development");
 
@@ -20,18 +22,18 @@ export const metadata = pageMetadata({
 });
 
 const workflow = [
-  { task: "Project setup & boilerplate", ai: "Generates scaffolding from agreed conventions", human: "Defines the conventions and structure" },
-  { task: "Feature implementation", ai: "Suggests code for well-specified, routine parts", human: "Writes critical logic; accepts, edits or rejects suggestions" },
-  { task: "Understanding legacy code", ai: "Summarises modules and traces dependencies", human: "Verifies findings and plans safe changes" },
-  { task: "Testing", ai: "Proposes test cases and edge conditions", human: "Decides what must be tested and validates coverage" },
-  { task: "Documentation", ai: "Drafts READMEs, API docs and change notes", human: "Reviews for accuracy and completeness" },
-  { task: "Code review", ai: "Flags potential issues for attention", human: "Performs the review and approves the merge" },
+  { icon: FolderTree, task: "Project setup & boilerplate", ai: "Generates scaffolding from agreed conventions", human: "Defines the conventions and structure" },
+  { icon: FileCode2, task: "Feature implementation", ai: "Suggests code for well-specified, routine parts", human: "Writes critical logic; accepts, edits or rejects suggestions" },
+  { icon: History, task: "Understanding legacy code", ai: "Summarises modules and traces dependencies", human: "Verifies findings and plans safe changes" },
+  { icon: FlaskConical, task: "Testing", ai: "Proposes test cases and edge conditions", human: "Decides what must be tested and validates coverage" },
+  { icon: BookOpen, task: "Documentation", ai: "Drafts READMEs, API docs and change notes", human: "Reviews for accuracy and completeness" },
+  { icon: GitPullRequest, task: "Code review", ai: "Flags potential issues for attention", human: "Performs the review and approves the merge" },
 ];
 
 export default function SoftwareDevelopmentPage() {
   return (
     <>
-      <ServiceHero service={service} />
+      <ServiceHero service={service} visual={<SoftwareHeroVisual />} />
       <ProblemsBlock service={service} />
       <DeliverablesBlock service={service} variant="split" title="Software we build" />
 
@@ -44,33 +46,39 @@ export default function SoftwareDevelopmentPage() {
             title="How AI fits into our engineering workflow"
             lead="AI is a tool our engineers use for specific tasks. Here's where — and who stays responsible."
           />
-          <Reveal className="mt-12 overflow-hidden rounded-card border border-line">
-            <table className="w-full text-left text-[0.9375rem]">
-              <caption className="sr-only">Division of work between AI tools and engineers</caption>
-              <thead className="hidden bg-ink-800 font-mono text-xs uppercase tracking-wider text-fg-subtle md:table-header-group">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-medium">Task</th>
-                  <th scope="col" className="px-6 py-4 font-medium text-brand-300">AI assists by</th>
-                  <th scope="col" className="px-6 py-4 font-medium text-human-accent">Engineer is responsible for</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {workflow.map((row) => (
-                  <tr key={row.task} className="grid bg-ink-850 md:table-row">
-                    <th scope="row" className="px-6 pt-5 font-semibold md:py-5">{row.task}</th>
-                    <td className="px-6 pt-2 text-fg-muted md:py-5">
-                      <span className="mr-2 font-mono text-[11px] uppercase text-brand-300 md:hidden">AI:</span>
-                      {row.ai}
-                    </td>
-                    <td className="px-6 pb-5 pt-2 text-fg md:py-5">
-                      <span className="mr-2 font-mono text-[11px] uppercase text-human-accent md:hidden">Engineer:</span>
-                      {row.human}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Reveal>
+          <div className="mt-12 hidden gap-4 px-6 md:grid md:grid-cols-[minmax(0,0.85fr)_1fr_1fr]" aria-hidden>
+            <span className="text-sm font-semibold text-fg-muted">Task</span>
+            <span className="sdsw-legend" data-tone="brand">
+              <Sparkles className="size-3.5" /> AI assists by
+            </span>
+            <span className="sdsw-legend" data-tone="human">
+              <UserRound className="size-3.5" /> Engineer is responsible for
+            </span>
+          </div>
+          <ul className="mt-6 grid gap-3 md:mt-4" aria-label="Division of work between AI tools and engineers">
+            {workflow.map((row, i) => (
+              <Reveal as="li" key={row.task} delay={i * 60} className="sdsw-task">
+                <h3 className="flex items-center gap-3 font-semibold">
+                  <span className="sd-icon" data-tone={i % 2 ? "data" : "human"}>
+                    <row.icon aria-hidden className="size-4" />
+                  </span>
+                  {row.task}
+                </h3>
+                <p className="sdsw-cell" data-tone="brand">
+                  <span className="sdsw-cell-label">
+                    <Sparkles aria-hidden className="size-3.5" /> AI
+                  </span>
+                  {row.ai}
+                </p>
+                <p className="sdsw-cell" data-tone="human">
+                  <span className="sdsw-cell-label">
+                    <UserRound aria-hidden className="size-3.5" /> Engineer
+                  </span>
+                  {row.human}
+                </p>
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </Section>
 

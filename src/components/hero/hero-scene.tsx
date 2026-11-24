@@ -349,7 +349,7 @@ export function HeroScene() {
         <div aria-hidden className="flex">
           {/* Explorer */}
           <div className="hidden w-44 shrink-0 border-r border-line bg-ink-950/25 py-3 lg:block">
-            <p className="px-4 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">Explorer</p>
+            <p className="px-4 text-xs font-semibold text-fg-subtle">Explorer</p>
             <div className="mt-2 px-2 font-mono text-[11.5px] leading-6 text-fg-muted">
               <p className="flex items-center gap-1 px-2">
                 <ChevronDown className="size-3" /> support-triage
@@ -479,7 +479,7 @@ export function HeroScene() {
 
           {/* AI assistant panel */}
           <div className="hidden w-[248px] shrink-0 flex-col border-l border-line bg-ink-950/20 md:flex xl:w-[288px]">
-            <p className="flex h-8 items-center gap-1.5 border-b border-line px-3 font-mono text-[10px] uppercase tracking-wider text-fg-subtle">
+            <p className="flex h-8 items-center gap-1.5 border-b border-line px-3 text-xs font-semibold text-fg-subtle">
               <Sparkles className="size-3 text-brand-400" /> AI assistant
             </p>
             <div className="flex-1 space-y-3 p-3 text-[12px] leading-relaxed">

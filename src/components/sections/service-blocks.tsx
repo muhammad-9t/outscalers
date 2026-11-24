@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Check, Sparkles, UserRound } from "lucide-react";
 import type { Service } from "@/content/services";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -6,12 +6,15 @@ import { PageHero } from "@/components/sections/page-hero";
 import { RelatedServices } from "@/components/sections/service-cards";
 import { ServiceIllustration } from "@/components/illustrations/service-illustrations";
 import { CtaBand } from "@/components/sections/cta-band";
+import { StackBucket } from "@/components/sections/stack-bucket";
 import { breadcrumbJsonLd, serviceJsonLd } from "@/lib/seo";
 import { cn } from "@/lib/cn";
 
+const tones = ["brand", "human", "data"] as const;
 const delay = (ms: number) => ({ "--reveal-delay": `${ms}ms` }) as CSSProperties;
 
-export function ServiceHero({ service }: { service: Service }) {
+/** `visual` replaces the older diagram illustration with a page's floating-card widget. */
+export function ServiceHero({ service, visual }: { service: Service; visual?: ReactNode }) {
   return (
     <PageHero
       eyebrow={service.hero.eyebrow}
@@ -28,9 +31,11 @@ export function ServiceHero({ service }: { service: Service }) {
         </ButtonLink>
       }
       visual={
-        <div className="mx-auto w-full max-w-xl lg:max-w-none lg:scale-105">
-          <ServiceIllustration slug={service.slug} />
-        </div>
+        visual ?? (
+          <div className="mx-auto w-full max-w-xl lg:max-w-none lg:scale-105">
+            <ServiceIllustration slug={service.slug} />
+          </div>
+        )
       }
     />
   );
@@ -57,8 +62,8 @@ export function ProblemsBlock({
             <ul className="mt-12 grid gap-5 md:grid-cols-3">
               {service.problems.map((p, i) => (
                 <li key={p.title} data-reveal style={delay(i * 80)} className="card p-6 sm:p-7">
-                  <span className="font-mono text-xs text-human-accent">Problem 0{i + 1}</span>
-                  <h3 className="mt-3 text-lg font-semibold">{p.title}</h3>
+                  <span className="sd-num">{i + 1}</span>
+                  <h3 className="mt-4 text-lg font-semibold">{p.title}</h3>
                   <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{p.body}</p>
                 </li>
               ))}
@@ -67,10 +72,10 @@ export function ProblemsBlock({
         ) : (
           <div className="grid gap-12 lg:grid-cols-[1fr_1.3fr] lg:gap-20">
             <SectionHeading id="problems-title" eyebrow="The challenge" title={title} />
-            <ol className="divide-y divide-line border-y border-line">
+            <ol className="grid gap-3">
               {service.problems.map((p, i) => (
-                <li key={p.title} data-reveal style={delay(i * 80)} className="grid gap-2 py-6 sm:grid-cols-[3rem_1fr]">
-                  <span className="font-mono text-sm text-human-accent">0{i + 1}</span>
+                <li key={p.title} data-reveal style={delay(i * 80)} className="sd-row">
+                  <span className="sd-num">{i + 1}</span>
                   <div>
                     <h3 className="text-lg font-semibold">{p.title}</h3>
                     <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-fg-muted">{p.body}</p>
@@ -103,11 +108,13 @@ export function DeliverablesBlock({
         {variant === "grid" ? (
           <>
             <SectionHeading id="deliver-title" eyebrow="Deliverables" title={title} />
-            <ul className="mt-12 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {service.deliverables.map((d, i) => (
-                <li key={d.title} data-reveal style={delay((i % 3) * 70)} className="bg-ink-850 p-6 sm:p-7">
-                  <Check aria-hidden className="size-5 text-brand-400" />
-                  <h3 className="mt-4 text-lg font-semibold">{d.title}</h3>
+                <li key={d.title} data-reveal style={delay((i % 3) * 70)} className="card card-interactive p-6 sm:p-7">
+                  <span className="sd-icon" data-tone={tones[i % 3]}>
+                    <Check aria-hidden className="size-4" strokeWidth={2.5} />
+                  </span>
+                  <h3 className="mt-5 text-lg font-semibold">{d.title}</h3>
                   <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-muted">{d.body}</p>
                 </li>
               ))}
@@ -121,8 +128,8 @@ export function DeliverablesBlock({
             <ul className="grid gap-4">
               {service.deliverables.map((d, i) => (
                 <li key={d.title} data-reveal style={delay(i * 50)} className="card-flat flex gap-4 p-5 sm:p-6">
-                  <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-brand-500/10 text-brand-300">
-                    <Check aria-hidden className="size-4" />
+                  <span className="sd-icon mt-0.5" data-tone={tones[i % 3]}>
+                    <Check aria-hidden className="size-4" strokeWidth={2.5} />
                   </span>
                   <div>
                     <h3 className="font-semibold">{d.title}</h3>
@@ -151,26 +158,36 @@ export function ApproachBlock({ service, tone = "dark" }: { service: Service; to
         />
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
           <Reveal className="card p-6 sm:p-8">
-            <p className="chip chip-human">
-              <UserRound aria-hidden className="size-3.5" /> Engineers own
+            <p className="flex items-center gap-3 text-lg font-semibold">
+              <span className="hs-gloss sd-tile" data-tone="human" aria-hidden>
+                <UserRound className="size-[48%]" strokeWidth={1.8} />
+              </span>
+              Engineers own
             </p>
             <ul className="mt-6 space-y-4">
               {service.approach.human.map((h) => (
                 <li key={h} className="flex gap-3 text-[0.9375rem] leading-relaxed text-fg">
-                  <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-human-accent" />
+                  <span aria-hidden className="sd-mark sd-mark-human">
+                    <Check className="size-3" strokeWidth={3} />
+                  </span>
                   {h}
                 </li>
               ))}
             </ul>
           </Reveal>
           <Reveal delay={100} className="card p-6 sm:p-8">
-            <p className="chip chip-ai">
-              <Sparkles aria-hidden className="size-3.5" /> AI assists
+            <p className="flex items-center gap-3 text-lg font-semibold">
+              <span className="hs-gloss sd-tile" data-tone="brand" aria-hidden>
+                <Sparkles className="size-[48%]" strokeWidth={1.8} />
+              </span>
+              AI assists
             </p>
             <ul className="mt-6 space-y-4">
               {service.approach.ai.map((a) => (
                 <li key={a} className="flex gap-3 text-[0.9375rem] leading-relaxed text-fg-muted">
-                  <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-400" />
+                  <span aria-hidden className="sd-mark">
+                    <Check className="size-3" strokeWidth={3} />
+                  </span>
                   {a}
                 </li>
               ))}
@@ -188,22 +205,19 @@ export function ApproachBlock({ service, tone = "dark" }: { service: Service; to
 export function CapabilitiesBlock({ service, tone = "dark" }: { service: Service; tone?: "dark" | "raised" }) {
   return (
     <Section tone={tone} tight labelledBy="caps-title">
-      <div className="container-site grid gap-10 lg:grid-cols-[1fr_2fr] lg:gap-16">
-        <SectionHeading id="caps-title" eyebrow="Technical capabilities" title="Tools and techniques" />
-        <dl className="grid gap-8 sm:grid-cols-2">
-          {service.capabilities.map((c, i) => (
-            <Reveal key={c.group} delay={i * 60}>
-              <dt className="font-mono text-xs uppercase tracking-wider text-fg-subtle">{c.group}</dt>
-              <dd className="mt-3 flex flex-wrap gap-2">
-                {c.items.map((item) => (
-                  <span key={item} className="chip">
-                    {item}
-                  </span>
-                ))}
-              </dd>
-            </Reveal>
-          ))}
-        </dl>
+      <div className="container-site">
+        <StackBucket
+          heading={
+            <SectionHeading
+              id="caps-title"
+              eyebrow="Technical capabilities"
+              title="Tools and techniques"
+              lead="The languages, frameworks and platforms our engineers use most on this kind of work."
+              align="center"
+            />
+          }
+          groups={service.capabilities}
+        />
       </div>
     </Section>
   );
@@ -234,7 +248,7 @@ export function ProcessBlock({
               <span aria-hidden className="absolute left-0 right-0 top-4 hidden h-px bg-gradient-to-r from-brand-500/60 via-line-strong to-transparent lg:block" />
               {service.process.map((p, i) => (
                 <li key={p.title} data-reveal style={delay(i * 90)} className="relative">
-                  <span className="relative grid size-8 place-items-center rounded-full border border-brand-500/50 bg-ink-900 font-mono text-xs text-brand-300">
+                  <span className="sd-num relative">
                     {i + 1}
                   </span>
                   <h3 className="mt-5 font-semibold">{p.title}</h3>
@@ -259,14 +273,11 @@ export function ProcessBlock({
               />
               {service.process.map((p, i) => (
                 <li key={p.title} data-reveal style={delay(i * 80)} className="relative flex gap-5 pb-5 last:pb-0">
-                  <span className="relative z-10 mt-5 grid size-10 shrink-0 place-items-center rounded-full border border-brand-500/60 bg-ink-900 font-mono text-sm text-brand-300">
+                  <span className="sd-num sd-num-lg relative z-10 mt-5">
                     {i + 1}
                   </span>
                   <div className="card flex-1 p-5 sm:p-6">
-                    <p className="font-mono text-[0.6875rem] uppercase tracking-wider text-fg-subtle">
-                      Step {String(i + 1).padStart(2, "0")} / {String(service.process.length).padStart(2, "0")}
-                    </p>
-                    <h3 className="mt-2 text-lg font-semibold">{p.title}</h3>
+                    <h3 className="text-lg font-semibold">{p.title}</h3>
                     <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-fg-muted">{p.body}</p>
                   </div>
                 </li>

@@ -1,4 +1,32 @@
-/** Closing call to action, shared across pages. */
+import type { CSSProperties } from "react";
+import { Bot, UserRound } from "lucide-react";
+
+/** Two overlapping avatars (a person and the AI) and a hand-drawn smiley, set inline in the headline */
+function TitleFaces() {
+  return (
+    <span aria-hidden className="cta-faces">
+      <span className="cta-face" data-tone="human" style={{ "--i": 0 } as CSSProperties}>
+        <UserRound className="size-[52%]" strokeWidth={2} />
+      </span>
+      <span className="cta-face" data-tone="brand" style={{ "--i": 1 } as CSSProperties}>
+        <Bot className="size-[52%]" strokeWidth={2} />
+      </span>
+      <svg className="cta-smiley" viewBox="0 0 64 64" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path className="cta-draw" pathLength={1} d="M32 5c13 0 26 9 26 26 0 15-11 27-26 27C17 58 6 47 6 32 6 17 17 6 31 6" />
+        <path className="cta-draw cta-draw-2" pathLength={1} d="M24 24v5M40 24v5" />
+        <path className="cta-draw cta-draw-3" pathLength={1} d="M21 39c6 7 16 7 22 0" />
+      </svg>
+      <svg className="cta-sparks" viewBox="0 0 30 30" fill="none" strokeLinecap="round">
+        <path d="M6 22 2 26M14 14l1-6M22 20l6-2" />
+      </svg>
+    </span>
+  );
+}
+
+/**
+ * Closing call to action, shared across pages. The headline carries a person + AI avatar pair and a
+ * smiley that draws itself when the band scrolls into view (styles: .cta-* in globals.css).
+ */
 export function CtaBand({
   title = "Have an idea? Let's engineer what's next.",
   lead = "Tell us what you want to build, automate or improve. We'll respond with honest next steps — including when AI isn't the right answer.",
@@ -6,35 +34,24 @@ export function CtaBand({
   title?: string;
   lead?: string;
 }) {
+  // Faces go after the question ("Have an idea? ☺ Let's …"), or at the end of other titles
+  const q = title.indexOf("? ");
+  const [first, rest] = q > 0 ? [title.slice(0, q + 1), title.slice(q + 2)] : [title, ""];
+
   return (
     <section aria-labelledby="cta-title" className="relative overflow-hidden bg-ink-950 py-20 sm:py-28">
-      <div className="container-site relative">
-        <div
-          data-reveal
-          className="relative overflow-hidden rounded-[1.75rem] border border-brand-500/25 bg-gradient-to-br from-ink-800 via-ink-850 to-ink-900 px-6 py-14 sm:px-12 sm:py-16 lg:px-16"
-        >
-          <div aria-hidden className="glow-brand pointer-events-none absolute -bottom-48 left-1/2 size-[40rem] -translate-x-1/2 opacity-70" />
-          <svg
-            aria-hidden
-            className="pointer-events-none absolute inset-0 h-full w-full opacity-40"
-            preserveAspectRatio="none"
-            viewBox="0 0 800 300"
-          >
-            <path d="M0 240C160 240 220 120 400 120S640 40 800 40" className="flow-dash fill-none stroke-brand-500/60" strokeWidth={1} />
-            <path d="M0 280C200 280 260 190 420 190S660 140 800 120" className="fill-none stroke-line-strong" strokeWidth={1} />
-          </svg>
-
-          <div className="relative mx-auto max-w-3xl text-center">
-            <p className="font-mono text-sm text-brand-300">
-              <span className="text-fg-subtle">$</span> outscalers start --project <span className="whitespace-nowrap text-fg">your-idea</span>
-              <span aria-hidden className="ml-1 inline-block h-4 w-2 translate-y-0.5 animate-caret bg-brand-300" />
-            </p>
-            <h2 id="cta-title" className="mt-6 text-display-lg font-semibold text-balance">
-              {title}
-            </h2>
-            <p className="mx-auto mt-5 max-w-xl text-lead text-fg-muted">{lead}</p>
-          </div>
-        </div>
+      <div aria-hidden className="glow-brand pointer-events-none absolute -bottom-64 left-1/2 size-[44rem] -translate-x-1/2 opacity-50" />
+      <div data-reveal className="cta container-site relative mx-auto max-w-5xl text-center">
+        <p className="eyebrow mx-auto">Let&apos;s build something together</p>
+        <h2 id="cta-title" className="cta-title mt-6 text-display-xl font-semibold">
+          {first} <TitleFaces />
+          {rest && (
+            <>
+              <br className="hidden sm:inline" /> {rest}
+            </>
+          )}
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-lead text-fg-muted">{lead}</p>
       </div>
     </section>
   );

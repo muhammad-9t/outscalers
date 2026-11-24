@@ -9,13 +9,13 @@ export function CaseStudyCard({ study }: { study: CaseStudy }) {
       <div className="relative border-b border-line bg-ink-900/60 p-4">
         <CaseArt study={study} />
         {study.status === "draft" && (
-          <span className="absolute right-3 top-3 rounded-full border border-brand-300/40 bg-ink-950/80 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-brand-300">
+          <span className="pg-badge">
             Draft profile
           </span>
         )}
       </div>
       <div className="flex flex-1 flex-col p-6">
-        <p className="font-mono text-xs uppercase tracking-wider text-fg-subtle">{study.client ?? study.industry}</p>
+        <p className="text-sm font-medium text-fg-subtle">{study.client ?? study.industry}</p>
         <h3 className="mt-3 text-lg font-semibold leading-snug">{study.title}</h3>
         <p className="mt-3 flex-1 text-[0.9375rem] leading-relaxed text-fg-muted">{study.summary}</p>
         <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Technologies">

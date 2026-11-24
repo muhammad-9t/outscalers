@@ -1,79 +1,68 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { serviceHref, type Service } from "@/content/services";
 
+const tones = ["brand", "human", "data"] as const;
+
+/** Where each deliverable starts before it flies into the grid (a golden-angle spread), in rem. */
+function scatter(i: number) {
+  const a = (i * 137.5 * Math.PI) / 180;
+  const r = 16 + (i % 3) * 5;
+  return {
+    "--i": i,
+    "--sx": `${(Math.cos(a) * r).toFixed(2)}rem`,
+    "--sy": `${(Math.sin(a) * r * 0.65).toFixed(2)}rem`,
+    "--sr": `${(i % 2 ? 1 : -1) * (28 + i * 9)}deg`,
+  } as CSSProperties;
+}
+
 /**
- * One service as a full-screen HUD panel: grid background, targeting ring around the glyph,
- * and the deliverables in a framed readout. Used as a slide in the services horizontal scroll.
+ * One service as a full-screen slide in the services horizontal scroll, animated by the slide
+ * itself (HorizontalScroll `trackProgress` writes --p / --ap): a giant outlined word drifts behind
+ * in parallax, the glossy tile spins in, the title glides, and the deliverables fly in from a
+ * scatter, tumbling in 3D, and lock into a grid exactly as the panel centres, then scatter again as
+ * it leaves. Alternate panels are mirrored. Short copy on purpose: tagline + deliverable names.
+ * Styles: .svp-* in globals.css.
  */
 export function ServicePanel({ service: s, index, total }: { service: Service; index: number; total: number }) {
-  const n = String(index + 1).padStart(2, "0");
+  const tone = tones[index % tones.length];
   return (
-    <li className="relative w-full shrink-0 overflow-hidden border-b border-line py-16 sm:py-20 lg:flex lg:h-full lg:items-center lg:border-b-0 lg:py-0 lg:pt-18">
-      {/* Grid lines, fading out toward the edges */}
-      <div
-        aria-hidden
-        className="bg-grid pointer-events-none absolute inset-0 opacity-70 mask-[radial-gradient(ellipse_70%_65%_at_60%_50%,black,transparent)]"
-      />
-      {/* Oversized index behind the content */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-6 bottom-0 font-display text-[clamp(10rem,24vw,22rem)] leading-none font-semibold text-fg/[0.03] select-none"
-      >
-        {n}
+    <li className="svp relative w-full shrink-0" data-tone={tone} data-side={index % 2 ? "rev" : undefined}>
+      <span aria-hidden className="svp-word">
+        {s.shortTitle}
       </span>
-
-      <div className="container-site relative grid w-full items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
-        <div>
-          <p className="font-mono text-[11px] tracking-[0.18em] text-brand-300 uppercase">
-            {`Service ${n} / ${String(total).padStart(2, "0")} // ${s.shortTitle}`}
-          </p>
-
-          {/* Glyph inside a spinning targeting ring */}
-          <div className="relative mt-8 grid size-20 place-items-center">
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full border border-dashed border-brand-400/50 motion-safe:animate-[spin_14s_linear_infinite]"
-            />
-            <span aria-hidden className="absolute inset-2.5 rounded-full border border-line-strong" />
-            <span className="grid size-12 place-items-center rounded-full bg-ink-850 text-brand-300 shadow-[0_0_30px_-6px_var(--color-brand-500)]">
-              <ServiceGlyph slug={s.slug} className="size-6" />
+      <div className="container-site svp-inner">
+        <div className="svp-text">
+          <div className="flex items-center gap-4">
+            <span className="hs-gloss svp-tile" data-tone={tone} aria-hidden>
+              <ServiceGlyph slug={s.slug} className="size-[46%]" />
             </span>
+            <p className="eyebrow">
+              Service {index + 1} of {total}
+            </p>
           </div>
-
-          <h3 className="mt-8 text-display-lg font-semibold">
+          <h3 className="svp-title text-display-lg font-semibold">
             <Link href={serviceHref(s.slug)} className="transition-colors hover:text-brand-200">
               {s.title}
             </Link>
           </h3>
-          <p className="mt-5 max-w-xl text-lead text-fg-muted">{s.summary}</p>
-          <Link href={serviceHref(s.slug)} className="link-arrow mt-8" aria-label={`Explore ${s.title}`}>
+          <p className="svp-line text-lead text-fg-muted">{s.tagline}.</p>
+          <Link href={serviceHref(s.slug)} className="link-arrow svp-link" aria-label={`Explore ${s.title}`}>
             Explore service <ArrowUpRight aria-hidden className="size-4" />
           </Link>
         </div>
 
-        {/* Deliverables as a framed HUD readout */}
-        <div className="relative border border-line bg-ink-950/60 p-6 backdrop-blur-sm sm:p-7">
-          <span aria-hidden className="absolute -top-px -left-px size-3 border-t-2 border-l-2 border-brand-400" />
-          <span aria-hidden className="absolute -right-px -bottom-px size-3 border-r-2 border-b-2 border-brand-400" />
-          {/* Scan line sweeping the readout */}
-          <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px overflow-hidden">
-            <span className="block h-full w-1/3 bg-brand-400/70 motion-safe:animate-[hud-scan_3.2s_ease-in-out_infinite]" />
-          </span>
-          <p className="flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] text-fg-subtle uppercase">
-            <span aria-hidden className="size-1.5 rounded-full bg-brand-400 motion-safe:animate-pulse" />
-            What we deliver
-          </p>
-          <ul className="mt-5 divide-y divide-line">
+        <div className="svp-deck">
+          <span aria-hidden className="svp-glow" />
+          <ul className="svp-chips" aria-label={`What we deliver in ${s.shortTitle}`}>
             {s.deliverables.map((d, i) => (
-              <li key={d.title} className="group flex items-center gap-4 py-3">
-                <span className="font-mono text-xs text-brand-300/80">{String(i + 1).padStart(2, "0")}</span>
-                <span className="text-[0.9375rem] text-fg">{d.title}</span>
-                <span
-                  aria-hidden
-                  className="ml-auto h-px w-6 bg-line-strong transition-[width,background-color] duration-300 group-hover:w-10 group-hover:bg-brand-400"
-                />
+              <li key={d.title} className="svp-chip" style={scatter(i)}>
+                <span className="svp-check" aria-hidden>
+                  <Check className="size-3.5" strokeWidth={2.6} />
+                </span>
+                {d.title}
               </li>
             ))}
           </ul>

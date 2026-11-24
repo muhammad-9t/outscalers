@@ -66,9 +66,6 @@ export function HudServices({ className }: { className?: string }) {
                     : "left-[calc(50%+1.75rem)] [clip-path:inset(0_100%_0_0)]",
                 )}
               >
-                {/* Corner brackets */}
-                <span className="absolute -top-px -left-px size-2 border-t-2 border-l-2 border-brand-300" />
-                <span className="absolute -right-px -bottom-px size-2 border-r-2 border-b-2 border-brand-300" />
                 <span className="block font-mono text-[10px] tracking-[0.18em] text-brand-300">
                   {`0${i + 1} // SERVICE`}
                 </span>

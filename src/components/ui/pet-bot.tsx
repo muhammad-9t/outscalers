@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Gamepad2, Mic, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { scrollToY } from "@/lib/smooth-scroll";
-import { ArcadeLauncher } from "@/components/game/arcade-launcher";
 import { GAMES, readBest } from "@/components/game/games";
 import { PAGE_NAMES, SCROLL_SPEED, parseCommand, useAutoScroll, useVoice, type VoiceCommand } from "./pet-voice";
 
@@ -164,6 +163,8 @@ const GAME_TIP: Tip = {
   action: "game",
 };
 const GAME_OFFERED_KEY = "pet-game-offered";
+// The Bug Hunt game and its arcade menu are switched off (cleaner, less gimmicky site). Set to true to bring them back.
+const GAMES_ENABLED = false;
 
 // The arcade: click and hold the pet this long to open it
 const HOLD_MS = 600;
@@ -185,7 +186,7 @@ const VOICE_NUDGES = [
 const VOICE_OFFERED_KEY = "pet-voice-offered";
 const VOICE_OFFER_MS = 6000; // on the page this long before the offer
 const VOICE_HELP =
-  "Try: “open portfolio”, “scroll”, “scroll slow”, “faster”, “stop”, “go to top”, “go back”, “next page”, “reload”, “tell me a joke”, “play a game”, or “stop listening”.";
+  "Try: “open portfolio”, “scroll”, “scroll slow”, “faster”, “stop”, “go to top”, “go back”, “next page”, “reload”, “tell me a joke”, or “stop listening”.";
 const TIPS: Tip[] = [
   { href: "/portfolio", text: "Have you seen our portfolio yet?", cta: "Open portfolio" },
   { href: "/services", text: "Want to see what we can build for you?", cta: "View services" },
@@ -327,10 +328,11 @@ export function PetBot() {
     }
     if (jokeIdx.current < 0) jokeIdx.current = Math.floor(Math.random() * JOKES.length);
     say(JOKES[jokeIdx.current++ % JOKES.length], undefined, "happy", true);
-    if (++jokesTold.current >= JOKES_BEFORE_GAME) gameDue.current = true;
+    if (GAMES_ENABLED && ++jokesTold.current >= JOKES_BEFORE_GAME) gameDue.current = true;
   }, [say]);
 
   const openGame = useCallback(() => {
+    if (!GAMES_ENABLED) return;
     gameOpen.current = true;
     gameDue.current = false;
     store.set(GAME_OFFERED_KEY, "1");
@@ -347,6 +349,7 @@ export function PetBot() {
   const arcadeOpen = useRef(false);
   const [bestScore, setBestScore] = useState(0);
   const openArcade = useCallback(() => {
+    if (!GAMES_ENABLED) return;
     window.clearTimeout(tipTimer.current);
     setTip(null);
     tipOpen.current = true; // the pet stays put and quiet while the menu is open
@@ -476,13 +479,15 @@ export function PetBot() {
           );
           break;
         case "game":
+        case "arcade":
+          if (!GAMES_ENABLED) {
+            ok("Games are switched off for now.", 3000);
+            break;
+          }
           auto.stop();
           if (arcadeOpen.current) closeArcade();
-          openGame();
-          break;
-        case "arcade":
-          auto.stop();
-          openArcade();
+          if (cmd.type === "arcade") openArcade();
+          else openGame();
           break;
         case "which":
           // A page name on its own works as the answer
@@ -642,6 +647,11 @@ export function PetBot() {
       if (p.mode !== "on" || arcadeOpen.current) return;
       e.currentTarget.setPointerCapture(e.pointerId);
       const h = hold.current;
+      if (!GAMES_ENABLED) {
+        // No arcade: a press is just a punch when released
+        h.active = true;
+        return;
+      }
       h.active = true;
       setCharging(true);
       window.clearTimeout(h.timer);
@@ -677,7 +687,7 @@ export function PetBot() {
   /** Resting the cursor on the pet: once per visit it mentions the arcade. */
   const onPetEnter = useCallback(() => {
     phys.current.hover = true;
-    if (store.get(ARCADE_HINT_KEY)) return;
+    if (!GAMES_ENABLED || store.get(ARCADE_HINT_KEY)) return;
     window.clearTimeout(hintTimer.current);
     hintTimer.current = window.setTimeout(() => {
       if (!phys.current.hover || phys.current.mode !== "on" || hold.current.active || tipOpen.current) return;
@@ -1089,14 +1099,8 @@ export function PetBot() {
   if (on === null) return null;
   // Not on the private admin screens
   if (pathname.startsWith("/admin")) return null;
-  // No pet on touch screens (or with reduced motion): the arcade gets a button of its own
-  if (!on)
-    return (
-      <>
-        <ArcadeLauncher onPlay={openGame} />
-        {game && <BugHunt onClose={closeGame} />}
-      </>
-    );
+  // No pet on touch screens (or with reduced motion)
+  if (!on) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
@@ -1196,8 +1200,6 @@ export function PetBot() {
               flip ? "left-2" : "right-2",
             )}
           >
-            <span aria-hidden className="absolute -top-px -left-px size-2 border-t-2 border-l-2 border-brand-300" />
-            <span aria-hidden className="absolute -right-px -bottom-px size-2 border-r-2 border-b-2 border-brand-300" />
             <button
               type="button"
               aria-label="Close the arcade"
@@ -1273,8 +1275,6 @@ export function PetBot() {
               flip ? "left-2" : "right-2",
             )}
           >
-            <span aria-hidden className="absolute -top-px -left-px size-2 border-t-2 border-l-2 border-brand-300" />
-            <span aria-hidden className="absolute -right-px -bottom-px size-2 border-r-2 border-b-2 border-brand-300" />
             <button
               type="button"
               aria-label="Close suggestion"

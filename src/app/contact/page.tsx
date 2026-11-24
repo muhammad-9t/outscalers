@@ -1,9 +1,11 @@
-import { MapPin, Phone } from "lucide-react";
+import { Mail } from "lucide-react";
 import { pageMetadata, siteConfig } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
 import { ContactForm } from "@/components/contact/contact-form";
-import { VenomTrail } from "@/components/contact/venom-trail";
-import { Reveal, Section } from "@/components/ui/primitives";
+import { ContactVisual } from "@/components/contact/contact-visual";
+import { ContactSidebar } from "@/components/contact/contact-sidebar";
+import { OfficeCards } from "@/components/about/office-cards";
+import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
   title: "Contact Us",
@@ -14,14 +16,10 @@ export const metadata = pageMetadata({
 });
 
 export default function ContactPage() {
-  const { contact, offices } = siteConfig;
+  const { contact, scheduling } = siteConfig;
 
   return (
     <>
-      {/* The venom trail grows down the page behind every section; the sections go transparent
-          and the cards turn to glass so it shows through. */}
-      <div className="glass-scope relative isolate bg-ink-950 [&>section]:bg-transparent">
-      <VenomTrail />
       <PageHero
         eyebrow="Contact"
         title="Let's talk about what you're building."
@@ -30,48 +28,41 @@ export default function ContactPage() {
           { label: "Home", href: "/" },
           { label: "Contact", href: "/contact" },
         ]}
+        visual={<ContactVisual />}
         className="pb-10 sm:pb-12 lg:pb-14"
       />
 
-      <Section tone="dark" className="!pt-10 sm:!pt-12" labelledBy="start-project">
-        <div className="container-site">
-          <Reveal className="card p-6 sm:p-10">
-            <h2 id="start-project" className="text-2xl font-semibold">
-              Start a project
-            </h2>
-            <p className="mt-2 text-[0.9375rem] text-fg-muted">{contact.responseTime}</p>
-            <div className="mt-8">
+      <Section tone="dark" className="!pt-10 !pb-12 sm:!pt-12 sm:!pb-16" labelledBy="start-project">
+        <div className="container-site grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-stretch">
+          {/* Form */}
+          <Reveal className="ct-card flex flex-col p-6 sm:p-9">
+            <div className="flex items-center gap-3.5">
+              <span className="hs-gloss ct-tile" data-tone="brand" aria-hidden>
+                <Mail className="size-[48%]" strokeWidth={1.8} />
+              </span>
+              <div>
+                <h2 id="start-project" className="text-2xl font-semibold">
+                  Start a project
+                </h2>
+                <p className="text-[0.9375rem] text-fg-muted">{contact.responseTime}</p>
+              </div>
+            </div>
+            <div className="mt-8 flex flex-1 flex-col">
               <ContactForm email={contact.email} />
             </div>
           </Reveal>
+
+          {/* Sidebar */}
+          <ContactSidebar email={contact.email} scheduling={scheduling} />
         </div>
       </Section>
 
-      <Section tone="raised" tight labelledBy="offices-title">
+      <Section tone="raised" tight className="!pt-4 sm:!pt-6" labelledBy="offices-title">
         <div className="container-site">
-          <h2 id="offices-title" className="text-display-md font-semibold">
-            Our offices
-          </h2>
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {offices.map((o, i) => (
-              <Reveal as="li" key={o.country} delay={i * 60} className="card p-6">
-                <p className="font-mono text-xs uppercase tracking-wider text-brand-300">{o.country}</p>
-                <address className="mt-3 space-y-3 text-sm not-italic text-fg-muted">
-                  <span className="flex gap-2.5">
-                    <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-subtle" />
-                    {o.address}
-                  </span>
-                  <a href={`tel:${o.phone.replace(/[^+\d]/g, "")}`} className="flex gap-2.5 text-fg hover:text-brand-200">
-                    <Phone aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-subtle" />
-                    {o.phone}
-                  </a>
-                </address>
-              </Reveal>
-            ))}
-          </ul>
+          <SectionHeading id="offices-title" eyebrow="Offices" title="Our offices" />
+          <OfficeCards />
         </div>
       </Section>
-      </div>
     </>
   );
 }

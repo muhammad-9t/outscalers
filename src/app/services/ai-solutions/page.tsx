@@ -1,4 +1,4 @@
-import { CircleCheck, CircleSlash, Eye, FileSearch, KeyRound, LifeBuoy } from "lucide-react";
+import { Check, CircleCheck, Signpost, Eye, FileSearch, KeyRound, LifeBuoy, X } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
@@ -11,6 +11,7 @@ import {
   ServiceFooter,
   ServiceHero,
 } from "@/components/sections/service-blocks";
+import { AiHeroVisual } from "@/components/services/ai-hero-visual";
 
 const service = getService("ai-solutions");
 
@@ -30,16 +31,16 @@ const poorFit = [
 ];
 
 const guardrails = [
-  { icon: KeyRound, title: "Permission-aware", body: "Assistants only see what the user is allowed to see." },
-  { icon: FileSearch, title: "Grounded answers", body: "Responses reference their sources so people can verify them." },
-  { icon: LifeBuoy, title: "Human escalation", body: "Low-confidence or sensitive cases route to a person." },
-  { icon: Eye, title: "Observable", body: "Inputs, outputs and feedback are logged for review and tuning." },
-];
+  { icon: KeyRound, tone: "brand", title: "Permission-aware", body: "Assistants only see what the user is allowed to see." },
+  { icon: FileSearch, tone: "human", title: "Grounded answers", body: "Responses reference their sources so people can verify them." },
+  { icon: LifeBuoy, tone: "brand", title: "Human escalation", body: "Low-confidence or sensitive cases route to a person." },
+  { icon: Eye, tone: "data", title: "Observable", body: "Inputs, outputs and feedback are logged for review and tuning." },
+] as const;
 
 export default function AiSolutionsPage() {
   return (
     <>
-      <ServiceHero service={service} />
+      <ServiceHero service={service} visual={<AiHeroVisual />} />
       <ProblemsBlock service={service} variant="numbered" title="Why AI initiatives stall" />
       <DeliverablesBlock service={service} title="AI capabilities we deliver" />
 
@@ -53,38 +54,51 @@ export default function AiSolutionsPage() {
             lead="Not every problem needs a language model. We'll tell you when a simpler solution is the better investment."
           />
           <div className="mt-12 grid gap-5 md:grid-cols-2">
-            <Reveal className="card p-6 sm:p-8">
-              <h3 className="flex items-center gap-2 text-lg font-semibold">
-                <CircleCheck aria-hidden className="size-5 text-brand-400" /> Often a good fit
+            <Reveal className="card sd-fit-brand p-6 sm:p-8">
+              <h3 className="flex items-center gap-3 text-lg font-semibold">
+                <span className="hs-gloss sd-tile" data-tone="brand" aria-hidden>
+                  <CircleCheck className="size-[48%]" strokeWidth={1.8} />
+                </span>
+                Often a good fit
               </h3>
-              <ul className="mt-5 space-y-3 text-[0.9375rem] text-fg-muted">
+              <ul className="mt-6 space-y-3 text-[0.9375rem] text-fg-muted">
                 {goodFit.map((g) => (
                   <li key={g} className="flex gap-3">
-                    <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-400" />
+                    <span aria-hidden className="sd-mark">
+                      <Check className="size-3" strokeWidth={3} />
+                    </span>
                     {g}
                   </li>
                 ))}
               </ul>
             </Reveal>
-            <Reveal delay={100} className="card p-6 sm:p-8">
-              <h3 className="flex items-center gap-2 text-lg font-semibold">
-                <CircleSlash aria-hidden className="size-5 text-human-accent" /> Usually needs another approach
+            <Reveal delay={100} className="card sd-fit-human p-6 sm:p-8">
+              <h3 className="flex items-center gap-3 text-lg font-semibold">
+                <span className="hs-gloss sd-tile" data-tone="human" aria-hidden>
+                  <Signpost className="size-[48%]" strokeWidth={1.8} />
+                </span>
+                Usually needs another approach
               </h3>
-              <ul className="mt-5 space-y-3 text-[0.9375rem] text-fg-muted">
+              <ul className="mt-6 space-y-3 text-[0.9375rem] text-fg-muted">
                 {poorFit.map((g) => (
                   <li key={g} className="flex gap-3">
-                    <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-human-accent" />
+                    <span aria-hidden className="sd-mark">
+                      <X className="size-3" strokeWidth={3} />
+                    </span>
                     {g}
                   </li>
                 ))}
               </ul>
             </Reveal>
           </div>
-          <ul className="mt-5 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+          <h3 className="mt-14 text-xl font-semibold">Guardrails built into every assistant</h3>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {guardrails.map((g, i) => (
-              <Reveal as="li" key={g.title} delay={i * 60} className="bg-ink-850 p-6">
-                <g.icon aria-hidden className="size-5 text-brand-300" />
-                <h3 className="mt-4 font-semibold">{g.title}</h3>
+              <Reveal as="li" key={g.title} delay={i * 60} className="card card-interactive p-6">
+                <span className="sd-icon" data-tone={g.tone}>
+                  <g.icon aria-hidden className="size-4" />
+                </span>
+                <h4 className="mt-5 font-semibold">{g.title}</h4>
                 <p className="mt-1.5 text-sm leading-relaxed text-fg-muted">{g.body}</p>
               </Reveal>
             ))}

@@ -14,6 +14,7 @@ export function PageHero({
   actions,
   visual,
   bare,
+  reverse,
   className,
 }: {
   eyebrow: string;
@@ -24,6 +25,8 @@ export function PageHero({
   visual?: ReactNode;
   /** No background of its own (grid, glow, fill), for pages that draw one behind the hero. */
   bare?: boolean;
+  /** Visual on the left on large screens (text still comes first on phones). */
+  reverse?: boolean;
   className?: string;
 }) {
   return (
@@ -51,7 +54,7 @@ export function PageHero({
             </ol>
           </nav>
         )}
-        <div className={cn("grid items-center gap-12", Boolean(visual) && "lg:grid-cols-[1.05fr_1fr] lg:gap-16")}>
+        <div className={cn("grid items-center gap-12", Boolean(visual) && (reverse ? "lg:grid-cols-[1fr_1.05fr] lg:gap-16" : "lg:grid-cols-[1.05fr_1fr] lg:gap-16"))}>
           <div>
             <p className="eyebrow mb-5">{eyebrow}</p>
             <h1 className="text-display-lg font-semibold">{title}</h1>
@@ -59,7 +62,7 @@ export function PageHero({
             {actions && <div className="mt-9 flex flex-wrap gap-3">{actions}</div>}
           </div>
           {visual && (
-            <div data-reveal className="relative min-w-0">
+            <div data-reveal className={cn("relative min-w-0", reverse && "lg:order-first")}>
               {visual}
             </div>
           )}

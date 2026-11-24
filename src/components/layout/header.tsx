@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
-import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
+import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
+import { ArrowRight, ChevronDown, Menu, ShieldCheck, Sparkles, UserRound, X } from "lucide-react";
 import { mainNav } from "@/lib/site";
 import { services, serviceHref } from "@/content/services";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
@@ -16,29 +16,14 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Active nav marker: dev-tools style selection corners (top-left and bottom-right). Parent must be relative. */
+/** Active nav marker: a soft pill behind the label. Parent must be relative and isolate. */
 function ActiveCorners() {
-  return (
-    <>
-      <span aria-hidden className="pointer-events-none absolute left-0 top-0 size-2 rounded-tl-[3px] border-l-2 border-t-2 border-brand-400" />
-      <span aria-hidden className="pointer-events-none absolute bottom-0 right-0 size-2 rounded-br-[3px] border-b-2 border-r-2 border-brand-400" />
-    </>
-  );
+  return <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 rounded-lg bg-fg/[0.07]" />;
 }
 
-/** A nav label with two coloured copies that slice and shift while its link is hovered (see .nav-glitch). */
+/** A nav label (plain text: the old glitch effect went with the sci-fi styling). */
 function GlitchLabel({ text }: { text: string }) {
-  return (
-    <span className="nav-glitch">
-      {text}
-      <span aria-hidden className="nav-glitch-a">
-        {text}
-      </span>
-      <span aria-hidden className="nav-glitch-b">
-        {text}
-      </span>
-    </span>
-  );
+  return <span>{text}</span>;
 }
 
 export function Header() {
@@ -124,7 +109,7 @@ export function Header() {
                     if (!e.currentTarget.contains(e.relatedTarget as Node)) setServicesOpen(false);
                   }}
                 >
-                  <div className={cn("relative flex items-center", !isActive(pathname, item.href) && "nav-holo rounded-lg")}>
+                  <div className={cn("relative isolate flex items-center", !isActive(pathname, item.href) && "rounded-lg transition-colors hover:bg-fg/[0.05]")}>
                     {isActive(pathname, item.href) && <ActiveCorners />}
                     <Link
                       href={item.href}
@@ -155,53 +140,57 @@ export function Header() {
                     hidden={!servicesOpen}
                     className="absolute left-1/2 top-full w-[42rem] -translate-x-1/2 pt-3"
                   >
-                    <div className="animate-fade-up grid grid-cols-[1.35fr_1fr] gap-2 overflow-hidden rounded-card border border-line-strong bg-ink-850 p-2 shadow-2xl shadow-black/60">
+                    {/* Mega menu: glossy service tiles on the left, a feature card on the right. Styles: .mm-* */}
+                    <div className="mm">
                       <ul className="grid gap-0.5">
-                        {services.map((s) => (
-                          <li key={s.slug}>
+                        {services.map((s, i) => (
+                          <li key={s.slug} className="mm-row" style={{ "--i": i } as CSSProperties}>
                             <Link
                               href={serviceHref(s.slug)}
                               aria-current={pathname === serviceHref(s.slug) ? "page" : undefined}
-                              className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-ink-700/60 aria-[current=page]:bg-ink-700/50"
+                              className="mm-link group"
                             >
-                              <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line-strong bg-ink-800 text-brand-300 transition-colors group-hover:border-brand-500/50">
-                                <ServiceGlyph slug={s.slug} />
+                              <span className="hs-gloss mm-tile" data-tone={(["brand", "human", "brand", "data", "human"] as const)[i % 5]} aria-hidden>
+                                <ServiceGlyph slug={s.slug} className="size-[50%]" />
                               </span>
-                              <span className="min-w-0">
+                              <span className="min-w-0 flex-1">
                                 <span className="block text-sm font-semibold text-fg">{s.title}</span>
                                 <span className="block truncate text-xs text-fg-subtle">{s.tagline}</span>
                               </span>
+                              <ArrowRight aria-hidden className="mm-arrow size-4" />
                             </Link>
                           </li>
                         ))}
                       </ul>
 
-                      {/* Feature panel */}
-                      <div className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-line bg-linear-to-br from-brand-500/15 via-ink-800 to-ink-800 p-5">
-                        <div aria-hidden className="bg-dots pointer-events-none absolute inset-0 opacity-25" />
-                        <div className="relative">
-                          <p className="font-mono text-[10px] uppercase tracking-widest text-brand-300">Human + AI services</p>
-                          <p className="mt-3 font-display text-lg font-semibold leading-snug text-fg">
-                            One team for software, AI, automation, data and security.
-                          </p>
-                          <p className="mt-2 text-xs leading-relaxed text-fg-muted">
-                            Experienced engineers, accelerated by AI, accountable for every release.
-                          </p>
-                        </div>
-                        <div className="relative mt-6 space-y-2">
-                          <Link
-                            href="/services"
-                            className="flex items-center justify-between rounded-lg bg-brand-400 px-3 py-2 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-300 [[data-theme=light]_&]:hover:bg-brand-500"
-                          >
+                      {/* Feature card */}
+                      <div className="mm-feature">
+                        <span aria-hidden className="mm-tiles">
+                          <span className="hs-gloss" data-tone="human">
+                            <UserRound className="size-[48%]" strokeWidth={1.8} />
+                          </span>
+                          <span className="hs-gloss" data-tone="brand">
+                            <Sparkles className="size-[48%]" strokeWidth={1.8} />
+                          </span>
+                          <span className="hs-gloss" data-tone="data">
+                            <ShieldCheck className="size-[48%]" strokeWidth={1.8} />
+                          </span>
+                        </span>
+                        <p className="eyebrow mt-5 !text-xs">Human + AI services</p>
+                        <p className="mt-3 font-display text-lg font-semibold leading-snug text-fg">
+                          One team for software, AI, automation, data and security.
+                        </p>
+                        <p className="mt-2 text-xs leading-relaxed text-fg-muted">
+                          Experienced engineers, accelerated by AI, accountable for every release.
+                        </p>
+                        <div className="mt-5 grid gap-1.5">
+                          <Link href="/services" className="btn btn-primary btn-sm justify-between">
                             View all services
                             <ArrowRight aria-hidden className="size-4" />
                           </Link>
-                          <Link
-                            href="/how-we-work"
-                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-ink-700/60 hover:text-fg"
-                          >
+                          <Link href="/how-we-work" className="mm-ghost group">
                             See how we work
-                            <ArrowRight aria-hidden className="size-4" />
+                            <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
                           </Link>
                         </div>
                       </div>
@@ -214,8 +203,8 @@ export function Header() {
                     href={item.href}
                     aria-current={isActive(pathname, item.href) ? "page" : undefined}
                     className={cn(
-                      "relative rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-fg",
-                      isActive(pathname, item.href) ? "text-fg" : "nav-holo text-fg-muted",
+                      "relative isolate rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-fg",
+                      isActive(pathname, item.href) ? "text-fg" : "text-fg-muted hover:bg-fg/[0.05]",
                     )}
                   >
                     {isActive(pathname, item.href) && <ActiveCorners />}

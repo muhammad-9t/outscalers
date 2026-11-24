@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Gauge, HelpCircle, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import {
   answerLabels,
@@ -13,127 +13,86 @@ import {
 } from "@/content/quick-check";
 
 const total = quickCheckQuestions.length;
-const options = Object.keys(answerLabels) as Answer[];
-const pad = (n: number) => String(n).padStart(2, "0");
-// How long an answered question takes to slide out before the next one comes in
-const LEAVE_MS = 260;
+const options: Answer[] = ["y", "n", "d"];
+const optionIcon = { y: Check, n: X, d: HelpCircle } as const;
+// How long a flung card takes to leave before the next one rises
+const FLING_MS = 460;
 
-// Dial geometry (viewBox 0 0 200 200): one arc segment per question, ticks around the outside
-const CX = 100;
+// Result ring (viewBox 0 0 200 200): one rounded segment per question
 const SEG = 360 / total;
-const GAP = 5;
-
+const GAP = 9;
 const polar = (r: number, deg: number) => {
   const a = ((deg - 90) * Math.PI) / 180;
-  return [CX + r * Math.cos(a), CX + r * Math.sin(a)];
+  return [100 + r * Math.cos(a), 100 + r * Math.sin(a)];
 };
 const arc = (r: number, from: number, to: number) => {
   const [x1, y1] = polar(r, from);
   const [x2, y2] = polar(r, to);
   return `M${x1} ${y1} A${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${x2} ${y2}`;
 };
-const ticks = Array.from({ length: 64 }, (_, i) => i * (360 / 64));
 
-const strokeFor = (a: Answer | null) =>
-  a === "y"
-    ? "stroke-brand-400 drop-shadow-[0_0_6px_var(--color-brand-400)]"
-    : a === "d"
-      ? "stroke-human-accent/55"
-      : a === "n"
-        ? "stroke-fg-subtle/45"
-        : "stroke-ink-700";
+type Stage = "intro" | "questions" | "result";
 
-const fillFor = (a: Answer | null) =>
-  a === "y"
-    ? "bg-brand-400 shadow-[0_0_8px_var(--color-brand-400)]"
-    : a === "d"
-      ? "bg-human-accent/55"
-      : a === "n"
-        ? "bg-fg-subtle/45"
-        : "bg-ink-700";
-
-/** The HUD dial: one segment per question, coloured by its answer, with the score in the middle. */
-function Dial({ answers, size = "size-44" }: { answers: (Answer | null)[]; size?: string }) {
-  const yes = answers.filter((a) => a === "y").length;
+/** The empty cards waiting underneath the top one: up to three, each a little lower and smaller. */
+function Deck({ count }: { count: number }) {
   return (
-    <div className={cn("relative shrink-0", size)}>
-      <svg viewBox="0 0 200 200" className="absolute inset-0 size-full" aria-hidden>
-        {ticks.map((deg, i) => {
-          const [x1, y1] = polar(96, deg);
-          const [x2, y2] = polar(i % 8 === 0 ? 88 : 92, deg);
-          return (
-            <line
-              key={deg}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              strokeWidth={i % 8 === 0 ? 1.6 : 1}
-              className={i % 8 === 0 ? "stroke-brand-400/70" : "stroke-line-strong"}
-            />
-          );
-        })}
-        {/* Slowly turning scanner ring */}
-        <g className="origin-center motion-safe:animate-[spin_28s_linear_infinite]">
-          <circle cx={CX} cy={CX} r="82" fill="none" strokeWidth="1" strokeDasharray="2 7" className="stroke-brand-400/40" />
-          <path d={arc(82, 0, 40)} fill="none" strokeWidth="2" strokeLinecap="round" className="stroke-brand-300" />
-        </g>
-        {answers.map((a, i) => (
-          <path
-            key={i}
-            d={arc(68, i * SEG + GAP / 2, (i + 1) * SEG - GAP / 2)}
-            fill="none"
-            strokeWidth="12"
-            className={cn("transition-[stroke] duration-500", strokeFor(a))}
-          />
-        ))}
-        <circle cx={CX} cy={CX} r="54" fill="none" strokeWidth="1" className="stroke-line" />
-        <circle cx={CX} cy={CX} r="50" className="fill-ink-950/60" />
-      </svg>
-      <div className="absolute inset-0 grid place-content-center text-center">
-        <p className="font-display text-5xl font-semibold leading-none">
-          {yes}
-          <span className="text-2xl text-fg-subtle">/{total}</span>
-        </p>
-        <p className="mt-1.5 font-mono text-xs tracking-widest text-brand-300">{Math.round((yes / total) * 100)}%</p>
-      </div>
-    </div>
+    <>
+      {Array.from({ length: Math.min(3, count) }, (_, i) => (
+        <span key={i} aria-hidden className="qk-back" style={{ "--n": i + 1 } as CSSProperties} />
+      ))}
+    </>
   );
 }
 
-/** One bar per question, numbered, coloured by its answer; the current question gets a pulsing outline. */
-function Strip({ answers, current }: { answers: (Answer | null)[]; current?: number }) {
+/** Eight tiles, one per question: orange with a tick for yes, grey cross for no, blue for unsure. */
+function Tiles({ answers, current }: { answers: (Answer | null)[]; current?: number }) {
   return (
-    <ol className="grid grid-cols-8 gap-1.5" aria-hidden>
-      {answers.map((a, i) => (
-        <li key={i} className="text-center">
-          <span
-            className={cn(
-              "block h-1.5 rounded-full transition-colors duration-300",
-              fillFor(a),
-              i === current && "outline outline-1 outline-offset-2 outline-brand-400 motion-safe:animate-[pulse-soft_1.6s_ease-in-out_infinite]",
-            )}
-          />
-          <span className={cn("mt-1.5 block font-mono text-[10px]", i === current ? "text-brand-300" : "text-fg-subtle")}>
-            {pad(i + 1)}
-          </span>
-        </li>
-      ))}
+    <ol className="qk-tiles" aria-hidden>
+      {answers.map((a, i) => {
+        const Icon = a ? optionIcon[a] : null;
+        return (
+          <li key={i} className="qk-tile" data-a={a ?? undefined} data-current={i === current || undefined}>
+            {Icon ? <Icon className="size-3.5" strokeWidth={3} /> : <span>{i + 1}</span>}
+          </li>
+        );
+      })}
     </ol>
   );
 }
 
-type Stage = "intro" | "questions" | "result";
+/** Counts up to `to` once mounted (instantly with reduced motion). */
+function useCountUp(to: number, run: boolean) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!run) return;
+    // With reduced motion the first frame already lands on the final number
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0;
+    const start = performance.now() + (reduce ? 0 : 350);
+    const step = (now: number) => {
+      const t = reduce ? 1 : Math.min(1, Math.max(0, (now - start) / 1100));
+      setN(Math.round(to * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to, run]);
+  return n;
+}
 
 /**
- * A short self-check: a start screen, then one question at a time (each answered question slides
- * away and the next comes in), then a result dial with a link that carries the answers to the contact form.
+ * A short self-check as a deck of cards. The start card sits on a stack; each question is the top
+ * card, and answering flings it away (yes to the right with an orange glow, no to the left,
+ * "don't know" drops it) while the next card rises. Eight tiles track the answers. At the end the
+ * last card flips to the result: a ring that fills segment by segment while the score counts up,
+ * and a link that carries the answers to the contact form. Keys: Y / N / D, Backspace goes back.
+ * Styles: .qk-* in globals.css.
  */
 export function QuickCheck() {
   const [stage, setStage] = useState<Stage>("intro");
   const [answers, setAnswers] = useState<(Answer | null)[]>(() => Array(total).fill(null));
   const [index, setIndex] = useState(0);
-  const [leaving, setLeaving] = useState(false);
+  const [fling, setFling] = useState<Answer | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const moved = useRef(false); // skip moving focus on the first render
 
@@ -141,6 +100,7 @@ export function QuickCheck() {
   const no = answers.filter((a) => a === "n").length;
   const unsure = answers.filter((a) => a === "d").length;
   const level = [...quickCheckLevels].reverse().find((l) => yes >= l.min)!;
+  const shown = useCountUp(yes, stage === "result");
 
   // Move focus to the new question or the result, so keyboard and screen reader users follow along
   useEffect(() => {
@@ -152,24 +112,37 @@ export function QuickCheck() {
   }, [stage, index]);
 
   const answer = (a: Answer) => {
-    if (leaving) return;
+    if (fling) return;
     setAnswers((prev) => prev.map((v, j) => (j === index ? a : v)));
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setLeaving(true);
+    setFling(a);
     window.setTimeout(
       () => {
-        setLeaving(false);
+        setFling(null);
         if (index + 1 < total) setIndex(index + 1);
         else setStage("result");
       },
-      reduce ? 0 : LEAVE_MS,
+      reduce ? 0 : FLING_MS,
     );
   };
-
+  const back = () => (index === 0 ? setStage("intro") : setIndex(index - 1));
   const restart = () => {
     setAnswers(Array(total).fill(null));
     setIndex(0);
     setStage("questions");
+  };
+
+  // Keyboard shortcuts while a question is showing
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (stage !== "questions" || e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === "y" || k === "n" || k === "d") {
+      e.preventDefault();
+      answer(k);
+    } else if (e.key === "Backspace") {
+      e.preventDefault();
+      back();
+    }
   };
 
   return (
@@ -186,143 +159,132 @@ export function QuickCheck() {
         <p className="mt-3 text-sm text-fg-subtle">&ldquo;Don&apos;t know&rdquo; counts as no. In an emergency it comes to the same thing.</p>
       </div>
 
-      <div className="card relative overflow-hidden p-6 sm:p-8 lg:min-h-[27rem]">
-        <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-30" />
-
-        {stage === "intro" && (
-          <div className="relative flex flex-col items-center gap-6 text-center motion-safe:animate-[qc-in_0.4s_var(--ease-out-soft)_both] sm:flex-row sm:text-left lg:h-full lg:min-h-[23rem]">
-            <Dial answers={answers} />
-            <div>
-              <p className="flex items-center justify-center gap-2 font-mono text-sm uppercase tracking-[0.14em] text-brand-200 sm:justify-start">
-                <span aria-hidden className="size-2 rounded-full bg-brand-400 motion-safe:animate-[pulse-soft_1.6s_ease-in-out_infinite]" />
-                Standing by
-              </p>
-              <p className="mt-3 text-[0.9375rem] leading-relaxed text-fg-muted">
-                {total} questions about updates, backups, access and documentation. One at a time, about two minutes.
-              </p>
-              <button type="button" onClick={() => setStage("questions")} className="btn btn-primary mt-6">
-                Get started <ArrowRight aria-hidden className="size-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {stage === "questions" && (
-          <div className="relative flex flex-col lg:min-h-[23rem]">
-            <div className="flex items-center justify-between gap-4 font-mono text-xs uppercase tracking-[0.16em] text-fg-subtle">
-              <span>
-                Question <span className="text-brand-300">{pad(index + 1)}</span> / {pad(total)}
-              </span>
-              <span>{Math.round((index / total) * 100)}% done</span>
-            </div>
-            <div className="mt-4">
-              <Strip answers={answers} current={index} />
-            </div>
-
-            <fieldset
-              key={index}
-              className={cn(
-                "mt-10 flex-1",
-                leaving
-                  ? "motion-safe:animate-[qc-out_0.26s_ease-in_both]"
-                  : "motion-safe:animate-[qc-in_0.4s_var(--ease-out-soft)_both]",
-              )}
-            >
-              <legend className="sr-only">
-                Question {index + 1} of {total}
-              </legend>
-              <h3 ref={heading} tabIndex={-1} className="text-2xl font-semibold leading-snug outline-none sm:text-[1.75rem]">
-                {quickCheckQuestions[index]}
-              </h3>
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {options.map((a) => (
-                  <button
-                    key={a}
-                    type="button"
-                    onClick={() => answer(a)}
-                    aria-pressed={answers[index] === a}
-                    className={cn(
-                      "min-h-14 rounded-xl border px-4 text-base font-semibold transition-colors",
-                      answers[index] === a
-                        ? "border-brand-400 bg-brand-400 text-on-brand"
-                        : "border-line-strong bg-ink-900/60 text-fg hover:border-brand-400 hover:bg-ink-800",
-                    )}
-                  >
-                    {answerLabels[a]}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <div className="mt-8 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => (index === 0 ? setStage("intro") : setIndex(index - 1))}
-                className="inline-flex items-center gap-2 text-sm font-medium text-fg-muted hover:text-fg"
-              >
-                <ArrowLeft aria-hidden className="size-4" /> Back
-              </button>
-              <span className="font-mono text-xs text-fg-subtle">
-                {yes} yes · {no + unsure} no
-              </span>
-            </div>
-          </div>
-        )}
-
-        {stage === "result" && (
-          <div className="relative motion-safe:animate-[qc-in_0.5s_var(--ease-out-soft)_both]" aria-live="polite">
-            <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-              <Dial answers={answers} />
-              <div className="w-full min-w-0">
-                <p className="font-mono text-xs uppercase tracking-[0.18em] text-fg-subtle">Result</p>
-                <h3
-                  ref={heading}
-                  tabIndex={-1}
-                  className="mt-1.5 flex items-center gap-2 font-mono text-sm uppercase tracking-[0.14em] text-brand-200 outline-none"
-                >
-                  <span aria-hidden className="size-2 rounded-full bg-brand-400" />
-                  {level.title}
-                </h3>
-                <p className="mt-3 text-sm text-fg-muted">
-                  {yes} of {total} answered with yes
+      <div className="qk" onKeyDown={onKeyDown}>
+        <div className="qk-stage" data-stage={stage}>
+          {stage === "intro" && (
+            <>
+              <Deck count={3} />
+              <div className="qk-card qk-intro" data-enter="rise">
+                <span className="hs-gloss qk-intro-tile" data-tone="brand" aria-hidden>
+                  <Gauge className="size-[46%]" strokeWidth={1.8} />
+                </span>
+                <p className="eyebrow mt-6">Ready when you are</p>
+                <p className="mt-3 max-w-sm text-[0.9375rem] leading-relaxed text-fg-muted">
+                  {total} questions about updates, backups, access and documentation. One card at a time.
                 </p>
-                <div className="mt-4">
-                  <Strip answers={answers} />
+                <button type="button" onClick={() => setStage("questions")} className="btn btn-primary mt-7">
+                  Get started <ArrowRight aria-hidden className="size-4" />
+                </button>
+              </div>
+            </>
+          )}
+
+          {stage === "questions" && (
+            <>
+              <Deck count={total - index - 1} />
+              <fieldset key={index} className="qk-card qk-q" data-enter="rise" data-fling={fling ?? undefined}>
+                <legend className="sr-only">
+                  Question {index + 1} of {total}
+                </legend>
+                <div className="flex items-center justify-between gap-3 text-sm text-fg-subtle">
+                  <span className="qk-num">
+                    {index + 1}
+                    <span>/{total}</span>
+                  </span>
+                  <button type="button" onClick={back} className="qk-back-btn">
+                    <ArrowLeft aria-hidden className="size-4" /> Back
+                  </button>
+                </div>
+                <h3 ref={heading} tabIndex={-1} className="qk-question outline-none">
+                  {quickCheckQuestions[index]}
+                </h3>
+                <div className="qk-answers">
+                  {options.map((a) => {
+                    const Icon = optionIcon[a];
+                    return (
+                      <button
+                        key={a}
+                        type="button"
+                        onClick={() => answer(a)}
+                        aria-pressed={answers[index] === a}
+                        aria-keyshortcuts={a.toUpperCase()}
+                        className="qk-answer"
+                        data-a={a}
+                      >
+                        <Icon aria-hidden className="size-4" strokeWidth={2.6} />
+                        {answerLabels[a]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            </>
+          )}
+
+          {stage === "result" && (
+            <div className="qk-card qk-result" data-enter="flip" aria-live="polite">
+              <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
+                <div className="qk-ring">
+                  <svg viewBox="0 0 200 200" aria-hidden>
+                    {answers.map((a, i) => (
+                      <path key={`t${i}`} d={arc(78, i * SEG + GAP / 2, (i + 1) * SEG - GAP / 2)} className="qk-ring-track" />
+                    ))}
+                    {answers.map((a, i) => (
+                      <path
+                        key={i}
+                        d={arc(78, i * SEG + GAP / 2, (i + 1) * SEG - GAP / 2)}
+                        pathLength={1}
+                        className="qk-ring-seg"
+                        data-a={a ?? undefined}
+                        style={{ "--i": i } as CSSProperties}
+                      />
+                    ))}
+                  </svg>
+                  <p className="qk-score">
+                    {shown}
+                    <span>/{total}</span>
+                  </p>
+                </div>
+                <div className="min-w-0 text-center sm:text-left">
+                  <p className="text-sm text-fg-subtle">Your result</p>
+                  <h3 ref={heading} tabIndex={-1} className="mt-1 text-2xl font-semibold outline-none">
+                    {level.title}
+                  </h3>
+                  <dl className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
+                    {(
+                      [
+                        ["Yes", yes, "y"],
+                        ["No", no, "n"],
+                        ["Don't know", unsure, "d"],
+                      ] as const
+                    ).map(([k, v, a]) => (
+                      <div key={k} className="qk-legend" data-a={a}>
+                        <dt>{k}</dt>
+                        <dd>{v}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 </div>
               </div>
+              <p className="mt-6 text-[0.9375rem] leading-relaxed text-fg-muted">{level.body}</p>
+              <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Link href={`/contact?${quickCheckParam}=${answers.join("")}#start-project`} className="btn btn-primary">
+                  Add the result to your request <ArrowRight aria-hidden className="size-4" />
+                </Link>
+                <button type="button" onClick={restart} className="qk-back-btn justify-center">
+                  <RotateCcw aria-hidden className="size-4" /> Start again
+                </button>
+              </div>
             </div>
+          )}
+        </div>
 
-            <dl className="mt-6 flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs text-fg-subtle">
-              {(
-                [
-                  ["Yes", yes, "bg-brand-400"],
-                  ["No", no, "bg-fg-subtle/45"],
-                  ["Don't know", unsure, "bg-human-accent/55"],
-                ] as const
-              ).map(([k, v, dot]) => (
-                <div key={k} className="flex items-center gap-1.5">
-                  <span aria-hidden className={cn("size-2 rounded-full", dot)} />
-                  <dt>{k}</dt>
-                  <dd className="text-fg">{v}</dd>
-                </div>
-              ))}
-            </dl>
-
-            <p className="mt-6 text-[0.9375rem] leading-relaxed text-fg-muted">{level.body}</p>
-            <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link href={`/contact?${quickCheckParam}=${answers.join("")}#start-project`} className="btn btn-primary">
-                Add the result to your request <ArrowRight aria-hidden className="size-4" />
-              </Link>
-              <button
-                type="button"
-                onClick={restart}
-                className="inline-flex items-center justify-center gap-2 text-sm font-medium text-fg-muted hover:text-fg"
-              >
-                <RotateCcw aria-hidden className="size-4" /> Start again
-              </button>
-            </div>
-          </div>
-        )}
+        <div className={cn("qk-progress", stage === "intro" && "opacity-60")}>
+          <Tiles answers={answers} current={stage === "questions" ? index : undefined} />
+          <span className="text-sm text-fg-subtle">
+            {stage === "result" ? `${yes} of ${total} yes` : stage === "questions" ? "Y · N · D to answer" : `${total} questions`}
+          </span>
+        </div>
       </div>
     </div>
   );
