@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 import { HeroScene } from "@/components/hero/hero-scene";
-import { EventHorizon } from "@/components/hero/event-horizon";
 import { ScrollRocket } from "@/components/hero/scroll-rocket";
 import { HeroShowcase } from "@/components/hero/hero-showcase";
 import { DeliveryModel } from "@/components/sections/delivery-model";
@@ -49,9 +48,9 @@ export default function HomePage() {
             title="From idea to tested code, with a person at every step"
             align="center"
           />
-          {/* Glowing horizon, as wide as the editor, which rests on its edge */}
-          <EventHorizon className="relative -mt-6" />
-          <div className="relative -mt-50">
+          {/* The demo window on a soft brand glow */}
+          <div className="relative mt-12">
+            <div aria-hidden className="hsx-glow" />
             <HeroScene />
           </div>
         </div>

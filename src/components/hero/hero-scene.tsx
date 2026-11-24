@@ -1,18 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Check,
-  ChevronDown,
-  FileCode2,
-  FileText,
-  FlaskConical,
-  GitBranch,
-  Pause,
-  Play,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
+import { Check, FileCode2, FlaskConical, Lightbulb, Pause, Play, Sparkles, UserCheck, UserRound } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 /* ------------------------------------------------------------------
@@ -257,7 +246,6 @@ export function HeroScene() {
   // Derive the whole scene from t.
   const stage = stageAt(t);
   const briefChars = Math.max(0, Math.floor((t - T.briefStart) / 24));
-  const briefLines = sliceLines(BRIEF, briefChars);
   const showPrompt = t >= T.promptAt;
   const thinking = t >= T.promptAt + 250 && t < T.streamStart;
   const aiWordCount = t < T.streamStart ? 0 : Math.min(AI_WORDS.length, Math.floor((t - T.streamStart) / 55) + 1);
@@ -266,275 +254,184 @@ export function HeroScene() {
   const activeTab = t < T.codeStart ? "brief" : "code";
   const inReview = t >= T.reviewStart && t < T.approvedAt;
   const approved = t >= T.approvedAt;
-  const testCmdChars = Math.max(0, Math.floor((t - T.testStart) / 45));
   const testLinesShown = t < T.testCmdEnd ? 0 : Math.min(TEST_LINES.length + 1, Math.floor((t - T.testCmdEnd) / 450) + 1);
   const done = t >= T.doneAt;
 
   const status = done
-    ? "Reviewed · tested · ready to deploy"
+    ? "Reviewed, tested, ready to ship"
     : stage === 3
-      ? "Running test suite…"
+      ? "Running tests…"
       : stage === 2
-        ? "In human review"
+        ? approved ? "Approved by an engineer" : "In human review"
         : stage === 1
-          ? activeTab === "code" ? "AI drafting in triage.ts…" : "AI assistant working…"
+          ? activeTab === "code" ? "AI drafting triage.ts…" : "AI reading the brief…"
           : "Engineer writing the brief";
 
+  // The brief as plain text, typed into the engineer's message (skipping the heading line)
+  const briefText = BRIEF.slice(2).map((l) => l.map(([, x]) => x).join("")).join(" ");
+  const headChars = lineLength(BRIEF[0]) + 2;
+  const briefShown = briefText.slice(0, Math.max(0, briefChars - headChars));
+  const stepIcons = [Lightbulb, Sparkles, UserCheck, FlaskConical];
+  const stepTones = ["human", "brand", "human", "data"] as const;
+
   return (
-    <div ref={rootRef} className="relative flex flex-col">
-      {/* Stage tracker — first in the DOM for screen readers, shown below the editor */}
-      <ol className="order-last mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="How a feature moves through our workflow">
-        {STAGES.map((s, i) => {
+    <div ref={rootRef} className="hsx relative flex flex-col">
+      {/* Steps: first in the DOM for screen readers, shown under the window */}
+      <ol className="hsx-steps order-last" aria-label="How a feature moves through our workflow">
+        {STAGES.map((st, i) => {
           const state = done || i < stage ? "done" : i === stage ? "current" : "next";
+          const Icon = stepIcons[i];
           return (
-            <li
-              key={s.label}
-              aria-current={state === "current" ? "step" : undefined}
-              className={cn(
-                "flex items-center gap-2.5 rounded-xl border px-3 py-2 transition-colors duration-500",
-                state === "current" && "border-brand-500/50 bg-brand-500/[0.08]",
-                state === "done" && "border-line-strong bg-ink-850",
-                state === "next" && "border-line bg-ink-900/40",
-              )}
-            >
-              <span
-                aria-hidden
-                className={cn(
-                  "grid size-6 shrink-0 place-items-center rounded-full font-mono text-[10px] font-semibold",
-                  state === "done" && "bg-brand-400 text-on-brand",
-                  state === "current" && "bg-ink-950 text-brand-300 ring-1 ring-brand-400",
-                  state === "next" && "bg-ink-800 text-fg-subtle",
-                )}
-              >
-                {state === "done" ? <Check className="size-3.5" strokeWidth={3} /> : `0${i + 1}`}
+            <li key={st.label} className="hsx-step" data-state={state} aria-current={state === "current" ? "step" : undefined}>
+              <span className="hsx-step-icon hs-gloss" data-tone={stepTones[i]} aria-hidden>
+                {state === "done" ? <Check className="size-[50%]" strokeWidth={3} /> : <Icon className="size-[50%]" strokeWidth={1.8} />}
               </span>
               <span className="min-w-0">
-                <span className={cn("block truncate text-[12.5px] font-semibold sm:text-[13px]", state === "next" ? "text-fg-muted" : "text-fg")}>
-                  <span className="sm:hidden">{s.short}</span>
-                  <span className="hidden sm:inline">{s.label}</span>
+                <span className="block truncate text-sm font-semibold">
+                  <span className="sm:hidden">{st.short}</span>
+                  <span className="hidden sm:inline">{st.label}</span>
                 </span>
-                <span className="hidden truncate text-[11px] text-fg-subtle md:block">{s.detail}</span>
+                <span className="hidden truncate text-xs text-fg-subtle md:block">{st.detail}</span>
               </span>
             </li>
           );
         })}
       </ol>
 
-      {/* Editor window — decorative, described for assistive tech by the stage tracker */}
-      <div
-        className="relative overflow-hidden rounded-2xl border border-line-strong bg-code-bg/45 shadow-[0_40px_120px_-40px_rgba(255,112,14,0.28)] backdrop-blur-2xl backdrop-saturate-150 [[data-theme=light]_&]:bg-code-bg/70"
-      >
-        {/* Title bar */}
-        <div className="flex h-9 items-center gap-3 border-b border-line bg-ink-950/15 px-3">
+      {/* The window. Decorative: the steps above describe it for assistive tech; only the pause button is interactive */}
+      <div className="hsx-window">
+        <div className="hsx-bar">
           <span aria-hidden className="flex gap-1.5">
-            <span className="size-2.5 rounded-full bg-line-strong" />
-            <span className="size-2.5 rounded-full bg-line-strong" />
-            <span className="size-2.5 rounded-full bg-line-strong" />
+            <span className="hsx-dot" />
+            <span className="hsx-dot" />
+            <span className="hsx-dot" />
           </span>
-          <span aria-hidden className="flex-1 truncate text-center font-mono text-[11px] text-fg-subtle">
-            support-triage — simulated workflow
-          </span>
-          {!reducedMotion && (
-            <button
-              type="button"
-              onClick={() => setPaused((p) => !p)}
-              className="grid size-6 place-items-center rounded-md text-fg-subtle transition-colors hover:bg-ink-700 hover:text-fg"
-            >
-              <span className="sr-only">{paused ? "Play animation" : "Pause animation"}</span>
-              {paused ? <Play aria-hidden className="size-3.5" /> : <Pause aria-hidden className="size-3.5" />}
-            </button>
-          )}
-        </div>
-
-        <div aria-hidden className="flex">
-          {/* Explorer */}
-          <div className="hidden w-44 shrink-0 border-r border-line bg-ink-950/25 py-3 lg:block">
-            <p className="px-4 text-xs font-semibold text-fg-subtle">Explorer</p>
-            <div className="mt-2 px-2 font-mono text-[11.5px] leading-6 text-fg-muted">
-              <p className="flex items-center gap-1 px-2">
-                <ChevronDown className="size-3" /> support-triage
-              </p>
-              <p className="flex items-center gap-1 pl-5">
-                <ChevronDown className="size-3" /> src
-              </p>
-              {[
-                { name: "triage.ts", icon: FileCode2, active: activeTab === "code", badge: codeChars > 0 ? "M" : null },
-                { name: "triage.test.ts", icon: FlaskConical, active: false, badge: null },
-                { name: "lib.ts", icon: FileCode2, active: false, badge: null },
-              ].map((f) => (
-                <p
-                  key={f.name}
-                  className={cn("flex items-center gap-1.5 rounded pl-9 pr-2", f.active && "bg-ink-700/70 text-fg")}
-                >
-                  <f.icon className="size-3 text-data-accent" />
-                  <span className="flex-1">{f.name}</span>
-                  {f.badge && <span className="text-[10px] text-human-accent">{f.badge}</span>}
-                </p>
-              ))}
-              <p className={cn("flex items-center gap-1.5 rounded pl-5 pr-2", activeTab === "brief" && "bg-ink-700/70 text-fg")}>
-                <FileText className="size-3 text-brand-400" /> BRIEF.md
-              </p>
-            </div>
-          </div>
-
-          {/* Editor + terminal */}
-          <div className="min-w-0 flex-1">
-            {/* Tabs */}
-            <div className="flex h-8 items-end gap-px overflow-hidden border-b border-line bg-ink-950/20 px-1 font-mono text-[11px]">
-              {[
-                { id: "brief", label: "BRIEF.md", icon: FileText },
-                { id: "code", label: "triage.ts", icon: FileCode2 },
-                { id: "test", label: "triage.test.ts", icon: FlaskConical },
-              ].map((tab) => (
-                <span
-                  key={tab.id}
-                  className={cn(
-                    "flex h-7 items-center gap-1.5 rounded-t-md border-x border-t px-3 transition-colors duration-300",
-                    activeTab === tab.id
-                      ? "border-line bg-code-bg text-fg"
-                      : "border-transparent text-fg-subtle",
-                    tab.id === "test" && "hidden sm:flex",
-                  )}
-                >
-                  <tab.icon className="size-3" />
-                  {tab.label}
-                </span>
-              ))}
-            </div>
-
-            {/* Code area — fixed height avoids layout shift */}
-            <div className="relative h-[318px] overflow-hidden py-3 sm:h-[346px]">
-              {activeTab === "brief" ? (
-                <div>
-                  <span className="mb-1 ml-9 inline-flex items-center gap-1.5 rounded-md bg-human-accent/10 px-2 py-0.5 font-sans text-[10.5px] font-medium text-human-accent sm:ml-12">
-                    <UserRound className="size-3" /> Engineer is typing
-                  </span>
-                  <CodeLines lines={briefLines} totalLines={BRIEF.length} caret caretTone="human" />
-                </div>
-              ) : (
-                <CodeLines
-                  lines={codeLines}
-                  totalLines={CODE.length}
-                  caret={t < T.codeEnd + 300}
-                  highlight={t >= T.reviewStart ? REVIEW_LINES : undefined}
-                  highlightTone={approved ? "approved" : "review"}
-                />
-              )}
-
-              {/* Review comment */}
-              {t >= T.reviewStart && (
-                <div
-                  className={cn(
-                    "animate-fade-up absolute inset-x-2 bottom-2 flex items-center gap-2.5 rounded-xl border bg-ink-850/95 px-3 py-2 sm:inset-x-3",
-                    approved ? "border-brand-500/40" : "border-human-accent/40",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "grid size-6 shrink-0 place-items-center rounded-full",
-                      approved ? "bg-brand-400/15 text-brand-300" : "bg-human-accent/15 text-human-accent",
-                    )}
-                  >
-                    {approved ? <Check className="size-3.5" strokeWidth={3} /> : <UserRound className="size-3.5" />}
-                  </span>
-                  <p className="min-w-0 text-[11px] leading-snug text-fg-muted">
-                    <span className="font-semibold text-fg">{approved ? "Approved by engineer · " : "Engineer review · "}</span>
-                    {inReview
-                      ? "Checking the fallback: low-confidence tickets must reach a person…"
-                      : "Threshold matches what the support team agreed. Approved for testing."}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile AI strip */}
-            <div className="flex min-h-14 items-start gap-2 border-t border-line bg-ink-950/50 px-3 py-2.5 md:hidden">
-              <Sparkles className="mt-0.5 size-3.5 shrink-0 text-brand-400" />
-              <p className="line-clamp-2 text-[11px] leading-snug text-fg-muted">
-                {aiWordCount > 0 ? AI_WORDS.slice(0, aiWordCount).join(" ") : showPrompt ? "Thinking…" : "AI assistant waiting for the brief"}
-              </p>
-            </div>
-
-            {/* Terminal */}
-            <div className="h-[118px] border-t border-line bg-ink-950/70 px-3 py-2 font-mono text-[10.5px] leading-[17px] sm:h-[132px] sm:text-[11.5px] sm:leading-[19px]">
-              <p className="mb-1 text-[10px] uppercase tracking-wider text-fg-subtle">Terminal</p>
-              {t >= T.testStart && (
-                <p className="text-fg">
-                  {TEST_CMD.slice(0, testCmdChars)}
-                  {t < T.testCmdEnd && <Caret />}
-                </p>
-              )}
-              {TEST_LINES.slice(0, testLinesShown).map((line) => (
-                <p key={line} className="animate-fade-up text-brand-300">
-                  {line}
-                </p>
-              ))}
-              {testLinesShown > TEST_LINES.length && (
-                <p className="animate-fade-up font-semibold text-fg">
-                  Tests <span className="text-brand-400">3 passed</span> <span className="text-fg-subtle">(3)</span>
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* AI assistant panel */}
-          <div className="hidden w-[248px] shrink-0 flex-col border-l border-line bg-ink-950/20 md:flex xl:w-[288px]">
-            <p className="flex h-8 items-center gap-1.5 border-b border-line px-3 text-xs font-semibold text-fg-subtle">
-              <Sparkles className="size-3 text-brand-400" /> AI assistant
-            </p>
-            <div className="flex-1 space-y-3 p-3 text-[12px] leading-relaxed">
-              {showPrompt && (
-                <div className="animate-fade-up ml-6 rounded-xl rounded-tr-sm border border-human-accent/25 bg-human-accent/[0.06] px-3 py-2">
-                  <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-human-accent">Engineer</p>
-                  <p className="text-fg">{PROMPT}</p>
-                </div>
-              )}
-              {thinking && (
-                <p className="flex items-center gap-1.5 text-fg-subtle">
-                  <span className="size-1.5 animate-pulse-soft rounded-full bg-brand-400" />
-                  Reading BRIEF.md…
-                </p>
-              )}
-              {aiWordCount > 0 && (
-                <div className="rounded-xl rounded-tl-sm border border-brand-500/25 bg-brand-500/[0.06] px-3 py-2">
-                  <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-300">AI draft</p>
-                  <p className="text-fg-muted">
-                    {AI_WORDS.slice(0, aiWordCount).join(" ")}
-                    {aiWordCount < AI_WORDS.length && <Caret />}
-                  </p>
-                </div>
-              )}
-              {t >= T.codeEnd && (
-                <p className="animate-fade-up flex items-start gap-1.5 rounded-lg border border-line px-2.5 py-2 text-[11px] text-fg-muted">
-                  <UserRound className="mt-0.5 size-3 shrink-0 text-human-accent" />
-                  Draft added to triage.ts. Waiting for engineer review before tests run.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Status bar */}
-        <div
-          aria-hidden
-          className={cn(
-            "flex h-7 items-center gap-3 border-t px-3 font-mono text-[10.5px] transition-colors duration-500",
-            done ? "border-brand-500/40 bg-brand-500/15 text-brand-200" : "border-line bg-ink-950 text-fg-subtle",
-          )}
-        >
-          <span className="flex items-center gap-1">
-            <GitBranch className="size-3" /> feature/triage
-          </span>
-          <span className="ml-auto flex items-center gap-1.5 truncate">
-            {done && <Check className="size-3" strokeWidth={3} />}
+          <span aria-hidden className="hsx-status" data-done={done || undefined}>
             {status}
           </span>
+          <button type="button" onClick={() => setPaused((p) => !p)} className="hsx-pause">
+            <span className="sr-only">{paused ? "Play animation" : "Pause animation"}</span>
+            {paused ? <Play aria-hidden className="size-3.5" /> : <Pause aria-hidden className="size-3.5" />}
+          </button>
+        </div>
+
+        <div aria-hidden className="hsx-body">
+          {/* Code card */}
+          <div className="hsx-code">
+            <div className="hsx-code-head">
+              <span className="hsx-file">
+                <FileCode2 className="size-3.5" /> triage.ts
+              </span>
+              {stage >= 1 && activeTab === "code" && !approved && (
+                <span className="hsx-badge" data-tone={inReview ? "human" : "brand"}>
+                  {inReview ? <UserCheck className="size-3" /> : <Sparkles className="size-3" />}
+                  {inReview ? "Engineer reviewing" : "AI draft"}
+                </span>
+              )}
+              {approved && (
+                <span className="hsx-badge sm:hidden" data-tone="success">
+                  <Check className="size-3" strokeWidth={3} /> Approved
+                </span>
+              )}
+            </div>
+            {activeTab === "brief" ? (
+              <div className="hsx-skeleton">
+                {[72, 46, 88, 60, 80, 40, 66].map((w, i) => (
+                  <span key={i} style={{ width: `${w}%` }} />
+                ))}
+                <p>The AI starts drafting once the brief is in.</p>
+              </div>
+            ) : (
+              <CodeLines
+                lines={codeLines}
+                totalLines={CODE.length}
+                caret={t < T.codeEnd}
+                highlight={inReview || approved ? REVIEW_LINES : undefined}
+                highlightTone={approved ? "approved" : "review"}
+              />
+            )}
+            {approved && (
+              <span className="hsx-stamp">
+                <Check className="size-4" strokeWidth={3} /> Approved
+              </span>
+            )}
+
+            {/* Checks, in place of a terminal */}
+            <ul className="hsx-checks">
+              {TEST_LINES.map((line, i) => {
+                const ok = testLinesShown > i + 1 || done;
+                const running = stage === 3 && !ok;
+                return (
+                  <li key={line} data-state={ok ? "ok" : running ? "run" : "wait"}>
+                    <span className="hsx-check-icon">{ok ? <Check className="size-3" strokeWidth={3.5} /> : null}</span>
+                    {line.replace("✓ ", "")}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Chat */}
+          <div className="hsx-chat">
+            {briefChars > 0 && (
+              <div className="hsx-msg" data-who="human">
+                <span className="hsx-who">
+                  <span className="hsx-avatar" data-tone="human">
+                    <UserRound className="size-3.5" />
+                  </span>
+                  Engineer
+                </span>
+                <p>
+                  {briefShown || "Brief: support triage"}
+                  {!showPrompt && <Caret tone="human" />}
+                </p>
+                {showPrompt && <span className="hsx-chip">{PROMPT}</span>}
+              </div>
+            )}
+            {(thinking || aiWordCount > 0) && (
+              <div className="hsx-msg" data-who="ai">
+                <span className="hsx-who">
+                  <span className="hsx-avatar" data-tone="brand">
+                    <Sparkles className="size-3.5" />
+                  </span>
+                  AI assistant
+                </span>
+                {thinking ? (
+                  <span className="hsx-typing">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                ) : (
+                  <p>{AI_WORDS.slice(0, aiWordCount).join(" ")}</p>
+                )}
+              </div>
+            )}
+            {t >= T.reviewStart && (
+              <div className="hsx-msg" data-who="human">
+                <span className="hsx-who">
+                  <span className="hsx-avatar" data-tone="human">
+                    <UserCheck className="size-3.5" />
+                  </span>
+                  Reviewer
+                </span>
+                <p>{approved ? "The fallback for unsure tickets is right. Approved." : "Checking the fallback for unsure tickets…"}</p>
+              </div>
+            )}
+            {t >= T.testStart && (
+              <div className="hsx-msg" data-who="tests">
+                <span className="hsx-who">
+                  <span className="hsx-avatar" data-tone="data">
+                    <FlaskConical className="size-3.5" />
+                  </span>
+                  Tests
+                </span>
+                <p>{done ? `${TEST_LINES.length} passed. Ready to ship.` : "Running the test suite…"}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      <p className="order-last mt-3 text-center text-xs text-fg-subtle">
-        Illustrative animation. In real projects, every AI-assisted change is reviewed and tested by our engineers.
-      </p>
     </div>
   );
 }

@@ -5243,3 +5243,127 @@ html[data-immersive] [data-site-header] { transform: translateY(-110%); }
 }
 @keyframes mm-in { from { opacity: 0; translate: 0 -8px; scale: 0.97; } }
 @keyframes mm-row { from { opacity: 0; translate: -10px 0; } }
+
+/* Home "See it in action" demo (hero/hero-scene.tsx): a soft app window with a code card, a
+   checks strip and a chat, plus a row of step cards. Driven by the scene's own timeline. */
+@layer components {
+  .hsx-glow {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    width: min(70rem, 120%);
+    height: 36rem;
+    translate: -50% -50%;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--color-brand-500) 18%, transparent), transparent);
+  }
+  [data-theme="light"] .hsx-glow { background: radial-gradient(closest-side, color-mix(in oklab, var(--color-brand-400) 8%, transparent), transparent); }
+
+  .hsx-window {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid var(--color-line);
+    background: color-mix(in oklab, var(--color-ink-850) 94%, transparent);
+    backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 50px 100px -40px rgb(0 0 0 / 0.9);
+  }
+  [data-theme="light"] .hsx-window { box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 50px 100px -40px rgb(15 23 42 / 0.3); }
+  .hsx-bar { display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-line); }
+  .hsx-dot { width: 0.65rem; height: 0.65rem; border-radius: 999px; background: var(--color-line-strong); }
+  .hsx-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline: auto;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-fg-muted);
+    background: color-mix(in oklab, var(--color-fg) 6%, transparent);
+  }
+  .hsx-status::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 999px; background: var(--color-brand-400); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-brand-400) 25%, transparent); }
+  .hsx-status[data-done]::before { background: var(--color-success); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-success) 25%, transparent); }
+  .hsx-pause { display: grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 0.6rem; color: var(--color-fg-muted); cursor: pointer; }
+  .hsx-pause:hover { color: var(--color-fg); background: color-mix(in oklab, var(--color-fg) 7%, transparent); }
+
+  .hsx-body { display: grid; gap: 1rem; padding: 1rem; }
+  @media (min-width: 64rem) { .hsx-body { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); padding: 1.25rem; gap: 1.25rem; } }
+
+  /* Code card */
+  .hsx-code { position: relative; display: flex; flex-direction: column; border-radius: 1.1rem; border: 1px solid var(--color-line); background: var(--color-code-bg); overflow: hidden; }
+  .hsx-code-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--color-line); }
+  .hsx-file { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; font-weight: 600; color: var(--color-fg); }
+  .hsx-badge { --tone: var(--color-brand-400); display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: var(--tone); background: color-mix(in oklab, var(--tone) 14%, transparent); }
+  .hsx-badge[data-tone="human"] { --tone: var(--color-human-accent); }
+  .hsx-badge[data-tone="success"] { --tone: var(--color-success); }
+  /* Phones: the header badge says Approved; the stamp would cover the code */
+  @media (max-width: 39.99rem) { .hsx-code .hsx-stamp { display: none; } }
+  .hsx-code > ol { flex: 1; padding-block: 0.75rem; }
+  .hsx-skeleton { flex: 1; display: grid; align-content: start; gap: 0.7rem; padding: 1.1rem 1.25rem; min-height: 17.5rem; }
+  .hsx-skeleton > span { height: 0.55rem; border-radius: 999px; background: color-mix(in oklab, var(--color-fg) 8%, transparent); }
+  .hsx-skeleton > p { margin-top: 0.75rem; font-size: 0.875rem; color: var(--color-fg-subtle); }
+  .hsx-stamp {
+    position: absolute;
+    right: 1.25rem;
+    top: 3.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.7rem;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--color-success);
+    border: 2px solid var(--color-success);
+    background: color-mix(in oklab, var(--color-success) 12%, var(--color-ink-950));
+    box-shadow: 0 14px 28px -12px rgb(0 0 0 / 0.6);
+    rotate: -8deg;
+  }
+  .hsx-checks { display: grid; gap: 0.35rem; padding: 0.75rem 0.9rem 0.9rem; border-top: 1px solid var(--color-line); }
+  .hsx-checks > li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.875rem; color: var(--color-fg-subtle); transition: color 0.3s; }
+  .hsx-checks > li[data-state="ok"] { color: var(--color-fg); }
+  .hsx-check-icon { display: grid; place-items: center; flex-shrink: 0; width: 1.15rem; height: 1.15rem; border-radius: 999px; border: 2px solid var(--color-line-strong); color: var(--color-ink-950); transition: background-color 0.3s, border-color 0.3s; }
+  .hsx-checks > li[data-state="run"] .hsx-check-icon { border-color: var(--color-brand-400); border-right-color: transparent; }
+  .hsx-checks > li[data-state="ok"] .hsx-check-icon { border-color: var(--color-success); background: var(--color-success); }
+
+  /* Chat */
+  .hsx-chat { display: flex; flex-direction: column; gap: 0.7rem; min-height: 14rem; }
+  .hsx-msg { --tone: var(--color-human-accent); padding: 0.75rem 0.9rem; border-radius: 1rem 1rem 1rem 0.3rem; font-size: 0.9375rem; line-height: 1.5; color: var(--color-fg); border: 1px solid color-mix(in oklab, var(--tone) 28%, transparent); background: color-mix(in oklab, var(--tone) 9%, transparent); }
+  .hsx-msg[data-who="ai"] { --tone: var(--color-brand-400); }
+  .hsx-msg[data-who="tests"] { --tone: var(--color-success); }
+  .hsx-msg > p { margin-top: 0.35rem; }
+  .hsx-who { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 600; color: var(--tone); }
+  .hsx-avatar { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; color: white; background: var(--tone); }
+  .hsx-avatar[data-tone="human"] { background: linear-gradient(150deg, color-mix(in oklab, var(--color-human-accent) 80%, white), color-mix(in oklab, var(--color-human-accent) 70%, black)); }
+  .hsx-avatar[data-tone="brand"] { background: linear-gradient(150deg, var(--color-brand-300), var(--color-brand-500)); }
+  .hsx-avatar[data-tone="data"] { background: linear-gradient(150deg, color-mix(in oklab, var(--color-success) 80%, white), color-mix(in oklab, var(--color-success) 70%, black)); }
+  .hsx-chip { display: inline-block; margin-top: 0.55rem; padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: var(--tone); background: color-mix(in oklab, var(--tone) 14%, transparent); }
+  .hsx-typing { display: inline-flex; gap: 0.3rem; margin-top: 0.6rem; }
+  .hsx-typing > span { width: 0.45rem; height: 0.45rem; border-radius: 999px; background: var(--tone); }
+
+  /* Steps under the window */
+  .hsx-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin-top: 1rem; }
+  @media (min-width: 40rem) { .hsx-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .hsx-step { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.8rem; border-radius: 1rem; border: 1px solid var(--color-line); background: var(--color-ink-850); transition: border-color 0.4s, opacity 0.4s; }
+  .hsx-step-icon { width: 2.1rem; height: 2.1rem; rotate: -6deg; transition: filter 0.4s, opacity 0.4s; }
+  .hsx-step[data-state="next"] { opacity: 0.7; }
+  .hsx-step[data-state="next"] .hsx-step-icon { filter: grayscale(1); opacity: 0.5; }
+  .hsx-step[data-state="current"] { border-color: color-mix(in oklab, var(--color-brand-400) 50%, var(--color-line)); box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-brand-400) 14%, transparent); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hsx-msg { animation: hsx-msg 0.45s var(--spring) both; }
+    .hsx-stamp { animation: phw-stamp 0.75s cubic-bezier(0.3, 0.7, 0.2, 1) both; }
+    .hsx-typing > span { animation: hsx-dot 1s ease-in-out infinite; }
+    .hsx-typing > span:nth-child(2) { animation-delay: 0.15s; }
+    .hsx-typing > span:nth-child(3) { animation-delay: 0.3s; }
+    .hsx-checks > li[data-state="run"] .hsx-check-icon { animation: spin 0.8s linear infinite; }
+    .hsx-checks > li[data-state="ok"] .hsx-check-icon { animation: qk-pop 0.45s var(--spring); }
+    .hsx-skeleton > span { animation: pulse-soft 1.8s ease-in-out infinite; }
+    .hsx-step[data-state="current"] .hsx-step-icon { animation: aj-bob 2.4s ease-in-out infinite; }
+  }
+}
+@keyframes hsx-msg { from { opacity: 0; translate: 0 10px; scale: 0.97; } }
+@keyframes hsx-dot { 0%, 100% { opacity: 0.3; translate: 0 0; } 50% { opacity: 1; translate: 0 -3px; } }
