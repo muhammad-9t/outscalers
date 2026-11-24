@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
-import { Bot, UserRound } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Bot, UserRound } from "lucide-react";
+import { BookCallDialog } from "@/components/contact/book-call-dialog";
 
 /** Two overlapping avatars (a person and the AI) and a hand-drawn smiley, set inline in the headline */
 function TitleFaces() {
@@ -28,7 +30,7 @@ function TitleFaces() {
  * smiley that draws itself when the band scrolls into view (styles: .cta-* in globals.css).
  */
 export function CtaBand({
-  title = "Have an idea? Let's engineer what's next.",
+  title = "Have an idea? Let's build it faster.",
   lead = "Tell us what you want to build, automate or improve. We'll respond with honest next steps — including when AI isn't the right answer.",
 }: {
   title?: string;
@@ -41,7 +43,7 @@ export function CtaBand({
   return (
     <section aria-labelledby="cta-title" className="relative overflow-hidden bg-ink-950 py-20 sm:py-28">
       <div aria-hidden className="glow-brand pointer-events-none absolute -bottom-64 left-1/2 size-[44rem] -translate-x-1/2 opacity-50" />
-      <div data-reveal className="cta container-site relative mx-auto max-w-5xl text-center">
+      <div data-reveal suppressHydrationWarning className="cta container-site relative mx-auto max-w-5xl text-center">
         <p className="eyebrow mx-auto">Let&apos;s build something together</p>
         <h2 id="cta-title" className="cta-title mt-6 text-display-xl font-semibold">
           {first} <TitleFaces />
@@ -52,6 +54,12 @@ export function CtaBand({
           )}
         </h2>
         <p className="mx-auto mt-6 max-w-xl text-lead text-fg-muted">{lead}</p>
+        <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+          <BookCallDialog label="Book a free call" className="w-full justify-center sm:w-auto" />
+          <Link href="/contact" className="link-arrow">
+            or send us a message <ArrowRight aria-hidden className="size-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );

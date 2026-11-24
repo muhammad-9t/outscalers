@@ -49,7 +49,7 @@ export function CaseHero({ study, services }: { study: CaseStudy; services: Serv
         </div>
 
         <div className="csh-stage">
-          <div className="csh-product" data-reveal>
+          <div className="csh-product" data-reveal suppressHydrationWarning>
             {study.cover ? (
               <ProductLaptop image={study.cover} />
             ) : (
@@ -65,8 +65,8 @@ export function CaseHero({ study, services }: { study: CaseStudy; services: Serv
                 <Building2 aria-hidden className="size-4" />
               </span>
               <span className="min-w-0">
-                <dt className="text-xs text-fg-subtle">Client</dt>
-                <dd className="font-semibold">{study.client ?? "Confidential"}</dd>
+                <dt className="text-xs text-fg-subtle">Product</dt>
+                <dd className="font-semibold">{study.client ?? study.industry}</dd>
               </span>
             </div>
 
@@ -125,7 +125,7 @@ export function CaseHero({ study, services }: { study: CaseStudy; services: Serv
                 </span>
                 <span className="min-w-0">
                   <dt className="text-xs text-fg-subtle">Status</dt>
-                  <dd className="font-semibold">{study.status === "draft" ? "Pending client approval" : "Delivered"}</dd>
+                  <dd className="font-semibold">{study.status === "draft" ? "Pending client approval" : "Live"}</dd>
                 </span>
               </div>
             )}

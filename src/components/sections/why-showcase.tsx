@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   Sparkles,
   UserCheck,
-  Wrench,
 } from "lucide-react";
 
 /**
@@ -36,36 +35,22 @@ const reasons: { icon: LucideIcon; tag: string; title: string; body: string; ton
     icon: Sparkles,
     tag: "Speed",
     title: "AI-enhanced delivery",
-    body: "AI handles the repetitive work — scaffolding, drafts, test ideas — so engineering time goes where it matters.",
+    body: "AI handles the repetitive work, so engineering time goes where it matters.",
     tone: "brand",
-  },
-  {
-    icon: Wrench,
-    tag: "Fit",
-    title: "Tailored solutions",
-    body: "We start from your process and constraints, then choose the simplest technology that solves the problem.",
-    tone: "data",
   },
   {
     icon: ShieldCheck,
     tag: "Trust",
     title: "Security & quality practices",
-    body: "Code review, automated testing and security checks are part of every project, not optional extras.",
-    tone: "human",
-  },
-  {
-    icon: Layers3,
-    tag: "Growth",
-    title: "Scalable architecture",
-    body: "Systems designed to grow with you — with the cloud, data and performance foundations to support it.",
-    tone: "brand",
+    body: "Code review, automated testing and security checks on every project.",
+    tone: "data",
   },
   {
     icon: Handshake,
     tag: "Partnership",
     title: "Long-term partnership",
-    body: "Project delivery, team augmentation or ongoing support — we stay involved after launch.",
-    tone: "data",
+    body: "Dedicated developers, full projects or ongoing support. We stay involved after launch.",
+    tone: "human",
   },
 ];
 
@@ -80,7 +65,7 @@ const badges: { icon: LucideIcon; x: number; y: number; tone: Tone }[] = [
 ];
 
 const n = reasons.length;
-/** Signed distance of card i from the active one, wrapped to -3..2 */
+/** Signed distance of card i from the active one, wrapped around the ring */
 const offset = (i: number, active: number) => ((((i - active) % n) + n + Math.floor(n / 2)) % n) - Math.floor(n / 2);
 
 export function WhyShowcase() {
@@ -95,7 +80,7 @@ export function WhyShowcase() {
 
   return (
     <div
-      data-reveal
+      data-reveal suppressHydrationWarning
       className="why"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -138,7 +123,14 @@ export function WhyShowcase() {
                 className="why-card"
                 data-active={d === 0 ? "" : undefined}
                 data-tone={r.tone}
-                style={{ "--d": d, "--ad": Math.abs(d) } as CSSProperties}
+                // With an even count, the one card directly opposite stays hidden so the sides stay balanced
+                style={
+                  {
+                    "--d": d,
+                    "--ad": Math.abs(d),
+                    ...(n % 2 === 0 && d === -n / 2 ? { opacity: 0, pointerEvents: "none" } : {}),
+                  } as CSSProperties
+                }
               >
                 <button
                   type="button"

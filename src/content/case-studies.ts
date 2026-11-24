@@ -45,7 +45,11 @@ export type CaseImage = {
   cursor?: [number, number][];
 };
 
-export const caseStudies: CaseStudy[] = [
+/**
+ * Every profile, including drafts. Drafts are kept here but hidden from the site
+ * (no page, card or sitemap entry) until they are real and approved.
+ */
+const allCaseStudies: CaseStudy[] = [
   {
     slug: "nizamio-cloud-erp",
     title: "Nizamio: a cloud ERP that runs the whole business from one place",
@@ -538,6 +542,9 @@ export const caseStudies: CaseStudy[] = [
     status: "draft",
   },
 ];
+
+/** Only published profiles appear on the site. */
+export const caseStudies: CaseStudy[] = allCaseStudies.filter((c) => c.status === "published");
 
 export function getCaseStudy(slug: string) {
   return caseStudies.find((c) => c.slug === slug);

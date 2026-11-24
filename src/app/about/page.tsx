@@ -1,4 +1,4 @@
-import { ChevronRight, Compass, Globe2, MessagesSquare } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { pageMetadata, siteConfig } from "@/lib/site";
 import Link from "next/link";
 import { CtaBand } from "@/components/sections/cta-band";
@@ -6,11 +6,10 @@ import { OfficeNetwork } from "@/components/illustrations/office-network";
 import { AboutJourney } from "@/components/about/about-journey";
 import { EvolutionJourney } from "@/components/about/evolution-journey";
 import { evolution } from "@/content/evolution";
-import { TeamBadges } from "@/components/about/team-badges";
+import { TeamBadges, TeamGrid } from "@/components/about/team-badges";
 import { BeamSentence } from "@/components/about/beam-sentence";
-import { ValuesGrid } from "@/components/about/values-grid";
 import { OfficeCards } from "@/components/about/office-cards";
-import { getTeam } from "@/lib/team-store";
+import { team as teamMembers, teamStats } from "@/content/team";
 import { ButtonLink, Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -20,24 +19,6 @@ export const metadata = pageMetadata({
   path: "/about",
   keywords: ["About Outscalers", "IT outsourcing partner", "software engineering team", "remote-first"],
 });
-
-const howWeOperate = [
-  {
-    icon: Globe2,
-    title: "Remote-first",
-    body: "Distributed teams across Europe and Asia, working remotely by design.",
-  },
-  {
-    icon: MessagesSquare,
-    title: "English-speaking, nearshore teams",
-    body: "Clear communication and working hours that overlap with European and Asian clients.",
-  },
-  {
-    icon: Compass,
-    title: "Multidisciplinary",
-    body: "Software developers, QA engineers, designers and project managers in one team.",
-  },
-];
 
 export default async function AboutPage() {
   return (
@@ -68,9 +49,8 @@ export default async function AboutPage() {
               Built on engineering talent. <span className="text-gradient">Evolving with <em className="about-accent">AI</em>.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-3xl text-lead text-fg-muted">
-              Our journey began in 2017 with freelance software development. In {siteConfig.founded} it became Outscalers, founded in
-              Rawalpindi, Pakistan, to connect strong engineering talent from Germany and Pakistan with organisations around the world.
-              Today we combine that human expertise with AI to deliver better software, faster.
+              Freelance roots in 2017, Outscalers since {siteConfig.founded}. Today, 100+ in-house engineers in Pakistan, with
+              offices in Germany, Italy and Hong Kong.
             </p>
             <div className="mt-9 flex justify-center">
               <ButtonLink href="/contact" arrow>
@@ -79,16 +59,16 @@ export default async function AboutPage() {
             </div>
           </div>
 
-          <div data-reveal className="relative mt-16 lg:mt-20">
+          <div data-reveal suppressHydrationWarning className="relative mt-16 lg:mt-20">
             <AboutJourney variant="strip" />
           </div>
 
           {/* Quick facts */}
           <dl className="mx-auto mt-14 grid max-w-3xl grid-cols-3 divide-x divide-line border-y border-line text-center">
             {[
-              ["2017", "Building since"],
-              ["DE + PK", "Engineering teams"],
-              ["Human + AI", "On every project"],
+              ["2017", "Engineering since"],
+              ["100+", "In-house engineers"],
+              ["4 offices", "DE · IT · HK · PK"],
             ].map(([v, l]) => (
               <div key={l} className="px-3 py-4">
                 <dt className="sr-only">{l}</dt>
@@ -102,30 +82,6 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* Mission & vision */}
-      <Section labelledBy="mission-title">
-        <div className="container-site grid gap-5 md:grid-cols-2">
-          <Reveal className="card p-7 sm:p-10">
-            <p className="eyebrow">Mission</p>
-            <h2 id="mission-title" className="mt-4 text-display-md font-semibold">
-              Bridge talent and opportunity
-            </h2>
-            <p className="mt-4 text-[1.0625rem] leading-relaxed text-fg-muted">
-              We bring together experienced developers from Germany and Pakistan and connect them with companies
-              worldwide that need dependable software solutions.
-            </p>
-          </Reveal>
-          <Reveal delay={100} className="card p-7 sm:p-10">
-            <p className="eyebrow">Vision</p>
-            <h2 className="mt-4 text-display-md font-semibold">Partnerships that move businesses forward</h2>
-            <p className="mt-4 text-[1.0625rem] leading-relaxed text-fg-muted">
-              We build long-term partnerships that strengthen engineering capability and support growth and innovation
-              on a global scale.
-            </p>
-          </Reveal>
-        </div>
-      </Section>
-
       {/* Statement: slides past a beam of light as you scroll, lighting up letter by letter */}
       <BeamSentence text="We help ambitious businesses scale faster and smarter." />
 
@@ -135,20 +91,12 @@ export default async function AboutPage() {
           <SectionHeading
             id="evolution-title"
             eyebrow="Our evolution"
-            title="From freelancing to Human + AI engineering"
-            lead="The fundamentals haven't changed: skilled people, sound engineering and honest communication. What has changed is the scale of our teams, and how much faster good engineers can move with the right tools."
+            title="From freelancing to AI-accelerated engineering"
+            lead="Skilled people, sound engineering, honest communication. Only the scale and the tools have changed."
             className="mb-12 lg:mb-0"
           />
         </div>
         <EvolutionJourney steps={evolution} />
-      </Section>
-
-      {/* Values */}
-      <Section tone="raised" labelledBy="values-title">
-        <div className="container-site">
-          <SectionHeading id="values-title" eyebrow="Values" title="What guides our work" />
-          <ValuesGrid />
-        </div>
       </Section>
 
       {/* Locations and operating model */}
@@ -157,54 +105,46 @@ export default async function AboutPage() {
           <SectionHeading
             id="offices-title"
             eyebrow="Where we are"
-            title="One team across four countries"
+            title="Core team in Pakistan. Offices in Europe and Asia."
           />
-          <div className="mt-12 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-center">
-            <Reveal className="card p-4 sm:p-8">
-              <OfficeNetwork />
-            </Reveal>
-            <ul className="space-y-4">
-              {howWeOperate.map((h, i) => (
-                <Reveal as="li" key={h.title} delay={i * 80} className="op-item flex gap-4">
-                  <span className="hs-gloss op-tile" data-tone={(["human", "brand", "data"] as const)[i % 3]} aria-hidden>
-                    <h.icon className="size-[46%]" strokeWidth={1.8} />
-                  </span>
-                  <div>
-                    <h3 className="font-semibold">{h.title}</h3>
-                    <p className="mt-1 text-[0.9375rem] leading-relaxed text-fg-muted">{h.body}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </ul>
-          </div>
+          <Reveal className="card mt-12 p-4 sm:p-8">
+            <OfficeNetwork />
+          </Reveal>
           <OfficeCards />
         </div>
       </Section>
 
-      {/* Team: hanging ID badges that flip to a holographic profile */}
+      {/* Team: leadership badges hanging from a string, then the specialist teams */}
       <Section tone="raised" labelledBy="team-title" className="overflow-hidden">
         <div className="container-site">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
             <Reveal>
               <p className="eyebrow">Our people</p>
               <h2 id="team-title" className="mt-4 text-display-lg font-semibold">
-                Meet the people
+                One company.
                 <br />
-                <span className="text-gradient">behind the work.</span>
+                <span className="text-gradient">Many dedicated teams.</span>
               </h2>
+              <p className="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-fg-muted">
+                In-house engineers working as dedicated teams for companies worldwide.
+              </p>
             </Reveal>
-            <Reveal delay={80} className="max-w-xs">
-              <p className="text-[0.9375rem] leading-relaxed text-fg-muted">
-                Different minds, shared curiosity. Engineers, designers and testers who own what reaches production.
-              </p>
-              <p className="mt-3 flex items-center gap-2 text-sm font-medium text-fg-subtle">
-                <span aria-hidden className="size-1.5 rounded-full bg-brand-400" /> One team, DE + PK
-              </p>
+            <Reveal delay={80}>
+              <dl className="flex gap-8 sm:gap-10">
+                {teamStats.map((s) => (
+                  <div key={s.label} className="flex flex-col-reverse">
+                    <dt className="mt-1 text-sm text-fg-muted">{s.label}</dt>
+                    <dd className="font-display text-4xl font-semibold text-gradient sm:text-5xl">{s.value}</dd>
+                  </div>
+                ))}
+              </dl>
             </Reveal>
           </div>
           <div className="mt-12 lg:mt-14">
-            <TeamBadges team={await getTeam()} />
+            <TeamBadges team={teamMembers.filter((m) => m.group === "leadership")} />
           </div>
+          <h3 className="mt-14 mb-6 font-display text-xl font-semibold">Our teams</h3>
+          <TeamGrid team={teamMembers.filter((m) => m.group === "team")} />
         </div>
       </Section>
 

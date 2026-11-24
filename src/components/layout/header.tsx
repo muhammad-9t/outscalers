@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
-import { ArrowRight, ChevronDown, Menu, ShieldCheck, Sparkles, UserRound, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, ShieldCheck, Sparkles, UserRound, UsersRound, X } from "lucide-react";
 import { mainNav } from "@/lib/site";
 import { services, serviceHref } from "@/content/services";
+import { dedicated } from "@/content/dedicated";
 import { ServiceGlyph } from "@/components/illustrations/service-glyph";
 import { Logo } from "./logo";
 // Theme switcher (dark default, light via html[data-theme="light"]).
@@ -143,8 +144,25 @@ export function Header() {
                     {/* Mega menu: glossy service tiles on the left, a feature card on the right. Styles: .mm-* */}
                     <div className="mm">
                       <ul className="grid gap-0.5">
+                        {/* Dedicated developers first: the core offer */}
+                        <li className="mm-row" style={{ "--i": 0 } as CSSProperties}>
+                          <Link
+                            href={dedicated.path}
+                            aria-current={pathname === dedicated.path ? "page" : undefined}
+                            className="mm-link group"
+                          >
+                            <span className="hs-gloss mm-tile" data-tone="data" aria-hidden>
+                              <UsersRound className="size-[50%]" strokeWidth={1.8} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-semibold text-fg">{dedicated.title}</span>
+                              <span className="block truncate text-xs text-fg-subtle">{dedicated.tagline}</span>
+                            </span>
+                            <ArrowRight aria-hidden className="mm-arrow size-4" />
+                          </Link>
+                        </li>
                         {services.map((s, i) => (
-                          <li key={s.slug} className="mm-row" style={{ "--i": i } as CSSProperties}>
+                          <li key={s.slug} className="mm-row" style={{ "--i": i + 1 } as CSSProperties}>
                             <Link
                               href={serviceHref(s.slug)}
                               aria-current={pathname === serviceHref(s.slug) ? "page" : undefined}
@@ -176,9 +194,9 @@ export function Header() {
                             <ShieldCheck className="size-[48%]" strokeWidth={1.8} />
                           </span>
                         </span>
-                        <p className="eyebrow mt-5 !text-xs">Human + AI services</p>
+                        <p className="eyebrow mt-5 !text-xs">AI-Accelerated. Human-Led.</p>
                         <p className="mt-3 font-display text-lg font-semibold leading-snug text-fg">
-                          One team for software, AI, automation, data and security.
+                          Dedicated developers or full project teams, from one company.
                         </p>
                         <p className="mt-2 text-xs leading-relaxed text-fg-muted">
                           Experienced engineers, accelerated by AI, accountable for every release.
@@ -259,6 +277,16 @@ export function Header() {
                 </Link>
                 {item.href === "/services" && (
                   <ul className="mb-2 ml-3 grid gap-0.5 border-l border-line pl-3">
+                    <li>
+                      <Link
+                        href={dedicated.path}
+                        aria-current={pathname === dedicated.path ? "page" : undefined}
+                        className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-[0.9375rem] text-fg-muted aria-[current=page]:text-brand-300"
+                      >
+                        <UsersRound aria-hidden className="size-4 text-brand-400" />
+                        {dedicated.title}
+                      </Link>
+                    </li>
                     {services.map((s) => (
                       <li key={s.slug}>
                         <Link

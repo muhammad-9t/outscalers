@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Mail } from "lucide-react";
 import { mainNav, siteConfig } from "@/lib/site";
 import { services, serviceHref } from "@/content/services";
+import { dedicated } from "@/content/dedicated";
 import { Flag, SocialIcon } from "@/components/ui/brand-icons";
 import { Logo } from "./logo";
 
@@ -24,8 +25,7 @@ export function Footer() {
               <Logo />
             </Link>
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-fg-muted">
-              Human intelligence. AI-powered engineering. We combine experienced engineers with AI to build software,
-              automate processes and help businesses move faster.
+              Human expertise. AI-powered execution. Software that moves your business forward.
             </p>
             <a
               href={`mailto:${contact.email}`}
@@ -61,6 +61,11 @@ export function Footer() {
           <nav aria-label="Footer: services">
             <h2 className="text-sm font-semibold text-fg">Services</h2>
             <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <Link href={dedicated.path} className="text-fg-muted transition-colors hover:text-fg">
+                  {dedicated.title}
+                </Link>
+              </li>
               {services.map((s) => (
                 <li key={s.slug}>
                   <Link href={serviceHref(s.slug)} className="text-fg-muted transition-colors hover:text-fg">
@@ -102,7 +107,10 @@ export function Footer() {
           <p>
             © <CopyrightYear /> {siteConfig.name}. All rights reserved.
           </p>
-          <p>Engineered by people. Accelerated by AI.</p>
+          {/* Legal links (Imprint to be added before launch) */}
+          <Link href="/privacy" className="transition-colors hover:text-fg">
+            Privacy Policy
+          </Link>
         </div>
       </div>
     </footer>

@@ -2,15 +2,7 @@ import { Clock3, Sparkles, UserRound, Zap } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
-import {
-  ApproachBlock,
-  CapabilitiesBlock,
-  DeliverablesBlock,
-  ProblemsBlock,
-  ProcessBlock,
-  ServiceFooter,
-  ServiceHero,
-} from "@/components/sections/service-blocks";
+import { DeliverablesBlock, RolesStrip, ServiceFooter, ServiceHero } from "@/components/sections/service-blocks";
 import { AutomationHeroVisual } from "@/components/services/automation-hero-visual";
 
 const service = getService("automation");
@@ -97,11 +89,8 @@ export default function AutomationPage() {
         </div>
       </Section>
 
-      <ProblemsBlock service={service} variant="numbered" tone="raised" title="Signs a process is ready for automation" />
-      <DeliverablesBlock service={service} tone="dark" title="Automation we deliver" />
-      <ApproachBlock service={service} tone="dark" />
-      <ProcessBlock service={service} />
-      <CapabilitiesBlock service={service} />
+      <DeliverablesBlock service={service} tone="raised" title="Automation we deliver" withStack />
+      <RolesStrip service={service} />
       <ServiceFooter service={service} ctaTitle="Which process is costing your team the most time?" />
     </>
   );

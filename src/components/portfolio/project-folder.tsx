@@ -54,7 +54,7 @@ export function ProjectFolder({ project, index, total }: { project: PortfolioPro
         <span className="mt-auto flex items-end justify-between gap-3">
           <span className="pf-name">{project.industry}</span>
           <span className="pf-cta" aria-hidden>
-            {href ? "View case study" : "Coming soon"}
+            {href ? "View product" : "Coming soon"}
             {href && <ArrowUpRight className="size-4" />}
           </span>
         </span>
@@ -63,7 +63,7 @@ export function ProjectFolder({ project, index, total }: { project: PortfolioPro
   );
 
   return href ? (
-    <Link href={href} className="pf mx-auto lg:mx-0" aria-label={`${project.name}. View case study`}>
+    <Link href={href} className="pf mx-auto lg:mx-0" aria-label={`${project.name}. View product`}>
       {body}
     </Link>
   ) : (

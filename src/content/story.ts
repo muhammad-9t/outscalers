@@ -21,7 +21,7 @@ export const story: StorySlide[] = [
     id: "dream",
     kicker: "01 · Dream",
     title: "Bridge talent and opportunity.",
-    body: "Bring together experienced developers from Germany and Pakistan and connect them with companies worldwide that need dependable software.",
+    body: "Bring together experienced developers from our core team in Pakistan and our offices across Europe and Asia, and connect them with companies worldwide that need dependable software.",
     tone: "brand",
     mark: "Dream",
   },
@@ -56,7 +56,7 @@ export const story: StorySlide[] = [
     body: "HRM, CRM, POS, inventory and accounting in one platform, with a mobile app for owners on the move.",
     tone: "brand",
     image: { src: "/portfolio/nizamio/dashboard.webp", alt: "Nizamio key features next to the admin dashboard on a tablet" },
-    link: { label: "Read the case study", href: "/case-studies/nizamio-cloud-erp" },
+    link: { label: "View the product", href: "/case-studies/nizamio-cloud-erp" },
   },
   {
     id: "goraahi",
@@ -65,7 +65,7 @@ export const story: StorySlide[] = [
     body: "Car rentals and guided tours from trusted local companies, booked in one place.",
     tone: "human",
     image: { src: "/portfolio/go-raahi/web-app.webp", alt: "GO Raahi Tours home page on a laptop" },
-    link: { label: "Read the case study", href: "/case-studies/go-raahi-tours" },
+    link: { label: "View the product", href: "/case-studies/go-raahi-tours" },
   },
   {
     id: "yallasplit",
@@ -74,7 +74,7 @@ export const story: StorySlide[] = [
     body: "Split group expenses and settle up in seconds, with budgets and income tracking built in.",
     tone: "amber",
     image: { src: "/portfolio/yallasplit/groups.webp", alt: "YallaSplit Groups screen in dark mode on a phone" },
-    link: { label: "Read the case study", href: "/case-studies/yallasplit" },
+    link: { label: "View the product", href: "/case-studies/yallasplit" },
   },
   {
     id: "zakatly",
@@ -83,7 +83,7 @@ export const story: StorySlide[] = [
     body: "Calculate Zakat, record every Zakat and Sadaqah contribution and see the impact of your giving.",
     tone: "human",
     image: { src: "/portfolio/zakatly/contributions.webp", alt: "Zakatly Contributions list and Add Contribution form on two phones" },
-    link: { label: "Read the case study", href: "/case-studies/zakatly" },
+    link: { label: "View the product", href: "/case-studies/zakatly" },
   },
   {
     id: "hisoq",
@@ -92,7 +92,7 @@ export const story: StorySlide[] = [
     body: "Restaurant management for every branch: POS, kitchen display, menu, inventory and reports in one live dashboard.",
     tone: "amber",
     image: { src: "/portfolio/hisoq/desktop-mobile.webp", alt: "Hisoq dashboard on a desktop monitor and on a phone" },
-    link: { label: "Read the case study", href: "/case-studies/hisoq" },
+    link: { label: "View the product", href: "/case-studies/hisoq" },
   },
   {
     id: "outscalers-hub",
@@ -101,12 +101,12 @@ export const story: StorySlide[] = [
     body: "Our own CRM for HR, finance and clients, with a mobile app and an AI assistant for the team.",
     tone: "data",
     image: { src: "/portfolio/outscalers-hub/mobile-app.webp", alt: "Outscalers Hub mobile app with the company feed and the AI assistant" },
-    link: { label: "Read the case study", href: "/case-studies/outscalers-hub" },
+    link: { label: "View the product", href: "/case-studies/outscalers-hub" },
   },
   {
     id: "connect",
     kicker: "11 · Let's connect",
-    title: "Have an idea? Let's engineer what's next.",
+    title: "Have an idea? Let's build it faster.",
     body: "Tell us what you want to build. An engineer, not a sales script, will reply.",
     tone: "brand",
     mark: "Hi",

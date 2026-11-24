@@ -92,7 +92,7 @@ export function SectionHeading({
 }) {
   return (
     <div
-      data-reveal
+      data-reveal suppressHydrationWarning
       className={cn("max-w-3xl", align === "center" && "mx-auto text-center", className)}
     >
       {eyebrow && <p className="eyebrow mb-4">{eyebrow}</p>}
@@ -118,8 +118,10 @@ export function Reveal({
   className?: string;
   as?: ElementType;
 }) {
+  // RevealObserver marks this element (data-visible) as it scrolls in, sometimes before React has
+  // hydrated it; suppressHydrationWarning tells React that attribute change is intended (this element only).
   return (
-    <Tag data-reveal className={className} style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}>
+    <Tag data-reveal suppressHydrationWarning className={className} style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}>
       {children}
     </Tag>
   );

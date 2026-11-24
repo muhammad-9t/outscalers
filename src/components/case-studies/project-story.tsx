@@ -30,8 +30,8 @@ const CARD_GAP = 34;
 const KIND: Record<StoryKind, { label: string; Icon: typeof Flag; tone: string }> = {
   kickoff: { label: "Kickoff", Icon: Flag, tone: "var(--color-brand-400)" },
   design: { label: "Design", Icon: Palette, tone: "var(--color-data-accent)" },
-  commit: { label: "Code", Icon: GitCommitHorizontal, tone: "var(--color-human-accent)" },
-  review: { label: "Pushed & reviewed", Icon: GitPullRequest, tone: "var(--color-human-accent)" },
+  commit: { label: "Build", Icon: GitCommitHorizontal, tone: "var(--color-human-accent)" },
+  review: { label: "Review & testing", Icon: GitPullRequest, tone: "var(--color-human-accent)" },
   deadline: { label: "Deadline", Icon: CalendarCheck, tone: "var(--color-signal)" },
   launch: { label: "Launch", Icon: Rocket, tone: "var(--color-brand-400)" },
   release: { label: "Release", Icon: Sparkles, tone: "var(--color-brand-400)" },
@@ -285,11 +285,7 @@ function Pinned({ story, cast, project }: Props) {
                 How {project} came together
               </h2>
               <p className="mt-4 text-[1.0625rem] leading-relaxed text-fg-muted">{story.summary}</p>
-              {story.sample && (
-                <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-line-strong px-3 py-1 text-sm font-medium text-fg-subtle">
-                  Sample timeline
-                </p>
-              )}
+              <Facts facts={story.facts} />
               <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-brand-300">
                 Scroll to follow it <ArrowRight aria-hidden className="size-4" />
               </p>
@@ -353,11 +349,7 @@ function Vertical({ story, cast, project }: Props) {
         How {project} came together
       </h2>
       <p className="mt-4 max-w-2xl text-[1.0625rem] leading-relaxed text-fg-muted">{story.summary}</p>
-      {story.sample && (
-        <p className="mt-4 inline-flex rounded-full border border-line-strong px-3 py-1 text-sm font-medium text-fg-subtle">
-          Sample timeline
-        </p>
-      )}
+      <Facts facts={story.facts} className="max-w-2xl" />
       <ol className="relative mt-10 space-y-6 border-l-2 border-line-strong pl-8">
         {story.milestones.map((m, i) => {
           const k = KIND[m.kind];
@@ -372,6 +364,29 @@ function Vertical({ story, cast, project }: Props) {
         })}
       </ol>
     </div>
+  );
+}
+
+/** The project at a glance: duration, team, screens and status. */
+function Facts({ facts, className }: { facts: Story["facts"]; className?: string }) {
+  const rows = [
+    ["Duration", facts.duration],
+    ["Screens", facts.screens],
+    ["Team", facts.team],
+    ["Status", facts.status],
+  ];
+  return (
+    <dl className={cn("mt-6 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-line py-4", className)}>
+      {rows.map(([k, v]) => (
+        <div key={k} className={k === "Team" ? "col-span-2" : undefined}>
+          <dt className="font-mono text-[10px] tracking-[0.16em] text-fg-subtle uppercase">{k}</dt>
+          <dd className="mt-0.5 font-semibold leading-snug">
+            {k === "Status" && <span aria-hidden className="mr-1.5 inline-block size-2 rounded-full bg-success align-middle" />}
+            {v}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -400,15 +415,14 @@ function MilestoneCard({ m, people }: { m: Milestone; people: TeamMember[] }) {
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex -space-x-2">
               {people.slice(0, 3).map((p) => (
-                <MemberAvatar key={p.id} member={p} className="size-8 rounded-full ring-2 ring-ink-850" />
+                <MemberAvatar key={p.id} member={p} className="size-8 rounded-full bg-ink-850 ring-2 ring-ink-850" />
               ))}
             </span>
             <span className="min-w-0 text-right leading-tight">
               <span className="block truncate text-xs font-semibold">
-                {people[0].name}
+                {people[0].role}
                 {people.length > 1 && <span className="font-normal text-fg-subtle"> +{people.length - 1}</span>}
               </span>
-              <span className="block truncate text-[11px] text-fg-subtle">{people[0].role}</span>
             </span>
           </div>
         )}

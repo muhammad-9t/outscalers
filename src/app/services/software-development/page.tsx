@@ -1,16 +1,8 @@
-import { BookOpen, FileCode2, FlaskConical, FolderTree, GitPullRequest, History, Sparkles, UserRound } from "lucide-react";
+import { FileCode2, FlaskConical, GitPullRequest, History, Sparkles, UserRound } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
-import {
-  ApproachBlock,
-  CapabilitiesBlock,
-  DeliverablesBlock,
-  ProblemsBlock,
-  ProcessBlock,
-  ServiceFooter,
-  ServiceHero,
-} from "@/components/sections/service-blocks";
+import { DeliverablesBlock, ServiceFooter, ServiceHero } from "@/components/sections/service-blocks";
 import { SoftwareHeroVisual } from "@/components/services/software-hero-visual";
 
 const service = getService("software-development");
@@ -22,11 +14,9 @@ export const metadata = pageMetadata({
 });
 
 const workflow = [
-  { icon: FolderTree, task: "Project setup & boilerplate", ai: "Generates scaffolding from agreed conventions", human: "Defines the conventions and structure" },
   { icon: FileCode2, task: "Feature implementation", ai: "Suggests code for well-specified, routine parts", human: "Writes critical logic; accepts, edits or rejects suggestions" },
   { icon: History, task: "Understanding legacy code", ai: "Summarises modules and traces dependencies", human: "Verifies findings and plans safe changes" },
   { icon: FlaskConical, task: "Testing", ai: "Proposes test cases and edge conditions", human: "Decides what must be tested and validates coverage" },
-  { icon: BookOpen, task: "Documentation", ai: "Drafts READMEs, API docs and change notes", human: "Reviews for accuracy and completeness" },
   { icon: GitPullRequest, task: "Code review", ai: "Flags potential issues for attention", human: "Performs the review and approves the merge" },
 ];
 
@@ -34,17 +24,16 @@ export default function SoftwareDevelopmentPage() {
   return (
     <>
       <ServiceHero service={service} visual={<SoftwareHeroVisual />} />
-      <ProblemsBlock service={service} />
-      <DeliverablesBlock service={service} variant="split" title="Software we build" />
+      <DeliverablesBlock service={service} title="Software we build" withStack />
 
       {/* Signature: AI in the engineering workflow */}
-      <Section labelledBy="workflow-title">
+      <Section id="approach" labelledBy="workflow-title">
         <div className="container-site">
           <SectionHeading
             id="workflow-title"
             eyebrow="AI-assisted, human-led"
             title="How AI fits into our engineering workflow"
-            lead="AI is a tool our engineers use for specific tasks. Here's where — and who stays responsible."
+            lead="AI speeds up specific tasks. An engineer stays responsible for every one."
           />
           <div className="mt-12 hidden gap-4 px-6 md:grid md:grid-cols-[minmax(0,0.85fr)_1fr_1fr]" aria-hidden>
             <span className="text-sm font-semibold text-fg-muted">Task</span>
@@ -82,9 +71,6 @@ export default function SoftwareDevelopmentPage() {
         </div>
       </Section>
 
-      <ApproachBlock service={service} tone="dark" />
-      <ProcessBlock service={service} />
-      <CapabilitiesBlock service={service} />
       <ServiceFooter service={service} ctaTitle="Have software to build or modernise? Let's plan it." />
     </>
   );

@@ -1,14 +1,10 @@
 import Link from "next/link";
-import { Ban, ChevronRight, GitPullRequest, LockKeyhole, ShieldCheck, UserCheck, type LucideIcon } from "lucide-react";
-import { processPhases } from "@/content/process";
+import { ArrowRight, ChevronRight, GitPullRequest, LockKeyhole, ShieldCheck, UserCheck, UsersRound, type LucideIcon } from "lucide-react";
+import { dedicated } from "@/content/dedicated";
 import { pageMetadata } from "@/lib/site";
 import { CtaBand } from "@/components/sections/cta-band";
 import { ReviewVisual } from "@/components/how-we-work/review-visual";
 import { WorkflowSteps } from "@/components/how-we-work/workflow-steps";
-import { LaunchTimeline } from "@/components/sections/launch-timeline";
-import { PhasePanel } from "@/components/how-we-work/phase-panel";
-import { PhaseBackdrop, PhaseLight } from "@/components/how-we-work/phase-light";
-import { HorizontalScroll } from "@/components/ui/horizontal-scroll";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata = pageMetadata({
@@ -24,7 +20,6 @@ const principles: { text: string; icon: LucideIcon; tone: "brand" | "human" | "d
   { text: "Architecture, security and data-access decisions are made by people.", icon: UserCheck, tone: "brand" },
   { text: "Client data is only used with AI tools you have approved for it.", icon: LockKeyhole, tone: "data" },
   { text: "Nothing is deployed to production without passing tests and human sign-off.", icon: ShieldCheck, tone: "human" },
-  { text: "When AI isn't the right tool, we don't use it.", icon: Ban, tone: "brand" },
 ];
 
 const legend = [
@@ -59,7 +54,7 @@ export default function HowWeWorkPage() {
             <div>
               <p className="eyebrow mb-5">How we work</p>
               <h1 className="text-display-lg font-semibold">
-                Engineers in charge. <span className="text-gradient">AI in the toolkit.</span>
+                AI-accelerated. <span className="text-gradient">Human-led.</span>
               </h1>
             </div>
             <div>
@@ -76,7 +71,7 @@ export default function HowWeWorkPage() {
               </ul>
             </div>
           </div>
-          <div data-reveal className="mt-10 lg:mt-12">
+          <div data-reveal suppressHydrationWarning className="mt-10 lg:mt-12">
             <ReviewVisual />
           </div>
         </div>
@@ -88,32 +83,11 @@ export default function HowWeWorkPage() {
           <SectionHeading
             id="loop-title"
             eyebrow="The workflow"
-            title="AI does the work. People stay in control."
+            title="AI speeds up the work. Engineers decide what ships."
             lead="Follow one feature from idea to production, and see where engineers hold the controls at every step."
           />
         </div>
         <WorkflowSteps />
-      </Section>
-
-      {/* Typical timeline */}
-      <Section tone="raised" labelledBy="hww-launch-title">
-        <div className="container-site">
-          <LaunchTimeline headingId="hww-launch-title" />
-        </div>
-      </Section>
-
-      {/* Phase by phase: full-screen panels that pin and slide sideways as you scroll, like the services */}
-      <Section labelledBy="phases-title" className="pb-0!">
-        <div className="container-site">
-          <SectionHeading id="phases-title" eyebrow="Phase by phase" title="Who does what, and where the checkpoints are" />
-        </div>
-        <div className="mt-10 lg:mt-0">
-          <HorizontalScroll label="Delivery phases" stops={processPhases.map((p) => p.short)} speed={0.5} dark stage={<PhaseLight />} backdrop={<PhaseBackdrop />}>
-            {processPhases.map((p, i) => (
-              <PhasePanel key={p.id} phase={p} index={i} total={processPhases.length} />
-            ))}
-          </HorizontalScroll>
-        </div>
       </Section>
 
       {/* Principles */}
@@ -123,7 +97,7 @@ export default function HowWeWorkPage() {
             id="principles-title"
             eyebrow="Responsible AI in delivery"
             title="Ground rules we work by"
-            lead="Speed is only useful if the result can be trusted. These rules apply to every project."
+            lead="They apply to every project."
           />
           <ul className="grid gap-3">
             {principles.map((p, i) => (
@@ -135,6 +109,31 @@ export default function HowWeWorkPage() {
               </Reveal>
             ))}
           </ul>
+        </div>
+      </Section>
+
+      {/* Dedicated developers follow the client's own process */}
+      <Section tight labelledBy="hww-dedicated-title">
+        <div className="container-site">
+          <Reveal>
+            <Link
+              href={dedicated.path}
+              className="card card-interactive group flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-8"
+            >
+              <span className="hs-gloss op-tile shrink-0" data-tone="data" aria-hidden>
+                <UsersRound className="size-[46%]" strokeWidth={1.8} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span id="hww-dedicated-title" className="block text-xl font-semibold">
+                  Hiring dedicated developers instead?
+                </span>
+                <span className="mt-1 block text-fg-muted">They join your team and follow your process, tools and hours.</span>
+              </span>
+              <span className="link-arrow shrink-0">
+                {dedicated.title} <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </Reveal>
         </div>
       </Section>
 

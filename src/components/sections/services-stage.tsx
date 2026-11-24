@@ -37,11 +37,11 @@ const objects: { icon: LucideIcon; x: number; y: number; s: number; r: number; t
 export function ServicesStage() {
   const items = [
     ...services.map((s) => ({ key: s.slug as ServiceSlug | "team", href: serviceHref(s.slug), title: s.title, text: s.tagline, slug: s.slug })),
-    { key: "team" as const, href: "/contact", title: "Team augmentation", text: "Engineers who join your team and tools", slug: undefined },
+    { key: "team" as const, href: "/services/dedicated-developers", title: "Dedicated developers", text: "Engineers who join your team and tools", slug: undefined },
   ];
 
   return (
-    <div data-reveal className="svc-stage relative mt-10 overflow-hidden">
+    <div data-reveal suppressHydrationWarning className="svc-stage relative mt-10 overflow-hidden">
       <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-70" />
       {/* Warm radial lighting, as in the hero (cool sky/indigo in light mode) */}
       <div aria-hidden className="svc-glow svc-glow-a" />

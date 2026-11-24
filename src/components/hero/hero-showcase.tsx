@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowDown,
-  Bell,
   Bot,
   Check,
   Code2,
@@ -17,9 +16,9 @@ import {
   Sparkles,
   UserRound,
   Workflow,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { BookCallDialog } from "@/components/contact/book-call-dialog";
 
 type SlideId = "intro" | "setup" | "build" | "scale" | "ship";
 
@@ -63,7 +62,6 @@ const SLIDES: SlideSpec[] = [
   },
 ];
 
-const SLIDE_DURATION = 5600; // ms per slide
 
 /**
  * Illustrated engineer portrait avatar (clean duotone vector portrait with badge)
@@ -145,122 +143,6 @@ function EngineerAvatar({
   );
 }
 
-/**
- * Mosey-inspired floating status badge widget (`[✓ ───]` or `[✕ ───]`)
- * Used on orbital rings in Slides 2 & 3.
- */
-function OrbitBadgeWidget({
-  variant = "check",
-  className,
-}: {
-  variant?: "check" | "cross";
-  className?: string;
-}) {
-  const isCheck = variant === "check";
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "hs-card-in pointer-events-none inline-flex items-center gap-2 rounded-full border px-2.5 py-1.5 shadow-md backdrop-blur-md",
-        isCheck
-          ? "border-human-accent/45 bg-ink-900/95"
-          : "border-brand-400/45 bg-ink-900/95",
-        className,
-      )}
-    >
-      <span
-        className={cn(
-          "grid size-4 shrink-0 place-items-center rounded-full text-ink-950",
-          isCheck ? "bg-human-accent" : "bg-brand-400",
-        )}
-      >
-        {isCheck ? (
-          <Check className="size-2.5 stroke-[3]" />
-        ) : (
-          <X className="size-2.5 stroke-[3]" />
-        )}
-      </span>
-      <div className="flex flex-col gap-1 pr-1">
-        <span
-          className={cn(
-            "h-1.5 w-7 rounded-full",
-            isCheck ? "bg-human-accent/55" : "bg-brand-400/60",
-          )}
-        />
-        <span
-          className={cn(
-            "h-1 w-4 rounded-full",
-            isCheck ? "bg-human-accent/30" : "bg-brand-400/35",
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-/**
- * Mosey-inspired floating mini document sheet widget
- */
-function MiniDocWidget({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "hs-card-in pointer-events-none flex h-10 w-8 flex-col justify-center gap-1.5 rounded-lg border border-line bg-ink-850 p-1.5 hs-widget",
-        className,
-      )}
-    >
-      <span className="h-1 w-3 rounded-full bg-fg/35" />
-      <span className="h-1 w-full rounded-full bg-fg/20" />
-      <span className="h-1 w-full rounded-full bg-fg/20" />
-      <span className="h-1 w-4/5 rounded-full bg-fg/20" />
-    </div>
-  );
-}
-
-/**
- * Mosey-inspired floating mini 3-row bullet list widget
- */
-function MiniListWidget({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "hs-card-in pointer-events-none flex flex-col gap-1.5 rounded-lg border border-line bg-ink-850 p-2 hs-widget",
-        className,
-      )}
-    >
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <span className="size-1 rounded-full bg-fg/35" />
-          <span className="h-1 w-4 rounded-full bg-fg/25" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
- * Mosey-inspired floating skeleton pill (`[───── ──]`)
- */
-function MiniSkeletonPill({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "hs-card-in pointer-events-none inline-flex flex-col gap-1 rounded-full border border-line bg-ink-850 px-3 py-1.5 hs-widget",
-        className,
-      )}
-    >
-      <span className="h-1 w-10 rounded-full bg-fg/25" />
-      <div className="flex items-center gap-1">
-        <span className="h-1 w-5 rounded-full bg-fg/18" />
-        <span className="h-1 w-3 rounded-full bg-fg/18" />
-      </div>
-    </div>
-  );
-}
-
 type GlossTone = "brand" | "human" | "data";
 
 /** A glossy 3D icon tile (same look as the About page widgets). Carries .hs-monument for the entrance. */
@@ -334,37 +216,6 @@ function DisciplineMiniMonument({ variant }: { variant: keyof typeof DISCIPLINE 
   return <GlossTile icon={d.icon} tone={d.tone} size="md" />;
 }
 
-/**
- * Small circular progress spinner shown next to the active tab label
- */
-function TabSpinner({ progress }: { progress: number }) {
-  const radius = 5.5;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - Math.min(1, Math.max(0, progress)));
-
-  return (
-    <svg viewBox="0 0 16 16" className="size-3.5 -rotate-90" aria-hidden>
-      <circle
-        cx="8"
-        cy="8"
-        r={radius}
-        className="fill-none stroke-fg/20"
-        strokeWidth="1.8"
-      />
-      <circle
-        cx="8"
-        cy="8"
-        r={radius}
-        className="fill-none stroke-brand-400 transition-none"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-      />
-    </svg>
-  );
-}
-
 type BotStagePose = {
   /** Horizontal anchor percentage within the hero stage (desktop) */
   x: number;
@@ -383,7 +234,7 @@ type BotStagePose = {
 const HERO_BOT_POSES: Record<SlideId, BotStagePose> = {
   intro: {
     x: 50,
-    y: 10,
+    y: 1,
     bubbleSide: "right",
     slideGaze: { x: 0, y: 3.6 },
     badge: "01 // VISION GUIDE",
@@ -937,36 +788,13 @@ function HeroPresenterBot({
 }
 
 export function HeroShowcase() {
+  // No auto-play: the opening slide (headline + calls to action) stays until the visitor picks a tab
   const [active, setActive] = useState<number>(0);
-  const [progress, setProgress] = useState<number>(0);
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   const selectSlide = useCallback((index: number) => {
     setActive(index);
-    setProgress(0);
   }, []);
-
-  // Auto-advance timer (updates progress ring smoothly and cycles slides)
-  useEffect(() => {
-    let rafId: number;
-    let start = performance.now();
-
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      const ratio = elapsed / SLIDE_DURATION;
-      if (ratio >= 1) {
-        setActive((prev) => (prev + 1) % SLIDES.length);
-        setProgress(0);
-        start = now;
-      } else {
-        setProgress(ratio);
-      }
-      rafId = requestAnimationFrame(tick);
-    };
-
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [active]);
 
   // Web Animations API choreography on every slide change
   // (Works reliably even when OS prefers-reduced-motion is enabled on Windows)
@@ -1217,7 +1045,7 @@ export function HeroShowcase() {
             key="intro"
             className="hs-stage relative mx-auto flex w-full max-w-6xl items-center justify-center px-4"
           >
-            <div className="relative mx-auto flex w-full flex-col items-center justify-center py-10 text-center lg:h-[360px]">
+            <div className="relative mx-auto flex w-full flex-col items-center justify-center py-6 text-center lg:min-h-[360px] lg:py-4">
               {/* Inline-sized Title Block so left & right lines anchor strictly outside the text with zero overlap */}
               <div className="relative inline-flex flex-col items-center">
                 {/* Left incoming full-bleed line (stops 32px to the left of the title text) */}
@@ -1260,19 +1088,40 @@ export function HeroShowcase() {
 
                 {/* Eyebrow */}
                 <div className="hs-title-eyebrow flex items-center justify-center">
-                  <p className="eyebrow">Human + AI Engineering Company</p>
+                  <p className="eyebrow">AI-Accelerated. Human-Led.</p>
                 </div>
 
                 {/* Dramatic Monumental Display Title */}
                 <h1 className="mx-auto mt-5 font-display text-[clamp(2.35rem,4.6vw,4.25rem)] leading-[1.06] font-semibold tracking-tight text-fg">
                   <span className="hs-title-line-1 block sm:whitespace-nowrap">
-                    Human Intelligence.
+                    Build software faster.
                   </span>
                   <span className="hs-title-line-2 text-gradient mt-1 block sm:whitespace-nowrap">
-                    AI-Powered Engineering.
+                    Build it smarter.
                   </span>
                 </h1>
               </div>
+
+              {/* Value proposition, calls to action and proof */}
+              <p className="hs-card-in mx-auto mt-6 max-w-2xl text-lead text-fg-muted">
+                Dedicated developers who join your team, or a full team that builds your product. 100+ in-house
+                engineers, accelerated by AI.
+              </p>
+              {/* One call to action: opens the Europe / Asia booking links (navigation lives in the header) */}
+              <div className="hs-card-in mt-8 flex w-full justify-center">
+                <BookCallDialog label="Book a free call" className="w-full justify-center sm:w-auto" />
+              </div>
+              <ul className="hs-card-in mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-fg-subtle">
+                <li>
+                  Start in <strong className="font-semibold text-fg">1–2 weeks</strong>
+                </li>
+                <li aria-hidden className="hidden size-1 rounded-full bg-fg-subtle/50 sm:block" />
+                <li>
+                  Engineering since <strong className="font-semibold text-fg">2017</strong>
+                </li>
+                <li aria-hidden className="hidden size-1 rounded-full bg-fg-subtle/50 sm:block" />
+                <li>Offices in DE · IT · HK · PK</li>
+              </ul>
             </div>
           </div>
         )}
@@ -1805,23 +1654,22 @@ export function HeroShowcase() {
                 {/* Eyebrow */}
                 <div className="hs-title-eyebrow flex items-center justify-center gap-2.5">
                   <p className="eyebrow">
-                    Continue Below · The Full Experience
+                    Signed off &amp; shipped
                   </p>
                 </div>
 
                 {/* Artistic Oversized Display Headline */}
                 <h2 className="mx-auto mt-4 font-display text-[clamp(2.6rem,5.2vw,4.75rem)] leading-[1.02] font-semibold tracking-[-0.03em] text-fg">
                   <span className="hs-title-line-1 block font-light tracking-tight text-fg/90 sm:whitespace-nowrap">
-                    Continue to See More.
+                    Every release signed off.
                   </span>
                   <span className="hs-title-line-2 text-gradient mt-1 block sm:whitespace-nowrap">
-                    Explore Us.
+                    By a person.
                   </span>
                 </h2>
 
                 <p className="hs-card-in mx-auto mt-4 max-w-md text-sm leading-relaxed text-fg-muted sm:text-[15px]">
-                  Scroll down to experience our live engineering workflow,
-                  architecture standards, and shipped production systems.
+                  Nothing reaches production until an engineer has reviewed it and the tests pass.
                 </p>
 
                 {/* Stylish Modern Scroll Cue / Exploration Gateway */}
@@ -1844,7 +1692,7 @@ export function HeroShowcase() {
 
                     {/* Primary Label */}
                     <span className="tracking-tight text-fg transition-colors group-hover:text-brand-200">
-                      Explore Full Experience
+                      See how it works
                     </span>
 
                     {/* Mono Stage Cue */}
@@ -1931,7 +1779,6 @@ export function HeroShowcase() {
                     )}
                   >
                     <span className="whitespace-nowrap">{s.tab}</span>
-                    {isSelected && <TabSpinner progress={progress} />}
                     {isSelected && (
                       <span
                         aria-hidden

@@ -2,13 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, Gamepad2, Mic, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { scrollToY } from "@/lib/smooth-scroll";
-import { GAMES, readBest } from "@/components/game/games";
-import { PAGE_NAMES, SCROLL_SPEED, parseCommand, useAutoScroll, useVoice, type VoiceCommand } from "./pet-voice";
 
 // Only with a real mouse, and never for reduced motion
 const QUERY = "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)";
@@ -147,46 +143,7 @@ const CHASE_LINES = [
 const CHASE_STAGES = [1, 3.5, 6]; // seconds of chasing before each line
 
 // Guide tips: a question and a button to another page. Pages not yet visited this session come first.
-type Tip = { href: string; text: string; cta: string; action?: "voice" | "game" };
-// Offered once per visit, early on, in browsers that can do speech recognition
-const VOICE_TIP: Tip = {
-  href: "",
-  text: "Tired of using the mouse? Turn on voice and just tell me: “open portfolio”, “scroll”, “stop”, “go back”… The Voice button bottom left does it too.",
-  cta: "Turn on voice",
-  action: "voice",
-};
-// Offered once per visit, after a few jokes
-const GAME_TIP: Tip = {
-  href: "",
-  text: "Want to play? Bugs are heading for production, and I need a co-pilot to stop them.",
-  cta: "Play Bug Hunt",
-  action: "game",
-};
-const GAME_OFFERED_KEY = "pet-game-offered";
-// The Bug Hunt game and its arcade menu are switched off (cleaner, less gimmicky site). Set to true to bring them back.
-const GAMES_ENABLED = false;
-
-// The arcade: click and hold the pet this long to open it
-const HOLD_MS = 600;
-const ARCADE_HINT_KEY = "pet-arcade-hint";
-const ARCADE_HINT_MS = 900; // cursor resting on the pet this long before the hint
-
-const JOKES_BEFORE_GAME = 3;
-
-// The game is only downloaded when it is opened
-const BugHunt = dynamic(() => import("@/components/game/bug-hunt").then((m) => m.BugHunt), { ssr: false });
-// Said when the cursor rests on the Voice button
-const VOICE_NUDGES = [
-  "Go on, try it. Freedom from the mouse awaits!",
-  "Click it, and your voice becomes the remote control.",
-  "Hands off the mouse! Just talk to me.",
-  "Try it. I promise I'm a good listener.",
-  "One click and you can browse like a sci-fi captain.",
-];
-const VOICE_OFFERED_KEY = "pet-voice-offered";
-const VOICE_OFFER_MS = 6000; // on the page this long before the offer
-const VOICE_HELP =
-  "Try: “open portfolio”, “scroll”, “scroll slow”, “faster”, “stop”, “go to top”, “go back”, “next page”, “reload”, “tell me a joke”, or “stop listening”.";
+type Tip = { href: string; text: string; cta: string };
 const TIPS: Tip[] = [
   { href: "/portfolio", text: "Have you seen our portfolio yet?", cta: "Open portfolio" },
   { href: "/services", text: "Want to see what we can build for you?", cta: "View services" },
@@ -293,10 +250,6 @@ export function PetBot() {
 
   const busyUntil = useRef(0); // a line is on screen until then
   const jokeIdx = useRef(-1);
-  const jokesTold = useRef(0);
-  const gameDue = useRef(false); // enough jokes told: offer the game at the next chance
-  const [game, setGame] = useState(false);
-  const gameOpen = useRef(false);
   const secretTimers = useRef<number[]>([]);
 
   /** Shows a line. Returns false if it was skipped so as not to talk over something still being read. */
@@ -328,214 +281,7 @@ export function PetBot() {
     }
     if (jokeIdx.current < 0) jokeIdx.current = Math.floor(Math.random() * JOKES.length);
     say(JOKES[jokeIdx.current++ % JOKES.length], undefined, "happy", true);
-    if (GAMES_ENABLED && ++jokesTold.current >= JOKES_BEFORE_GAME) gameDue.current = true;
   }, [say]);
-
-  const openGame = useCallback(() => {
-    if (!GAMES_ENABLED) return;
-    gameOpen.current = true;
-    gameDue.current = false;
-    store.set(GAME_OFFERED_KEY, "1");
-    setGame(true);
-  }, []);
-  const closeGame = useCallback(() => {
-    gameOpen.current = false;
-    setGame(false);
-    say("Thanks for playing! Production is safe… for now.", undefined, "happy", true);
-  }, [say]);
-
-  // The arcade: a menu of games beside the pet, opened by clicking and holding it (or by voice)
-  const [arcade, setArcade] = useState(false);
-  const arcadeOpen = useRef(false);
-  const [bestScore, setBestScore] = useState(0);
-  const openArcade = useCallback(() => {
-    if (!GAMES_ENABLED) return;
-    window.clearTimeout(tipTimer.current);
-    setTip(null);
-    tipOpen.current = true; // the pet stays put and quiet while the menu is open
-    arcadeOpen.current = true;
-    setTipBelow((pet.current?.getBoundingClientRect().top ?? 300) < 290);
-    setBestScore(readBest());
-    setArcade(true);
-    setMood("happy");
-  }, []);
-  const closeArcade = useCallback(() => {
-    tipOpen.current = false;
-    arcadeOpen.current = false;
-    setArcade(false);
-    setMood("idle");
-  }, []);
-  useEffect(() => {
-    if (!arcade) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeArcade();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [arcade, closeArcade]);
-
-  // Voice commands: the pet answers each one in its speech bubble
-  const router = useRouter();
-  const scrollPace = useRef<{ speed: keyof typeof SCROLL_SPEED; up: boolean }>({ speed: "normal", up: false });
-  const auto = useAutoScroll(() =>
-    say(scrollPace.current.up ? "We're at the top." : "That's the end of the page. Say “go to top” to go back up.", undefined, "happy", true),
-  );
-  const stopVoice = useRef<() => void>(() => {});
-  const nudgeAt = useRef(0);
-  const nudgeIdx = useRef(0);
-  const voiceState = useRef({ supported: false, listening: false });
-
-  const onCommand = useCallback(
-    (cmd: VoiceCommand) => {
-      const p = phys.current;
-      if (p.mode !== "on" && cmd.type !== "mute") return; // knocked out: can't hear a thing
-      if (gameOpen.current && cmd.type !== "mute") return; // busy playing
-      const ok = (text: string, ms = 2200) => say(text, ms, "happy", true);
-      const scroll = (speed: keyof typeof SCROLL_SPEED, up: boolean) => {
-        scrollPace.current = { speed, up };
-        auto.run((up ? -1 : 1) * SCROLL_SPEED[speed]);
-      };
-      const history = (window as unknown as { navigation?: { canGoBack: boolean; canGoForward: boolean } }).navigation;
-      switch (cmd.type) {
-        case "open":
-          auto.stop();
-          ok(`Opening ${cmd.label}.`);
-          router.push(cmd.href);
-          break;
-        case "scroll":
-          scroll(cmd.speed, cmd.up);
-          ok(
-            cmd.up
-              ? "Scrolling up."
-              : cmd.speed === "slow"
-                ? "Scrolling slowly. Say “stop” when you're done."
-                : cmd.speed === "fast"
-                  ? "Full speed ahead!"
-                  : "Scrolling. Say “slower”, “faster” or “stop”.",
-            2800,
-          );
-          break;
-        case "faster":
-        case "slower": {
-          const { speed, up } = scrollPace.current;
-          const next = cmd.type === "faster" ? (speed === "slow" ? "normal" : "fast") : speed === "fast" ? "normal" : "slow";
-          scroll(next, up);
-          ok(cmd.type === "faster" ? (next === "fast" ? "Full speed ahead!" : "A bit faster.") : "Nice and slow.", 1800);
-          break;
-        }
-        case "stop":
-          auto.stop();
-          ok("Stopped.", 1500);
-          break;
-        case "top":
-          auto.stop();
-          scrollToY(0);
-          ok("Back to the top.", 1800);
-          break;
-        case "bottom":
-          auto.stop();
-          scrollToY(document.documentElement.scrollHeight);
-          ok("All the way down.", 1800);
-          break;
-        case "back":
-          auto.stop();
-          if (history ? history.canGoBack : window.history.length > 1) {
-            ok("Going back.", 1500);
-            router.back();
-          } else ok("There's no previous page yet. Try “open services”.");
-          break;
-        case "forward":
-          auto.stop();
-          if (history && !history.canGoForward) ok("There's no next page in your history. Try “open portfolio”.");
-          else {
-            ok("Going forward.", 1500);
-            router.forward();
-          }
-          break;
-        case "reload":
-          ok("Reloading…", 1500);
-          window.setTimeout(() => window.location.reload(), 500);
-          break;
-        case "joke":
-          talk();
-          break;
-        case "help":
-          say(VOICE_HELP, undefined, "happy", true);
-          break;
-        case "where": {
-          const key = Object.keys(PAGE_NAMES).find((k) => k !== "/" && pathname.startsWith(k));
-          ok(`You're on ${key ? PAGE_NAMES[key] : pathname === "/" ? PAGE_NAMES["/"] : "a page off the map"}.`);
-          break;
-        }
-        case "hello":
-          ok("Hi! Say “help” to hear what I can do.");
-          break;
-        case "dance":
-          ok("Watch this!", 1800);
-          [0, 240, 480, 720].forEach((t, i) =>
-            window.setTimeout(() => {
-              if (p.mode !== "on") return;
-              p.rotV += (i % 2 ? -1 : 1) * 900;
-              p.kvy -= 320;
-            }, t),
-          );
-          break;
-        case "game":
-        case "arcade":
-          if (!GAMES_ENABLED) {
-            ok("Games are switched off for now.", 3000);
-            break;
-          }
-          auto.stop();
-          if (arcadeOpen.current) closeArcade();
-          if (cmd.type === "arcade") openArcade();
-          else openGame();
-          break;
-        case "which":
-          // A page name on its own works as the answer
-          ok("Which page? Just say “portfolio”, “services”, “how we work”, “about” or “contact”.", 4500);
-          break;
-        case "thanks":
-          ok("Anytime! That's what I'm here for.");
-          break;
-        case "mute":
-          auto.stop();
-          stopVoice.current();
-          ok("Okay, I've stopped listening.");
-          break;
-        default:
-          // Often just background talk, so it never interrupts a line still being read
-          say("Sorry, I didn't catch that. Say “help” for ideas.", 2600, "focus");
-      }
-    },
-    [auto, closeArcade, openArcade, openGame, pathname, router, say, talk],
-  );
-
-  const voice = useVoice(
-    (guesses) => {
-      // The first guess that is a real command wins; "open …" without a clear page, then nothing, come last
-      const parsed = guesses.map((text) => ({ text, cmd: parseCommand(text) }));
-      const rank = (c: VoiceCommand) => (c.type === "unknown" ? 2 : c.type === "which" ? 1 : 0);
-      const pick = parsed.reduce((a, b) => (rank(b.cmd) < rank(a.cmd) ? b : a));
-      onCommand(pick.cmd);
-      return pick.text;
-    },
-    (err) =>
-      say(
-        err === "blocked"
-          ? "I can't hear you: the microphone is blocked. Allow it in the address bar, then try again."
-          : "My speech service is offline right now. Try again in a moment.",
-        undefined,
-        "focus",
-        true,
-      ),
-  );
-  useEffect(() => {
-    stopVoice.current = voice.stop;
-    voiceState.current = { supported: voice.supported, listening: voice.listening };
-  }, [voice.stop, voice.supported, voice.listening]);
-  // No pet on touch screens (or with reduced motion), so no listening there either
-  useEffect(() => {
-    if (!on && voice.listening) voice.stop();
-  }, [on, voice]);
 
   useEffect(() => {
     const mq = window.matchMedia(QUERY);
@@ -623,19 +369,16 @@ export function PetBot() {
     [closeTip, say],
   );
 
-  // While the pet is on, a quick click is a punch (on release) and click-and-hold opens the arcade
-  const [charging, setCharging] = useState(false);
-  const hold = useRef({ timer: 0, active: false });
-  const hintTimer = useRef(0);
+  // While the pet is on, a click is a punch (on release); while it is powered off, it can be grabbed
+  const hold = useRef({ active: false });
 
-  /** Pressing the pet: starts a hold while it is on, grabs it while it is powered off. */
+  /** Pressing the pet: arms a punch while it is on, grabs it while it is powered off. */
   const onPetDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (e.button !== 0) return;
       e.preventDefault();
       const p = phys.current;
       const pos = posRef.current;
-      window.clearTimeout(hintTimer.current);
       if (p.mode === "off") {
         e.currentTarget.setPointerCapture(e.pointerId);
         p.drag = true;
@@ -644,25 +387,11 @@ export function PetBot() {
         setGrabbing(true);
         return;
       }
-      if (p.mode !== "on" || arcadeOpen.current) return;
+      if (p.mode !== "on") return;
       e.currentTarget.setPointerCapture(e.pointerId);
-      const h = hold.current;
-      if (!GAMES_ENABLED) {
-        // No arcade: a press is just a punch when released
-        h.active = true;
-        return;
-      }
-      h.active = true;
-      setCharging(true);
-      window.clearTimeout(h.timer);
-      h.timer = window.setTimeout(() => {
-        h.active = false;
-        setCharging(false);
-        store.set(ARCADE_HINT_KEY, "1"); // found it, no need for the hint
-        openArcade();
-      }, HOLD_MS);
+      hold.current.active = true;
     },
-    [openArcade],
+    [],
   );
 
   const onPetUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
@@ -670,10 +399,8 @@ export function PetBot() {
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
     const h = hold.current;
     if (h.active) {
-      // Let go before the arcade opened: that was a punch (a lost capture just cancels)
+      // Released: that was a punch (a lost capture just cancels)
       h.active = false;
-      window.clearTimeout(h.timer);
-      setCharging(false);
       if (e.type === "pointerup") punch(e.clientX, e.clientY);
       return;
     }
@@ -684,19 +411,11 @@ export function PetBot() {
     setGrabbing(false);
   }, [punch]);
 
-  /** Resting the cursor on the pet: once per visit it mentions the arcade. */
   const onPetEnter = useCallback(() => {
     phys.current.hover = true;
-    if (!GAMES_ENABLED || store.get(ARCADE_HINT_KEY)) return;
-    window.clearTimeout(hintTimer.current);
-    hintTimer.current = window.setTimeout(() => {
-      if (!phys.current.hover || phys.current.mode !== "on" || hold.current.active || tipOpen.current) return;
-      if (say("Psst… click and hold me for games.", 3200, "happy")) store.set(ARCADE_HINT_KEY, "1");
-    }, ARCADE_HINT_MS);
-  }, [say]);
+  }, []);
   const onPetLeave = useCallback(() => {
     phys.current.hover = false;
-    window.clearTimeout(hintTimer.current);
   }, []);
 
   // A greeting about the page shortly after arriving, then one guide suggestion once the page has been read
@@ -719,28 +438,6 @@ export function PetBot() {
       if (now - lastScroll < SCROLL_SETTLE_MS) return;
       const el = pet.current;
       if (!el || el.style.opacity === "0") return; // the pet is hidden right now
-      // Voice is offered once per visit, early, before any page suggestion
-      const v = voiceState.current;
-      if (v.supported && !v.listening && !store.get(VOICE_OFFERED_KEY)) {
-        if (now - enteredAt < VOICE_OFFER_MS) return;
-        store.set(VOICE_OFFERED_KEY, "1");
-        setTipBelow(el.getBoundingClientRect().top < 190);
-        tipOpen.current = true;
-        setTip(VOICE_TIP);
-        setMood("happy");
-        holdTip(TIP_SHOW_MS + 4000);
-        return;
-      }
-      if (gameDue.current && !gameOpen.current && !store.get(GAME_OFFERED_KEY)) {
-        store.set(GAME_OFFERED_KEY, "1");
-        gameDue.current = false;
-        setTipBelow(el.getBoundingClientRect().top < 170);
-        tipOpen.current = true;
-        setTip(GAME_TIP);
-        setMood("happy");
-        holdTip(TIP_SHOW_MS + 4000);
-        return;
-      }
       if (now - enteredAt < TIP_MIN_ON_PAGE_MS) return;
       if (Number(store.get(TIPS_OFF_KEY) ?? 0) >= 2) return;
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -1049,7 +746,7 @@ export function PetBot() {
       }
 
       // Cursor at rest: lock on with a beam that tugs the cursor spot toward the pet
-      if (!hidden && readyRef.current && !tipOpen.current && !gameOpen.current && !beamedThisRest && now - lastMove > IDLE_MS) {
+      if (!hidden && readyRef.current && !tipOpen.current && !beamedThisRest && now - lastMove > IDLE_MS) {
         beamedThisRest = true;
         beamAt = now;
         setBeaming(true);
@@ -1090,70 +787,16 @@ export function PetBot() {
     () => () => {
       window.clearTimeout(hideTimer.current);
       window.clearTimeout(ouchTimer.current);
-      window.clearTimeout(hold.current.timer);
-      window.clearTimeout(hintTimer.current);
     },
     [],
   );
 
   if (on === null) return null;
-  // Not on the private admin screens
-  if (pathname.startsWith("/admin")) return null;
   // No pet on touch screens (or with reduced motion)
   if (!on) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
-      {game && <BugHunt onClose={closeGame} />}
-      {/* Voice: a mic button that is always there; while on it becomes a bar with what it heard */}
-      {voice.supported && !voice.listening && (
-        <button
-          type="button"
-          onClick={() => {
-            if (tipOpen.current) closeTip();
-            voice.start();
-            say("I'm listening! Say “help” to hear what I can do.", undefined, "happy", true);
-          }}
-          onMouseEnter={() => {
-            // A nudge from the pet, at most every few seconds
-            const now = performance.now();
-            if (phys.current.mode !== "on" || now < nudgeAt.current) return;
-            nudgeAt.current = now + 5000;
-            say(VOICE_NUDGES[nudgeIdx.current++ % VOICE_NUDGES.length], 3000, "happy", true);
-          }}
-          title="Voice commands"
-          className="group pointer-events-auto absolute bottom-5 left-5 flex items-center gap-2 border border-line-strong bg-ink-950/90 py-1.5 pr-3 pl-2.5 text-xs text-fg-muted backdrop-blur-sm transition-colors hover:border-brand-400/50 hover:text-fg"
-        >
-          <Mic aria-hidden className="size-3.5 text-brand-300" />
-          <span className="font-mono text-[10px] tracking-[0.16em] uppercase">Voice</span>
-          <span className="sr-only">Turn on voice commands</span>
-        </button>
-      )}
-      {voice.listening && (
-        <div
-          role="status"
-          className="pointer-events-auto absolute bottom-5 left-5 flex max-w-[calc(100vw-2.5rem)] items-center gap-2.5 border border-brand-400/40 bg-ink-950/90 py-1.5 pr-1.5 pl-3 text-xs text-fg shadow-[0_0_24px_-8px_var(--color-brand-500)] backdrop-blur-sm"
-        >
-          <span aria-hidden className="relative flex size-2.5 shrink-0">
-            <span className="absolute inset-0 animate-ping rounded-full bg-brand-400/70" />
-            <span className="relative size-2.5 rounded-full bg-brand-400" />
-          </span>
-          <Mic aria-hidden className="size-3.5 shrink-0 text-brand-300" />
-          <span className="font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">Listening</span>
-          {voice.heard && <span className="max-w-56 truncate text-fg-muted">“{voice.heard}”</span>}
-          <button
-            type="button"
-            aria-label="Turn off voice commands"
-            onClick={() => {
-              auto.stop();
-              voice.stop();
-            }}
-            className="grid size-6 shrink-0 place-items-center rounded text-fg-subtle transition-colors hover:text-fg"
-          >
-            <X aria-hidden className="size-3.5" />
-          </button>
-        </div>
-      )}
       {/* Beam from the pet's eyes to the resting cursor */}
       <svg aria-hidden className={cn("absolute inset-0 size-full transition-opacity duration-300", beaming ? "opacity-100" : "opacity-0")}>
         <line ref={beamGlow} className="stroke-brand-400/25" strokeWidth={9} strokeLinecap="round" />
@@ -1168,89 +811,7 @@ export function PetBot() {
 
       {/* The pet */}
       <div ref={pet} className="absolute top-0 left-0 transition-opacity duration-300 will-change-transform">
-        {/* Fills while the pet is held; full means the arcade opens */}
-        <svg
-          aria-hidden
-          viewBox="0 0 100 100"
-          className="pointer-events-none absolute top-1/2 left-1/2 size-24 -translate-x-1/2 -translate-y-[46%] -rotate-90"
-        >
-          <circle
-            cx={50}
-            cy={50}
-            r={46}
-            pathLength={100}
-            strokeWidth={3}
-            strokeLinecap="round"
-            strokeDasharray="100 100"
-            className="fill-none stroke-brand-300"
-            style={{
-              opacity: charging ? 1 : 0,
-              strokeDashoffset: charging ? 0 : 100,
-              transition: charging ? `stroke-dashoffset ${HOLD_MS}ms linear, opacity 0.15s` : "opacity 0.15s",
-            }}
-          />
-        </svg>
-        {arcade && (
-          <div
-            role="dialog"
-            aria-label="Arcade"
-            className={cn(
-              "pointer-events-auto absolute w-72 border border-brand-400/50 bg-ink-950/95 p-3.5 shadow-[0_0_30px_-8px_var(--color-brand-500)] backdrop-blur-sm",
-              tipBelow ? "top-full mt-2" : "bottom-full mb-2",
-              flip ? "left-2" : "right-2",
-            )}
-          >
-            <button
-              type="button"
-              aria-label="Close the arcade"
-              onClick={closeArcade}
-              className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded text-fg-subtle transition-colors hover:text-fg"
-            >
-              <X aria-hidden className="size-3.5" />
-            </button>
-            <p className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">
-              <Gamepad2 aria-hidden className="size-3.5" />
-              Arcade
-            </p>
-            <p className="mt-1 pr-5 text-sm leading-snug text-fg">Pick a game. More are on the way.</p>
-            <ul className="mt-3 grid gap-2">
-              {GAMES.map((g) => (
-                <li
-                  key={g.id}
-                  className={cn(
-                    "flex items-center gap-3 border p-2.5",
-                    g.ready ? "border-line-strong bg-ink-850/60" : "border-line opacity-60",
-                  )}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-fg">
-                      {g.name}
-                      {g.id === "bug-hunt" && bestScore > 0 && (
-                        <span className="ml-2 font-mono text-xs font-normal text-fg-subtle">best {bestScore}</span>
-                      )}
-                    </p>
-                    <p className="text-xs leading-snug text-fg-muted">{g.blurb}</p>
-                  </div>
-                  {g.ready ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeArcade();
-                        openGame();
-                      }}
-                      className="btn btn-primary btn-sm shrink-0"
-                    >
-                      Play
-                    </button>
-                  ) : (
-                    <span className="shrink-0 font-mono text-[10px] tracking-[0.14em] text-fg-subtle uppercase">Soon</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {line && !tip && !arcade && (
+        {line && !tip && (
           <p
             aria-hidden
             className={cn(
@@ -1285,37 +846,6 @@ export function PetBot() {
             </button>
             <p className="font-mono text-[10px] tracking-[0.16em] text-brand-300 uppercase">Guide</p>
             <p className="mt-1 pr-5 text-sm leading-snug text-fg">{tip.text}</p>
-            {tip.action === "game" ? (
-              <button
-                type="button"
-                onClick={() => {
-                  closeTip();
-                  openGame();
-                }}
-                className="btn btn-primary btn-sm mt-3 w-full justify-center"
-              >
-                <Gamepad2 aria-hidden className="size-3.5" />
-                {tip.cta}
-              </button>
-            ) : tip.action === "voice" ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeTip();
-                    voice.start();
-                    say("I'm listening! Say “help” to hear what I can do.", undefined, "happy", true);
-                  }}
-                  className="btn btn-primary btn-sm mt-3 w-full justify-center"
-                >
-                  <Mic aria-hidden className="size-3.5" />
-                  {tip.cta}
-                </button>
-                <p className="mt-2 text-xs leading-snug text-fg-subtle">
-                  Your browser asks for the microphone, and its speech service turns what you say into text.
-                </p>
-              </>
-            ) : (
               <Link
                 href={tip.href}
                 onClick={() => closeTip()}
@@ -1324,7 +854,6 @@ export function PetBot() {
                 {tip.cta}
                 <ArrowRight aria-hidden className="size-3.5" />
               </Link>
-            )}
           </div>
         )}
         <div

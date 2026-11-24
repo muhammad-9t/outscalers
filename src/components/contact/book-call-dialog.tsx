@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import { CalendarClock, X } from "lucide-react";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/cn";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 /** Button that opens a modal with the "Book a call" scheduling links. */
 export function BookCallDialog({ label, className }: { label: string; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   const close = () => ref.current?.close();
 
   return (
@@ -18,15 +19,15 @@ export function BookCallDialog({ label, className }: { label: string; className?
 
       <dialog
         ref={ref}
-        aria-labelledby="book-call-title"
+        aria-labelledby={titleId}
         data-lenis-prevent
         // Clicks on the backdrop land on the dialog itself; clicks inside land on its children.
         onClick={(e) => e.target === e.currentTarget && close()}
-        className="m-auto w-[calc(100%-2rem)] max-w-md rounded-[var(--radius-card)] border border-line-strong bg-ink-900 p-0 text-fg backdrop:bg-black/70 backdrop:backdrop-blur-sm"
+        className="m-auto w-[calc(100%-2rem)] max-w-md rounded-[var(--radius-card)] border border-line-strong bg-ink-900 p-0 text-left text-fg backdrop:bg-black/70 backdrop:backdrop-blur-sm"
       >
         <div className="p-6 sm:p-7">
           <div className="flex items-start justify-between gap-4">
-            <h2 id="book-call-title" className="flex items-center gap-2 text-lg font-semibold">
+            <h2 id={titleId} className="flex items-center gap-2 text-lg font-semibold">
               <CalendarClock aria-hidden className="size-5 text-brand-400" /> Book a call
             </h2>
             <button

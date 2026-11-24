@@ -2,15 +2,7 @@ import { Check, ShieldCheck } from "lucide-react";
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
-import {
-  ApproachBlock,
-  CapabilitiesBlock,
-  DeliverablesBlock,
-  ProblemsBlock,
-  ProcessBlock,
-  ServiceFooter,
-  ServiceHero,
-} from "@/components/sections/service-blocks";
+import { DeliverablesBlock, RolesStrip, ServiceFooter, ServiceHero } from "@/components/sections/service-blocks";
 import { DataHeroVisual } from "@/components/services/data-hero-visual";
 
 const service = getService("data-cloud");
@@ -38,7 +30,6 @@ export default function DataCloudPage() {
   return (
     <>
       <ServiceHero service={service} visual={<DataHeroVisual />} />
-      <ProblemsBlock service={service} />
 
       {/* Signature: pipeline stages + AI readiness */}
       <Section labelledBy="pipeline-title">
@@ -87,10 +78,8 @@ export default function DataCloudPage() {
         </div>
       </Section>
 
-      <DeliverablesBlock service={service} variant="split" tone="dark" title="Data and cloud services" />
-      <ApproachBlock service={service} />
-      <CapabilitiesBlock service={service} tone="raised" />
-      <ProcessBlock service={service} variant="timeline" tone="dark" />
+      <DeliverablesBlock service={service} tone="raised" title="Data and cloud services" withStack />
+      <RolesStrip service={service} />
       <ServiceFooter service={service} ctaTitle="Ready to build on a stronger data foundation?" />
     </>
   );

@@ -55,8 +55,8 @@ export function AboutJourney({ variant = "stack" }: { variant?: "stack" | "strip
           <p className="mt-2 font-semibold">Outscalers founded</p>
           <p className="text-sm text-fg-muted">Rawalpindi, Pakistan</p>
           <div className="mt-3 flex gap-1.5">
-            <span className="aj-chip">DE engineers</span>
-            <span className="aj-chip">PK engineers</span>
+            <span className="aj-chip">Software</span>
+            <span className="aj-chip">Outsourcing</span>
           </div>
         </div>
 

@@ -28,70 +28,7 @@ const fromCaseStudies: PortfolioProject[] = caseStudies.map((c) => ({
   status: c.status,
 }));
 
-const samples: PortfolioProject[] = [
-  {
-    slug: "sample-ai-support-assistant",
-    name: "AI assistant for customer support",
-    industry: "Customer service",
-    summary: "An assistant that drafts answers from a company's own help content, with an agent approving every reply.",
-    services: ["ai-solutions"],
-    stack: ["Python", "LLM API", "Vector search"],
-    caseStudy: null,
-    status: "sample",
-  },
-  {
-    slug: "sample-invoice-automation",
-    name: "Automated invoice processing",
-    industry: "Logistics",
-    summary: "Reading supplier invoices, matching them to orders and flagging mismatches for the finance team.",
-    services: ["automation", "ai-solutions"],
-    stack: ["Node.js", "Document AI", "Workflow engine"],
-    caseStudy: null,
-    status: "sample",
-  },
-  {
-    slug: "sample-field-service-app",
-    name: "Field service mobile app",
-    industry: "Facilities management",
-    summary: "A mobile app for technicians to receive jobs, capture photos and close work orders offline.",
-    services: ["software-development"],
-    stack: ["React Native", "TypeScript", "Node.js"],
-    caseStudy: null,
-    status: "sample",
-  },
-  {
-    slug: "sample-analytics-platform",
-    name: "Cloud analytics platform",
-    industry: "Retail",
-    summary: "Bringing sales, stock and web data into one warehouse with dashboards the business can trust.",
-    services: ["data-cloud"],
-    stack: ["dbt", "BigQuery", "Terraform"],
-    caseStudy: null,
-    status: "sample",
-  },
-  {
-    slug: "sample-security-hardening",
-    name: "Security hardening for a SaaS product",
-    industry: "B2B software",
-    summary: "Fixing findings from a penetration test and adding automated security checks to every release.",
-    services: ["security-quality"],
-    stack: ["OWASP ZAP", "GitHub Actions", "AWS"],
-    caseStudy: null,
-    status: "sample",
-  },
-  {
-    slug: "sample-knowledge-search",
-    name: "Internal knowledge search",
-    industry: "Professional services",
-    summary: "One search box across documents, wikis and tickets, with answers that cite their sources.",
-    services: ["ai-solutions", "data-cloud"],
-    stack: ["Python", "Elasticsearch", "LLM API"],
-    caseStudy: null,
-    status: "sample",
-  },
-];
-
-export const portfolio: PortfolioProject[] = [...fromCaseStudies, ...samples];
+export const portfolio: PortfolioProject[] = fromCaseStudies;
 
 /**
  * Projects featured in the scroll showcase, with the code the 3D laptop types out.

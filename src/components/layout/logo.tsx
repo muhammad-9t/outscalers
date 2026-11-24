@@ -131,7 +131,7 @@ export function Logo({ className }: { className?: string }) {
       <span className="flex flex-col leading-none">
         <span className="font-display text-[1.1rem] font-semibold tracking-tight text-fg">Outscalers</span>
         <span className="mt-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-brand-300/90">
-          Human + AI Engineering
+          AI-Accelerated. Human-Led.
         </span>
       </span>
     </span>

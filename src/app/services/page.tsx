@@ -1,4 +1,6 @@
-import { Check, ClipboardList, ShieldCheck, UsersRound } from "lucide-react";
+import { ArrowRight, Check, ClipboardList, ShieldCheck, UsersRound } from "lucide-react";
+import Link from "next/link";
+import { dedicated } from "@/content/dedicated";
 import { services } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { PageHero } from "@/components/sections/page-hero";
@@ -97,6 +99,34 @@ export default function ServicesPage() {
         visual={<ServicesVisual />}
         reverse
       />
+
+      {/* Core offer first: dedicated developers who join the client's team */}
+      <Section tight labelledBy="dedicated-title" className="!pt-0">
+        <div className="container-site">
+          <Reveal>
+            <Link
+              href={dedicated.path}
+              className="card card-interactive group flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-8"
+            >
+              <span className="hs-gloss op-tile shrink-0" data-tone="data" aria-hidden>
+                <UsersRound className="size-[46%]" strokeWidth={1.8} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="eyebrow">Our core service</span>
+                <span id="dedicated-title" className="mt-3 block text-xl font-semibold sm:text-2xl">
+                  Need developers in your team? Start in 1–2 weeks.
+                </span>
+                <span className="mt-1 block text-fg-muted">
+                  Dedicated engineers from our 100+ in-house team, contracted through our European company.
+                </span>
+              </span>
+              <span className="link-arrow shrink-0">
+                {dedicated.title} <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </Reveal>
+        </div>
+      </Section>
 
       {/* Full-screen service panels; on large screens they pin and slide sideways as you scroll */}
       <Section labelledBy="list-title" className="py-0!">

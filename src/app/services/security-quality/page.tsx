@@ -1,15 +1,7 @@
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
-import {
-  ApproachBlock,
-  CapabilitiesBlock,
-  DeliverablesBlock,
-  ProblemsBlock,
-  ProcessBlock,
-  ServiceFooter,
-  ServiceHero,
-} from "@/components/sections/service-blocks";
+import { DeliverablesBlock, RolesStrip, ServiceFooter, ServiceHero } from "@/components/sections/service-blocks";
 import { SecurityHeroVisual } from "@/components/services/security-hero-visual";
 
 const service = getService("security-quality");
@@ -61,7 +53,6 @@ export default function SecurityQualityPage() {
   return (
     <>
       <ServiceHero service={service} visual={<SecurityHeroVisual />} />
-      <ProblemsBlock service={service} variant="numbered" title="Why quality needs more than one safeguard" />
 
       {/* Signature: safeguards matrix */}
       <Section labelledBy="matrix-title">
@@ -87,10 +78,8 @@ export default function SecurityQualityPage() {
         </div>
       </Section>
 
-      <DeliverablesBlock service={service} tone="dark" title="Security and quality services" />
-      <ApproachBlock service={service} />
-      <ProcessBlock service={service} />
-      <CapabilitiesBlock service={service} />
+      <DeliverablesBlock service={service} tone="raised" title="Security and quality services" withStack />
+      <RolesStrip service={service} />
       <ServiceFooter service={service} ctaTitle="Want more confidence in every release?" />
     </>
   );

@@ -54,27 +54,27 @@ export const services: Service[] = [
     deliverables: [
       {
         title: "LLM integrations",
-        body: "Language models connected to your products and internal tools through well-defined, testable APIs.",
+        body: "Language models wired into your products through testable APIs.",
       },
       {
         title: "Conversational assistants",
-        body: "Assistants for customers or staff, grounded in approved content and scoped to clear tasks.",
+        body: "Assistants for customers or staff, grounded in your content.",
       },
       {
         title: "AI agents",
-        body: "Agents that call tools and APIs to complete multi-step tasks — with permissions, limits and approval steps.",
+        body: "Agents that complete multi-step tasks, with limits and approvals.",
       },
       {
         title: "Knowledge retrieval (RAG)",
-        body: "Search and answer systems over your own content, with source references so answers can be checked.",
+        body: "Answers from your own documents, with sources.",
       },
       {
         title: "Document intelligence",
-        body: "Extraction and classification for structured and semi-structured documents, with review queues for exceptions.",
+        body: "Extraction from invoices, contracts and forms, with review queues.",
       },
       {
         title: "Multimodal workflows",
-        body: "Pipelines that combine text, images and scanned documents where your use case needs them.",
+        body: "Text, images and scans combined where your use case needs it.",
       },
     ],
     approach: {
@@ -134,13 +134,12 @@ export const services: Service[] = [
       },
     ],
     deliverables: [
-      { title: "Web applications", body: "Responsive, accessible web apps for customers, partners and internal teams." },
-      { title: "Mobile applications", body: "Native and cross-platform iOS and Android apps that share APIs with your web platform." },
-      { title: "UI/UX design", body: "Research-informed interface design and prototypes, validated with users before build." },
-      { title: "SaaS platforms", body: "Multi-tenant products with billing, roles, auditing and room to grow." },
-      { title: "APIs & backend systems", body: "Well-documented services that are testable, observable and versioned." },
-      { title: "Enterprise applications", body: "Line-of-business systems integrated with your existing tools and identity provider." },
-      { title: "Modernisation & performance", body: "Incremental refactoring, profiling and optimisation of existing applications." },
+      { title: "Web applications", body: "Fast, accessible apps for customers and teams." },
+      { title: "Mobile applications", body: "iOS and Android, sharing one API with your web app." },
+      { title: "UI/UX design", body: "Prototypes tested with users before we build." },
+      { title: "SaaS platforms", body: "Multi-tenant, with billing, roles and audit trails." },
+      { title: "APIs & backend systems", body: "Documented, tested and versioned services." },
+      { title: "Enterprise & legacy systems", body: "New business systems, or step-by-step modernisation of old ones." },
     ],
     approach: {
       ai: [
@@ -191,10 +190,10 @@ export const services: Service[] = [
       { title: "Brittle point integrations", body: "One-off scripts break silently when a connected system changes." },
     ],
     deliverables: [
-      { title: "Workflow automation", body: "Multi-step workflows with triggers, conditions, retries and audit trails." },
-      { title: "System integrations", body: "Reliable connections between CRMs, ERPs, finance tools, databases and internal apps." },
-      { title: "Repetitive-task reduction", body: "Automation for data entry, reconciliation, reporting and notifications." },
-      { title: "Intelligent orchestration", body: "AI-assisted classification and routing, with confidence thresholds and human review queues." },
+      { title: "Workflow automation", body: "Multi-step workflows with retries and audit trails." },
+      { title: "System integrations", body: "CRMs, ERPs, finance tools and databases, reliably connected." },
+      { title: "Repetitive-task reduction", body: "Data entry, reconciliation and reports, automated." },
+      { title: "Intelligent orchestration", body: "AI routing with confidence thresholds and human review." },
     ],
     approach: {
       ai: [
@@ -242,12 +241,12 @@ export const services: Service[] = [
       { title: "AI without a foundation", body: "Models need clean, governed and accessible data that most organisations don't yet have." },
     ],
     deliverables: [
-      { title: "Data pipelines", body: "Batch and streaming ingestion with validation, lineage and monitoring." },
-      { title: "Analytics foundations", body: "Modelled warehouses and data marts that support consistent reporting." },
-      { title: "Cloud architecture", body: "Scalable, highly available environments designed for your workload and budget." },
-      { title: "Deployment workflows", body: "Infrastructure as code, CI/CD pipelines and repeatable environments." },
-      { title: "AI-ready infrastructure", body: "Storage, retrieval and compute patterns that support AI and ML workloads." },
-      { title: "Performance & cost optimisation", body: "Profiling, right-sizing and caching to improve speed and control spend." },
+      { title: "Data pipelines", body: "Batch and streaming ingestion, validated and monitored." },
+      { title: "Analytics foundations", body: "Warehouses and data marts for consistent reporting." },
+      { title: "Cloud architecture", body: "Scalable environments sized to your workload and budget." },
+      { title: "Deployment workflows", body: "Infrastructure as code and CI/CD pipelines." },
+      { title: "AI-ready infrastructure", body: "Storage and compute patterns for AI workloads." },
+      { title: "Performance & cost optimisation", body: "Faster systems and lower cloud bills." },
     ],
     approach: {
       ai: [
@@ -295,12 +294,12 @@ export const services: Service[] = [
       { title: "Compliance pressure", body: "Customers and regulators expect evidence of secure development practices." },
     ],
     deliverables: [
-      { title: "Automated testing", body: "Unit, integration and end-to-end tests wired into your delivery pipeline." },
-      { title: "Code review practice", body: "Structured human review, including dedicated review of AI-assisted changes." },
-      { title: "Secure development", body: "Dependency scanning, secret detection, threat modelling and secure defaults." },
-      { title: "Validation & QA", body: "Exploratory and acceptance testing against real user scenarios." },
-      { title: "Monitoring & alerting", body: "Error tracking, performance metrics and alerts that reach the right people." },
-      { title: "Production readiness", body: "Release checklists, rollback plans and documentation before go-live." },
+      { title: "Automated testing", body: "Unit, integration and end-to-end tests in your pipeline." },
+      { title: "Code review practice", body: "Structured human review, including AI-assisted changes." },
+      { title: "Secure development", body: "Dependency scanning, secret detection and threat modelling." },
+      { title: "Validation & QA", body: "Exploratory and acceptance testing on real scenarios." },
+      { title: "Monitoring & alerting", body: "Error and performance alerts that reach the right people." },
+      { title: "Production readiness", body: "Release checklists and rollback plans before go-live." },
     ],
     approach: {
       ai: [

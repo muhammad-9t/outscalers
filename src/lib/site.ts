@@ -8,12 +8,12 @@ import type { Metadata } from "next";
 export const siteConfig = {
   name: "Outscalers",
   shortName: "Outscalers",
-  tagline: "Human Intelligence. AI-Powered Engineering.",
+  tagline: "AI-Accelerated. Human-Led.",
   /** Brand SERP-style title (shown as the main Google blue link). */
-  serpTitle: "Outscalers: Human Intelligence. AI-Powered Engineering.",
+  serpTitle: "Outscalers: Build Software Faster. AI-Accelerated, Human-Led.",
   /** Homepage / brand snippet — who you are + service pillars in one line. */
   serpDescription:
-    "Outscalers pairs human engineering with AI across Custom Software Development, AI Solutions & Agents, Business Process Automation, Data & Cloud, and Security & Quality.",
+    "Dedicated developers who join your team, or a full team that builds your product. 100+ in-house engineers, accelerated by AI. Contracts via our German and Italian companies.",
   description:
     "Outscalers is an IT outsourcing and software engineering partner that combines experienced engineers with artificial intelligence to build intelligent software, automate business processes, and help businesses innovate faster.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://outscalers.com",

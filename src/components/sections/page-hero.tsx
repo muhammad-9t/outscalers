@@ -62,7 +62,7 @@ export function PageHero({
             {actions && <div className="mt-9 flex flex-wrap gap-3">{actions}</div>}
           </div>
           {visual && (
-            <div data-reveal className={cn("relative min-w-0", reverse && "lg:order-first")}>
+            <div data-reveal suppressHydrationWarning className={cn("relative min-w-0", reverse && "lg:order-first")}>
               {visual}
             </div>
           )}

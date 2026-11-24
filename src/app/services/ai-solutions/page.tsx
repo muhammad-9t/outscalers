@@ -2,15 +2,7 @@ import { Check, CircleCheck, Signpost, Eye, FileSearch, KeyRound, LifeBuoy, X } 
 import { getService } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
-import {
-  ApproachBlock,
-  CapabilitiesBlock,
-  DeliverablesBlock,
-  ProblemsBlock,
-  ProcessBlock,
-  ServiceFooter,
-  ServiceHero,
-} from "@/components/sections/service-blocks";
+import { DeliverablesBlock, RolesStrip, ServiceFooter, ServiceHero } from "@/components/sections/service-blocks";
 import { AiHeroVisual } from "@/components/services/ai-hero-visual";
 
 const service = getService("ai-solutions");
@@ -41,8 +33,7 @@ export default function AiSolutionsPage() {
   return (
     <>
       <ServiceHero service={service} visual={<AiHeroVisual />} />
-      <ProblemsBlock service={service} variant="numbered" title="Why AI initiatives stall" />
-      <DeliverablesBlock service={service} title="AI capabilities we deliver" />
+      <DeliverablesBlock service={service} title="AI capabilities we deliver" withStack />
 
       {/* Signature: where AI fits */}
       <Section tone="dark" labelledBy="fit-title">
@@ -106,9 +97,7 @@ export default function AiSolutionsPage() {
         </div>
       </Section>
 
-      <ApproachBlock service={service} />
-      <ProcessBlock service={service} variant="timeline" tone="raised" />
-      <CapabilitiesBlock service={service} />
+      <RolesStrip service={service} tone="raised" />
       <ServiceFooter service={service} ctaTitle="Have an AI idea? Let's test whether it holds up." />
     </>
   );

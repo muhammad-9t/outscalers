@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Check, CircleAlert, Clock3, FileClock, Sparkles, Wrench } from "lucide-react";
+import { Check, CircleAlert, FileClock, Sparkles, Wrench } from "lucide-react";
 import { caseStudies, getCaseStudy } from "@/content/case-studies";
 import { services } from "@/content/services";
 import { pageMetadata } from "@/lib/site";
@@ -12,7 +12,14 @@ import { CaseHero } from "@/components/case-studies/case-hero";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 import { ProjectStory } from "@/components/case-studies/project-story";
 import { projectStories } from "@/content/project-stories";
-import { getTeam } from "@/lib/team-store";
+import { team as teamMembers } from "@/content/team";
+
+/*
+ * Product pages read `params`, so their content can't be part of the shared instant-navigation shell.
+ * All of them are prerendered at build time (see generateStaticParams), so navigation waits only for
+ * static content; a loading skeleton would just add a flash. Opt out of instant validation on purpose.
+ */
+export const instant = false;
 
 export function generateStaticParams() {
   return caseStudies.map((c) => ({ slug: c.slug }));
@@ -56,7 +63,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
 
   const related = caseStudies.filter((c) => c.slug !== study.slug).slice(0, 2);
   const story = projectStories[study.slug];
-  const team = story ? await getTeam() : [];
+  const team = story ? teamMembers : [];
   const studyServices = services.filter((s) => study.services.includes(s.slug));
   const crumbsLd = breadcrumbJsonLd([
     { name: "Home", path: "/" },
@@ -120,9 +127,10 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
             </ol>
           </div>
 
-          <div className="mt-16">
-            <h2 className="text-display-md font-semibold">Results</h2>
-            {study.results.length > 0 ? (
+          {/* Results: shown only once there are real, verified numbers */}
+          {study.results.length > 0 && (
+            <div className="mt-16">
+              <h2 className="text-display-md font-semibold">Results</h2>
               <ul className="mt-8 grid gap-4 sm:grid-cols-2">
                 {study.results.map((res, i) => (
                   <Reveal as="li" key={res} delay={i * 60} className="sd-row items-center">
@@ -133,13 +141,8 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
                   </Reveal>
                 ))}
               </ul>
-            ) : (
-              <p className="csx-note mt-8">
-                <Clock3 aria-hidden className="size-5 shrink-0 text-fg-subtle" />
-                Verified results will be published here once confirmed with the client.
-              </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </Section>
 
@@ -156,7 +159,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
             <SectionHeading id="gallery-title" eyebrow="Inside the product" title="What we built" />
             <ul className="mt-12 space-y-16 sm:space-y-20">
               {study.gallery.map((g, i) => (
-                <li key={g.src} data-reveal>
+                <li key={g.src} data-reveal suppressHydrationWarning>
                   <figure>
                     <div className="card overflow-hidden p-0">
                       <Image
@@ -188,7 +191,7 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
             <SectionHeading id="related-cs-title" eyebrow="More work" title="Related case studies" />
             <ul className="mt-10 grid gap-5 md:grid-cols-2">
               {related.map((c) => (
-                <li key={c.slug} data-reveal>
+                <li key={c.slug} data-reveal suppressHydrationWarning>
                   <CaseStudyCard study={c} />
                 </li>
               ))}

@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { RevealObserver } from "@/components/ui/reveal-observer";
 import { BackToTop } from "@/components/ui/back-to-top";
-import { PetBot } from "@/components/ui/pet-bot";
+import { PetLoader } from "@/components/ui/pet-loader";
 import { SmoothScroll } from "@/components/ui/smooth-scroll";
 import { siteConfig } from "@/lib/site";
 import { siteJsonLd } from "@/lib/seo";
@@ -100,7 +100,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Footer />
         <RevealObserver />
         <BackToTop />
-        <PetBot />
+        <PetLoader />
         <SmoothScroll />
         {jsonLd.map((block, i) => (
           <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }} />
