@@ -14,6 +14,7 @@ export const metadata = pageMetadata({
 
 const { legal, contact } = siteConfig;
 const italy = siteConfig.offices.find((o) => o.country === "Italy");
+const hongKong = siteConfig.offices.find((o) => o.country === "Hong Kong");
 
 const facts: [string, string][] = [
   ["Business name", legal.name],
@@ -58,13 +59,33 @@ export default function LegalNoticePage() {
         </dl>
 
         <div className="prose-site mt-12 space-y-8">
-          <section aria-labelledby="ln-offices">
-            <h2 id="ln-offices" className="text-xl font-semibold text-fg">
-              Other offices
+          <section aria-labelledby="ln-companies">
+            <h2 id="ln-companies" className="text-xl font-semibold text-fg">
+              Our companies
             </h2>
             <p className="mt-3">
-              We also have offices in {siteConfig.offices.filter((o) => o.country !== "Italy").map((o) => `${o.city} (${o.country})`).join(", ")}.
-              Addresses are on our <Link href="/contact" className="underline underline-offset-2 hover:text-fg">contact page</Link>.
+              Outscalers works through these companies. Your contract is with the company named in your agreement.
+            </p>
+            <ul className="mt-5 grid gap-3">
+              {legal.companies.map((c) => (
+                <li key={c.name} className="card p-5">
+                  <div className="text-xs font-medium tracking-wide text-fg-subtle uppercase">
+                    {c.country} · {c.role}
+                  </div>
+                  <div className="mt-1.5 font-semibold text-fg">{c.name}</div>
+                  <div className="mt-1 text-sm text-fg-muted">{c.address}</div>
+                  <div className="mt-1 text-sm text-fg-muted">
+                    {c.taxLabel} {c.taxId}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5">
+              We also have an office in {hongKong ? `${hongKong.city}, Hong Kong` : "Hong Kong"}. All office addresses are on our{" "}
+              <Link href="/contact" className="underline underline-offset-2 hover:text-fg">
+                contact page
+              </Link>
+              .
             </p>
           </section>
           <section aria-labelledby="ln-content">

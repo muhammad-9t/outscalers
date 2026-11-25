@@ -37,6 +37,36 @@ export const siteConfig = {
     vat: "12108770012",
     rea: "TO-1265151",
     activity: "Software development",
+    /**
+     * The companies Outscalers works through (Legal Notice, "Our companies"). Clients contract with the
+     * company named in their agreement. Hong Kong is an office, not a separate company.
+     */
+    companies: [
+      {
+        country: "Italy",
+        role: "Head office · website operator",
+        name: "Outscalers di Waseem Akram",
+        address: "Via Foglizzo 8, 10154 Torino (TO), Italy",
+        taxLabel: "P.IVA",
+        taxId: "12108770012",
+      },
+      {
+        country: "Germany",
+        role: "Office",
+        name: "Y&L Solutions UG (haftungsbeschränkt)",
+        address: "Rahnfelsstraße 10, 68163 Mannheim, Germany",
+        taxLabel: "USt-IdNr.",
+        taxId: "DE323311372",
+      },
+      {
+        country: "Pakistan",
+        role: "Engineering team",
+        name: "Outscalers (Private) Limited",
+        address: "Office 40/3, Jahanzib Centre, Bank Road, Saddar, Rawalpindi 46000, Pakistan",
+        taxLabel: "NTN",
+        taxId: "B614493",
+      },
+    ],
   },
   contact: {
     email: "contact@outscalers.com",
@@ -51,7 +81,7 @@ export const siteConfig = {
       address: "New Mandarin Plaza Tower B, Unit 1010–1015, 10/F, 14 Science Museum Rd, Tsim Sha Tsui, Hong Kong",
       phone: "+852 5400 0964",
     },
-    { country: "Pakistan", city: "Rawalpindi", address: "Bank Road, Saddar, Rawalpindi, Pakistan", phone: "+92 327 7834010" },
+    { country: "Pakistan", city: "Rawalpindi", address: "Office 40/3, Jahanzib Centre, Bank Road, Saddar, Rawalpindi 46000, Pakistan", phone: "+92 327 7834010" },
   ],
   scheduling: [
     { label: "Europe time zones", href: "https://calendly.com/dev-abo/30min" },
