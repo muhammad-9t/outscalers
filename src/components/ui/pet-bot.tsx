@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, MousePointer2, Pin, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 // Only with a real mouse, and never for reduced motion
@@ -178,6 +178,28 @@ const store = {
   },
 };
 
+/** Where the visitor parked the pet, as fractions of the viewport; null while it follows. */
+const PARK_KEY = "pet-parked";
+const PARK_HINT_KEY = "pet-park-hint";
+const PARK_HINT_MS = 900; // cursor resting on the pet this long before the "drag me" hint
+type Park = { fx: number; fy: number };
+function readPark(): Park | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = JSON.parse(localStorage.getItem(PARK_KEY) ?? "null");
+    return v && typeof v.fx === "number" && typeof v.fy === "number" ? v : null;
+  } catch {
+    return null;
+  }
+}
+function writePark(v: Park | null) {
+  try {
+    if (v) localStorage.setItem(PARK_KEY, JSON.stringify(v));
+    else localStorage.removeItem(PARK_KEY);
+  } catch {}
+}
+const CARRY_PX = 8; // a press that moves further than this is a carry, not a punch
+
 type Mood = "idle" | "happy" | "focus";
 type Power = "on" | "off" | "boot";
 
@@ -212,6 +234,11 @@ export function PetBot() {
   const [ouch, setOuch] = useState(false); // wincing eyes right after a punch
   const [grabbing, setGrabbing] = useState(false);
   const ouchTimer = useRef<number>(0);
+  // Parking: drag the pet anywhere (or use the button) and it stays there instead of following
+  const [parked, setParked] = useState(() => readPark() !== null);
+  const parkRef = useRef<Park | null>(readPark());
+  const carry = useRef({ pending: false, on: false, sx: 0, sy: 0, gx: 0, gy: 0 });
+  const hintTimer = useRef(0);
   // Punch and fall physics. Kept across page changes, like the position.
   const phys = useRef({
     mode: "on" as Power,
@@ -389,6 +416,7 @@ export function PetBot() {
       }
       if (p.mode !== "on") return;
       e.currentTarget.setPointerCapture(e.pointerId);
+      carry.current = { pending: true, on: false, sx: e.clientX, sy: e.clientY, gx: e.clientX - pos.x, gy: e.clientY - pos.y };
       hold.current.active = true;
     },
     [],
@@ -397,6 +425,21 @@ export function PetBot() {
   const onPetUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     const p = phys.current;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    const c = carry.current;
+    c.pending = false;
+    if (c.on) {
+      // Dropped after a carry: park right here
+      c.on = false;
+      hold.current.active = false;
+      setGrabbing(false);
+      const pos = posRef.current;
+      const spot = { fx: pos.x / window.innerWidth, fy: pos.y / window.innerHeight };
+      parkRef.current = spot;
+      writePark(spot);
+      setParked(true);
+      say("Parked! I'll wait right here. Press “Follow me” to bring me back.", 3800, "happy", true);
+      return;
+    }
     const h = hold.current;
     if (h.active) {
       // Released: that was a punch (a lost capture just cancels)
@@ -409,13 +452,49 @@ export function PetBot() {
     // Thrown with the speed it was carried at; it lands before it wakes up
     p.wakeAt = Math.max(p.wakeAt, performance.now() + 1500);
     setGrabbing(false);
-  }, [punch]);
+  }, [punch, say]);
 
+  /** Moving while pressed: past a few pixels the press becomes a carry (no punch). */
+  const onPetMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    const c = carry.current;
+    if (!c.pending || c.on) return;
+    if (Math.hypot(e.clientX - c.sx, e.clientY - c.sy) < CARRY_PX) return;
+    c.on = true;
+    hold.current.active = false;
+    setGrabbing(true);
+    store.set(PARK_HINT_KEY, "1");
+  }, []);
+
+  /** The Park robot / Follow me button (bottom left). */
+  const togglePark = useCallback(() => {
+    if (parkRef.current) {
+      parkRef.current = null;
+      writePark(null);
+      setParked(false);
+      say("Right behind you!", 2200, "happy", true);
+      return;
+    }
+    // Parks neatly above the button, bottom left
+    const spot = { fx: 20 / window.innerWidth, fy: (window.innerHeight - 64 - H - 8) / window.innerHeight };
+    parkRef.current = spot;
+    writePark(spot);
+    setParked(true);
+    say("Parked. I'll stay out of your way.", 2600, "happy", true);
+  }, [say]);
+
+  /** Resting the cursor on the pet: once per visit it says it can be dragged and parked. */
   const onPetEnter = useCallback(() => {
     phys.current.hover = true;
-  }, []);
+    if (parkRef.current || store.get(PARK_HINT_KEY)) return;
+    window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => {
+      if (!phys.current.hover || phys.current.mode !== "on" || carry.current.on || tipOpen.current) return;
+      if (say("Drag me anywhere to park me.", 3000, "happy")) store.set(PARK_HINT_KEY, "1");
+    }, PARK_HINT_MS);
+  }, [say]);
   const onPetLeave = useCallback(() => {
     phys.current.hover = false;
+    window.clearTimeout(hintTimer.current);
   }, []);
 
   // A greeting about the page shortly after arriving, then one guide suggestion once the page has been read
@@ -687,14 +766,31 @@ export function PetBot() {
       // Keep to one side of the cursor so it never covers what is being pointed at
       if (mouse.x < 150) side = -1;
       else if (mouse.x > window.innerWidth - 150) side = 1;
-      if (side !== shownSide && !tipOpen.current) setFlip((shownSide = side) < 0);
+      const carried = carry.current.on;
+      const spot = parkRef.current;
+      // Parked or carried: the bubble opens towards the middle of the screen so it never runs off the edge
+      const face = spot || carried ? (pos.x + SIZE / 2 < window.innerWidth / 2 ? -1 : 1) : side;
+      if (face !== shownSide && !tipOpen.current) setFlip((shownSide = face) < 0);
       // Stays put while a suggestion is open (so its button can be reached), while the cursor is on it
       // and right after a punch (so it can be punched again)
       const still = tipOpen.current || p.hover || now < p.stunUntil;
-      const tx = still ? pos.x : clamp(mouse.x - side * 78 - SIZE / 2, 8, window.innerWidth - SIZE - 8);
-      const ty = still ? pos.y : clamp(mouse.y - 92, 8, window.innerHeight - SIZE - 24);
-      const nx = pos.x + (tx - pos.x) * 0.075;
-      const ny = pos.y + (ty - pos.y) * 0.075;
+      let tx: number;
+      let ty: number;
+      if (carried) {
+        // Held: it hangs from the pointer where it was picked up
+        tx = clamp(mouse.x - carry.current.gx, 8, window.innerWidth - SIZE - 8);
+        ty = clamp(mouse.y - carry.current.gy, 8, window.innerHeight - SIZE - 24);
+      } else if (spot) {
+        // Parked: stays on its spot (kept on screen if the window shrank)
+        tx = clamp(spot.fx * window.innerWidth, 8, window.innerWidth - SIZE - 8);
+        ty = clamp(spot.fy * window.innerHeight, 8, window.innerHeight - SIZE - 24);
+      } else {
+        tx = still ? pos.x : clamp(mouse.x - side * 78 - SIZE / 2, 8, window.innerWidth - SIZE - 8);
+        ty = still ? pos.y : clamp(mouse.y - 92, 8, window.innerHeight - SIZE - 24);
+      }
+      const ease = carried ? 0.35 : 0.075;
+      const nx = pos.x + (tx - pos.x) * ease;
+      const ny = pos.y + (ty - pos.y) * ease;
       vel.x = vel.x * 0.8 + (nx - pos.x) * 0.2;
       vel.y = vel.y * 0.8 + (ny - pos.y) * 0.2;
       pos.x = nx;
@@ -722,7 +818,7 @@ export function PetBot() {
       lastMy = mouse.y;
       const mspeed = Math.hypot(mdx, mdy);
       const towards = mspeed > 1.5 && d < 260 && -(mdx * dx + mdy * dy) / (mspeed * d) > 0.55;
-      if (towards) chase += dt;
+      if (towards && !spot && !carried) chase += dt;
       else chase = Math.max(0, chase - dt * 0.6);
       if (stage < CHASE_STAGES.length && chase > CHASE_STAGES[stage]) {
         // Waits for any line still being read, then teases
@@ -746,7 +842,7 @@ export function PetBot() {
       }
 
       // Cursor at rest: lock on with a beam that tugs the cursor spot toward the pet
-      if (!hidden && readyRef.current && !tipOpen.current && !beamedThisRest && now - lastMove > IDLE_MS) {
+      if (!hidden && !spot && !carried && readyRef.current && !tipOpen.current && !beamedThisRest && now - lastMove > IDLE_MS) {
         beamedThisRest = true;
         beamAt = now;
         setBeaming(true);
@@ -787,6 +883,7 @@ export function PetBot() {
     () => () => {
       window.clearTimeout(hideTimer.current);
       window.clearTimeout(ouchTimer.current);
+      window.clearTimeout(hintTimer.current);
     },
     [],
   );
@@ -797,6 +894,17 @@ export function PetBot() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40">
+      {/* Park robot / Follow me */}
+      <button
+        type="button"
+        onClick={togglePark}
+        aria-pressed={parked}
+        title={parked ? "Let the robot follow your cursor again" : "Park the robot so it stops following you"}
+        className="group pointer-events-auto absolute bottom-5 left-5 flex items-center gap-2 border border-line-strong bg-ink-950/90 py-1.5 pr-3 pl-2.5 text-xs text-fg-muted backdrop-blur-sm transition-colors hover:border-brand-400/50 hover:text-fg"
+      >
+        {parked ? <MousePointer2 aria-hidden className="size-3.5 text-brand-300" /> : <Pin aria-hidden className="size-3.5 text-brand-300" />}
+        <span className="text-xs font-medium">{parked ? "Follow me" : "Park robot"}</span>
+      </button>
       {/* Beam from the pet's eyes to the resting cursor */}
       <svg aria-hidden className={cn("absolute inset-0 size-full transition-opacity duration-300", beaming ? "opacity-100" : "opacity-0")}>
         <line ref={beamGlow} className="stroke-brand-400/25" strokeWidth={9} strokeLinecap="round" />
@@ -865,13 +973,14 @@ export function PetBot() {
           <div
             ref={tumble}
             onPointerDown={onPetDown}
+            onPointerMove={onPetMove}
             onPointerUp={onPetUp}
             onLostPointerCapture={onPetUp}
             onPointerEnter={onPetEnter}
             onPointerLeave={onPetLeave}
             className={cn(
               "pointer-events-auto touch-none select-none",
-              power === "on" && "cursor-pointer",
+              power === "on" && (grabbing ? "cursor-grabbing" : "cursor-pointer"),
               power === "off" && (grabbing ? "cursor-grabbing" : "cursor-grab"),
             )}
           >
