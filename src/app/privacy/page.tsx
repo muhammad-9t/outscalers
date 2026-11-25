@@ -4,7 +4,7 @@ import { pageMetadata, siteConfig } from "@/lib/site";
 /*
  * Privacy policy (general GDPR text, written to match what this site actually does as of Nov 2026:
  * no analytics or tracking, self-hosted fonts, contact form by email).
- * Kept out of search engines until Outscalers' lawyer has reviewed it and the controller's legal name is final.
+ * Reviewed and approved by Outscalers' lawyer (Nov 2026).
  * If the site adds analytics, embeds or new forms, update this page first.
  */
 
@@ -12,7 +12,6 @@ export const metadata = pageMetadata({
   title: "Privacy Policy",
   description: "How Outscalers handles personal data on this website.",
   path: "/privacy",
-  noIndex: true,
 });
 
 const UPDATED = "November 2026";
