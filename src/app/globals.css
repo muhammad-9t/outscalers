@@ -4457,3 +4457,10 @@ html[data-immersive] [data-site-header] { transform: translateY(-110%); }
 }
 @keyframes hsx-msg { from { opacity: 0; translate: 0 10px; scale: 0.97; } }
 @keyframes hsx-dot { 0%, 100% { opacity: 0.3; translate: 0 0; } 50% { opacity: 1; translate: 0 -3px; } }
+
+/* Product pages (components/product): a soft fade when a feature tab changes */
+@layer components {
+  .pp-fade { animation: pp-fade 0.45s ease-out both; }
+  @media (prefers-reduced-motion: reduce) { .pp-fade { animation: none; } }
+}
+@keyframes pp-fade { from { opacity: 0; transform: translateY(8px); } }

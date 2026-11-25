@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 116" role="img" aria-label="Badgy, a staff ID badge on a lanyard"><title>Badgy</title><path d="M40 2 L53 22 M80 2 L67 22" stroke="#0E7490" stroke-width="4" stroke-linecap="round"/>
+        <rect x="50" y="18" width="20" height="10" rx="3" fill="#9CA3AF" stroke="#111111" stroke-width="3"/>
+        <ellipse cx="16" cy="66" rx="7" ry="11" fill="#C4B5FD" stroke="#111111" stroke-width="3"/><ellipse cx="104" cy="66" rx="7" ry="11" fill="#C4B5FD" stroke="#111111" stroke-width="3"/>
+        <rect x="34" y="99" width="20" height="13" rx="5" fill="#C4B5FD" stroke="#111111" stroke-width="3"/><rect x="66" y="99" width="20" height="13" rx="5" fill="#C4B5FD" stroke="#111111" stroke-width="3"/>
+        <rect x="22" y="26" width="76" height="76" rx="12" fill="#C4B5FD" stroke="#111111" stroke-width="3"/>
+        <rect x="52" y="32" width="16" height="5" rx="2.5" fill="#111111"/>
+        <circle cx="46" cy="56" r="5.5" fill="#111111"/><circle cx="74" cy="56" r="5.5" fill="#111111"/>
+        <ellipse cx="35" cy="65" rx="5" ry="3" fill="#FF8A65" opacity="0.6"/><ellipse cx="85" cy="65" rx="5" ry="3" fill="#FF8A65" opacity="0.6"/>
+        <path d="M53 65 Q60 71 67 65" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"/>
+        <rect x="38" y="80" width="44" height="5" rx="2" fill="#111111"/><rect x="46" y="89" width="28" height="4" rx="2" fill="#6D5BD0"/></svg>

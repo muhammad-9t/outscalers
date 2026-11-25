@@ -13,6 +13,8 @@ import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 import { ProjectStory } from "@/components/case-studies/project-story";
 import { projectStories } from "@/content/project-stories";
 import { team as teamMembers } from "@/content/team";
+import { productShowcases } from "@/content/product-showcases";
+import { ProductPage } from "@/components/product/product-page";
 
 /*
  * Product pages read `params`, so their content can't be part of the shared instant-navigation shell.
@@ -70,6 +72,19 @@ export default async function CaseStudyPage({ params }: PageProps<"/case-studies
     { name: "Portfolio", path: "/portfolio" },
     { name: study.title, path: `/case-studies/${study.slug}` },
   ]);
+
+  // Products with a showcase (brand, real interface previews) get the new product page
+  const showcase = productShowcases[study.slug];
+  if (showcase) {
+    const index = caseStudies.findIndex((c) => c.slug === study.slug);
+    const next = caseStudies[(index + 1) % caseStudies.length];
+    return (
+      <>
+        <ProductPage study={study} showcase={showcase} story={story} next={next} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbsLd) }} />
+      </>
+    );
+  }
 
   return (
     <>
