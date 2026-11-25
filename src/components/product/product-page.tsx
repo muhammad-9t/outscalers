@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Unbounded } from "next/font/google";
 import { ArrowRight, ArrowUpRight, Sparkles } from "lucide-react";
 import type { CaseStudy } from "@/content/case-studies";
 import type { ProductShowcase } from "@/content/product-showcases";
@@ -11,9 +10,9 @@ import { CtaBand } from "@/components/sections/cta-band";
 import { Reveal, Section, SectionHeading } from "@/components/ui/primitives";
 import { FeatureTabs } from "./feature-tabs";
 import { cn } from "@/lib/cn";
+import { productDisplay } from "@/lib/fonts";
 
-/** The products' own headline font (Nizamio uses Unbounded Black for headlines). Only loaded on these pages. */
-const display = Unbounded({ subsets: ["latin"], weight: "900", display: "swap" });
+const display = productDisplay;
 
 /**
  * Product page, "show the product": the product's own brand on a light stage inside the dark site,

@@ -1,9 +1,11 @@
-import type { CSSProperties } from "react";
 import { HeroScene } from "@/components/hero/hero-scene";
 import { ScrollRocket } from "@/components/hero/scroll-rocket";
 import { HeroShowcase } from "@/components/hero/hero-showcase";
 import { LaunchEnvelope } from "@/components/sections/launch-envelope";
-import { CaseStudyCard } from "@/components/sections/case-study-card";
+import { ProductShowcase, type ShowcaseItem } from "@/components/sections/product-showcase";
+import { productShowcases } from "@/content/product-showcases";
+import { projectStories } from "@/content/project-stories";
+import { productDisplay } from "@/lib/fonts";
 import { CtaBand } from "@/components/sections/cta-band";
 import { ServicesStage } from "@/components/sections/services-stage";
 import { WhyShowcase } from "@/components/sections/why-showcase";
@@ -26,6 +28,29 @@ export const metadata = pageMetadata({
     "data engineering",
     "cloud infrastructure",
   ],
+});
+
+/** One entry per product for the home showcase: brand stage when the product has a showcase, else its cover. */
+const showcaseItems: ShowcaseItem[] = caseStudies.flatMap((c) => {
+  if (!c.cover) return [];
+  const brand = productShowcases[c.slug];
+  const facts = projectStories[c.slug]?.facts;
+  // The product name is the title's part before the colon (e.g. "Outscalers Hub: …")
+  const name = c.title.includes(":") ? c.title.slice(0, c.title.indexOf(":")) : (c.client ?? c.title);
+  const tail = c.title.includes(":") ? c.title.slice(c.title.indexOf(":") + 1).trim() : c.summary;
+  return [
+    {
+      slug: c.slug,
+      name,
+      line: brand ? brand.headline : tail.charAt(0).toUpperCase() + tail.slice(1),
+      facts: [facts && `${facts.duration}`, facts && `${facts.screens} screens`, facts?.status].filter(Boolean) as string[],
+      href: `/case-studies/${c.slug}`,
+      image: brand ? brand.hero : c.cover,
+      logo: brand?.logo,
+      brand: brand && { primary: brand.brand.primary, deep: brand.brand.deep, tint: brand.brand.tint, stage: brand.brand.stage },
+      framed: !brand,
+    },
+  ];
 });
 
 export default function HomePage() {
@@ -90,13 +115,9 @@ export default function HomePage() {
               <ArrowLink href="/portfolio">View our portfolio</ArrowLink>
             </Reveal>
           </div>
-          <ul className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {caseStudies.slice(0, 3).map((c, i) => (
-              <li key={c.slug} data-reveal suppressHydrationWarning style={{ "--reveal-delay": `${i * 80}ms` } as CSSProperties}>
-                <CaseStudyCard study={c} />
-              </li>
-            ))}
-          </ul>
+          <Reveal className="mt-12">
+            <ProductShowcase items={showcaseItems} displayClass={productDisplay.className} />
+          </Reveal>
         </div>
       </Section>
 
