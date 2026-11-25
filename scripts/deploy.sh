@@ -39,13 +39,13 @@ restore_previous() {
   fi
 }
 
-# Dependencies — prefer npm ci; fall back to npm install if the lockfile is out of sync
+# Dependencies: exactly the versions in package-lock.json (the ones CI tested). No fallback to
+# `npm install`, which could install different versions; if this fails, stop before touching the build.
 echo "Installing dependencies..."
-if [[ -f package-lock.json ]] && npm ci --prefer-offline; then
-  echo "npm ci OK"
-else
-  echo "npm ci unavailable or lock out of sync — using npm install"
-  npm install --prefer-offline
+if ! npm ci --prefer-offline; then
+  echo "ERROR: npm ci failed (is package-lock.json in sync with package.json?)"
+  restore_previous
+  exit 1
 fi
 
 echo "Building..."
