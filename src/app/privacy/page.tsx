@@ -16,8 +16,6 @@ export const metadata = pageMetadata({
 });
 
 const UPDATED = "November 2026";
-/** The controller is the Italian head office */
-const headOffice = siteConfig.offices.find((o) => o.country === "Italy");
 
 type Block = { title: string; body: (string | { list: string[] })[] };
 
@@ -25,7 +23,7 @@ const sections: Block[] = [
   {
     title: "1. Who is responsible",
     body: [
-      `The controller for this website is ${siteConfig.name}, ${headOffice?.address ?? ""}. Email: ${siteConfig.contact.email}.`,
+      `The controller for this website is ${siteConfig.legal.name}, ${siteConfig.legal.address} (VAT number ${siteConfig.legal.vat}). Email: ${siteConfig.contact.email}.`,
       "For any question about your personal data, write to us at the address above.",
     ],
   },

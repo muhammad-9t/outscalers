@@ -25,13 +25,26 @@ export const siteConfig = {
       "p:domain_verify": "99e60f715796a6be7e001a5ab9cb9823",
     },
   },
+  /**
+   * Legal entity (Registro Imprese di Torino). Shown in the footer and on /legal-notice, as Italian law
+   * requires the VAT number on business websites. The owner's personal tax code is deliberately not published.
+   */
+  legal: {
+    name: "Outscalers di Waseem Akram",
+    form: "Sole proprietorship (impresa individuale)",
+    owner: "Waseem Akram",
+    address: "Via Foglizzo 8, 10154 Torino (TO), Italy",
+    vat: "12108770012",
+    rea: "TO-1265151",
+    activity: "Software development",
+  },
   contact: {
     email: "contact@outscalers.com",
     responseTime: "We aim to reply within one business day.",
   },
   offices: [
     { country: "Germany", city: "Mannheim", address: "Rahnfelsstraße 10, 68163 Mannheim, Germany", phone: "+49 173 4250811" },
-    { country: "Italy", city: "Turin", address: "Corso Principe Oddone 44, 10152 Turin, Italy", phone: "+39 348 1393925" },
+    { country: "Italy", city: "Turin", address: "Via Foglizzo 8, 10154 Turin, Italy", phone: "+39 348 1393925" },
     {
       country: "Hong Kong",
       city: "Tsim Sha Tsui",

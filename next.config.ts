@@ -13,8 +13,8 @@ const nextConfig: NextConfig = {
       { source: "/jobs", destination: "/contact", permanent: true },
       { source: "/apply", destination: "/contact", permanent: true },
       { source: "/contact-ceo", destination: "/contact", permanent: true },
-      { source: "/blog", destination: "/about", permanent: true },
-      { source: "/blog/:slug*", destination: "/about", permanent: true },
+      // The blog is discontinued: /blog goes home; old posts answer 410 Gone (src/app/blog/[...slug]/route.ts)
+      { source: "/blog", destination: "/", permanent: true },
       { source: "/ourTeam", destination: "/about", permanent: true },
       { source: "/our-team", destination: "/about", permanent: true },
       { source: "/developerDetails", destination: "/about", permanent: true },

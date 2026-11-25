@@ -104,13 +104,18 @@ export function Footer() {
 
         <div className="hairline mt-14" />
         <div className="mt-6 flex flex-col gap-3 text-xs text-fg-subtle sm:flex-row sm:items-center sm:justify-between">
+          {/* Italian law requires the VAT number on business websites */}
           <p>
-            © <CopyrightYear /> {siteConfig.name}. All rights reserved.
+            © <CopyrightYear /> {siteConfig.legal.name} · P.IVA {siteConfig.legal.vat}
           </p>
-          {/* Legal links (Imprint to be added before launch) */}
-          <Link href="/privacy" className="transition-colors hover:text-fg">
-            Privacy Policy
-          </Link>
+          <nav aria-label="Legal" className="flex gap-5">
+            <Link href="/legal-notice" className="transition-colors hover:text-fg">
+              Legal Notice
+            </Link>
+            <Link href="/privacy" className="transition-colors hover:text-fg">
+              Privacy Policy
+            </Link>
+          </nav>
         </div>
       </div>
     </footer>
