@@ -424,9 +424,11 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
     const i1 = Math.min(i0 + 1, n - 1);
     const f = smooth(c - i0);
 
-    // 0 at the top of the page → 1 when the first chapter fills the viewport
+    // 0 once the (possibly pinned) hero has finished → 1 when the first chapter fills the viewport
     const chaptersTop = ch.top + window.scrollY;
-    const approach = smooth(clamp(window.scrollY / Math.max(chaptersTop, 1), 0, 1));
+    const hr = hero.getBoundingClientRect();
+    const from = Math.max(0, hr.bottom + window.scrollY - vh);
+    const approach = smooth(clamp((window.scrollY - from) / Math.max(chaptersTop - from, 1), 0, 1));
 
     const pose = (i: number) => {
       const side = i % 2 === 0 ? 1 : -1; // even chapters: text left, laptop right
@@ -434,12 +436,8 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
         ? { x: 0, y: viewport.height * 0.2, rotY: -side * 0.35, scale: Math.min(1, viewport.width / 4.3) }
         : { x: side * viewport.width * 0.24, y: 0, rotY: -side * 0.45, scale: 1 };
     };
-    // Hero pose: right of the hero copy, centred on where the hero sits at the top of the page
-    const hr = hero.getBoundingClientRect();
-    const heroCentre = hr.top + window.scrollY + hr.height / 2;
-    const heroPose = mobile
-      ? { ...pose(0), scale: 0 } // no room beside the copy on small screens: grow in on scroll
-      : { x: viewport.width * 0.24, y: (0.5 - heroCentre / vh) * viewport.height, rotY: -0.4, scale: 0.8 };
+    // The hero has its own 3D scene, so the laptop grows in once the hero is done
+    const heroPose = { ...pose(0), rotY: pose(0).rotY - 0.8, scale: 0 };
 
     const a = pose(i0);
     const b = pose(i1);
@@ -592,7 +590,7 @@ function Laptop({ screens, heroRef, chaptersRef, frameRef, focusRef, reducedMoti
 const WHITE = new THREE.Color(1, 1, 1);
 
 /** Soft studio reflections for the aluminium, generated once (no image download). */
-function Environment() {
+export function Environment() {
   const get = useThree((st) => st.get);
   useEffect(() => {
     const { gl, scene, invalidate } = get();
@@ -612,7 +610,7 @@ function Environment() {
   return null;
 }
 
-function Lights() {
+export function Lights() {
   const colors = useMemo(() => {
     const s = getComputedStyle(document.documentElement);
     return {

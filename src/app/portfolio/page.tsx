@@ -1,7 +1,8 @@
 import { portfolio, showcaseScreens } from "@/content/portfolio";
 import { pageMetadata } from "@/lib/site";
-import { PageHero } from "@/components/sections/page-hero";
+import { caseStudies } from "@/content/case-studies";
 import { PortfolioGrid } from "@/components/sections/portfolio-grid";
+import { PortfolioHero } from "@/components/portfolio/portfolio-hero";
 import { PortfolioShowcase } from "@/components/portfolio/portfolio-showcase";
 import { CtaBand } from "@/components/sections/cta-band";
 import { SectionHeading } from "@/components/ui/primitives";
@@ -19,14 +20,16 @@ export default function PortfolioPage() {
     const project = portfolio.find((p) => p.slug === screen.slug);
     return project ? [{ project, screen }] : [];
   });
+  // Real project screenshots orbit the hero desk
+  const covers = caseStudies.flatMap((c) => (c.cover ? [c.cover.src] : [])).slice(0, 6);
 
   return (
     <>
-      {/* Scroll showcase: the 3D laptop enters beside the hero, then follows each featured project */}
+      {/* Pinned 3D hero, then the scroll showcase: the 3D laptop follows each featured project */}
       <PortfolioShowcase
         chapters={featured}
         hero={
-          <PageHero
+          <PortfolioHero
             eyebrow="Portfolio"
             title="Products we've built"
             lead="Web platforms, mobile apps and AI tools, built end to end by our team."
@@ -34,8 +37,7 @@ export default function PortfolioPage() {
               { label: "Home", href: "/" },
               { label: "Portfolio", href: "/portfolio" },
             ]}
-            bare
-            className="lg:flex lg:min-h-[80svh] lg:flex-col lg:justify-center"
+            covers={covers}
           />
         }
         intro={

@@ -64,6 +64,7 @@
   --color-device-key: #1c2430;
   --color-device-trackpad: #7a838f;
 
+
   /* Code editor mock-up (syntax colours) */
   --color-code-bg: #0a0f18;
   --color-code-kw: #7cc4ff;
@@ -4464,3 +4465,39 @@ html[data-immersive] [data-site-header] { transform: translateY(-110%); }
   @media (prefers-reduced-motion: reduce) { .pp-fade { animation: none; } }
 }
 @keyframes pp-fade { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---------------- Portfolio hero: pinned 3D orbit (.ph-*) ---------------- */
+/* Hero figure colours (3D engineer at a desk). Plain :root, not @theme, because no utility uses them
+   and Tailwind drops unused theme variables. A physical object, so the same in both themes. */
+:root {
+  --color-figure-skin: #d9a27e;
+  --color-figure-hair: #1d1a19;
+  --color-figure-pants: #2a3341;
+  --color-figure-shoe: #e9edf2;
+  --color-figure-wood: #b98a5e;
+  --color-figure-chair: #1a212c;
+}
+@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+  .ph-orbit { height: 340svh; }
+  .ph-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+  .ph-copy { display: flex; height: 100%; flex-direction: column; justify-content: center; will-change: opacity, transform; }
+  .ph-copy > section { padding-block: 4rem 0; }
+}
+.ph-phrase {
+  position: absolute;
+  margin: 0;
+  opacity: 0;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 11vw, 11rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: var(--color-fg);
+  will-change: opacity, transform, filter;
+}
+.ph-phrase:nth-child(2) {
+  background: linear-gradient(100deg, var(--color-brand-300), var(--color-brand-400) 55%, var(--color-brand-500));
+  background-clip: text;
+  color: transparent;
+}
