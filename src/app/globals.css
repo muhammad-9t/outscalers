@@ -4478,6 +4478,15 @@ html[data-immersive] [data-site-header] { transform: translateY(-110%); }
   --color-figure-chair: #1a212c;
   --color-figure-pot: #c9663c;
   --color-figure-leaf: #4f9a5b;
+  /* Hero laptop keyboard: dark keys in the dark theme, neutral greys in the light theme */
+  --color-figure-keycap: #1c2430;
+  --color-figure-keybed: #121821;
+  /* Cool white light from the hero laptop screen, the same in both themes */
+  --color-figure-screen-light: #e2eaf5;
+}
+[data-theme="light"] {
+  --color-figure-keycap: #8f969f;
+  --color-figure-keybed: #4d545e;
 }
 @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
   .ph-orbit { height: 480svh; }

@@ -76,7 +76,9 @@ function readColors() {
     metal: v("device-metal"),
     bezel: v("device-bezel"),
     keys: v("device-keys"),
-    key: v("device-key"),
+    key: v("figure-keycap"),
+    keybed: v("figure-keybed"),
+    screenLight: v("figure-screen-light"),
     trackpad: v("device-trackpad"),
     brand: v("brand-400"),
     brandSoft: v("brand-300"),
@@ -115,7 +117,8 @@ function makeMaterials(c: Colors) {
     wood: new THREE.MeshStandardMaterial({ color: c.wood, roughness: 0.55 }),
     metal: new THREE.MeshStandardMaterial({ color: c.metal, metalness: 0.75, roughness: 0.35 }),
     dark: new THREE.MeshStandardMaterial({ color: c.keys, roughness: 0.8 }),
-    key: new THREE.MeshStandardMaterial({ color: c.key, roughness: 0.7, envMapIntensity: 0.3 }),
+    key: new THREE.MeshStandardMaterial({ color: c.key, roughness: 0.75, envMapIntensity: 0.25 }),
+    keybed: new THREE.MeshStandardMaterial({ color: c.keybed, roughness: 0.8 }),
     trackpad: new THREE.MeshStandardMaterial({ color: c.trackpad, metalness: 0.55, roughness: 0.35 }),
     eye: new THREE.MeshBasicMaterial({ color: c.hair }),
     brand: gloss(c.brand),
@@ -468,8 +471,8 @@ function Keyboard({ m }: { m: Mats }) {
   }, []);
   return (
     <group>
-      {/* Dark keyboard well, then the keys (one draw call) and the space bar */}
-      <mesh position={[0, KEY_Y + 0.0005, KEY_Z0 + 0.124]} rotation={[-Math.PI / 2, 0, 0]} material={m.dark}>
+      {/* Keyboard well, then the keys (one draw call) and the space bar */}
+      <mesh position={[0, KEY_Y + 0.0005, KEY_Z0 + 0.124]} rotation={[-Math.PI / 2, 0, 0]} material={m.keybed}>
         <planeGeometry args={[KEY_COLS * KEY_PITCH + 0.02, KEY_ROWS * 0.062 + 0.02]} />
       </mesh>
       <instancedMesh ref={ref} args={[KEY_GEO_S, m.key, KEY_SLOTS.length]} />
@@ -510,7 +513,18 @@ function Chair({ m }: { m: Mats }) {
   );
 }
 
-function Desk({ m, screen, screenRef }: { m: Mats; screen: THREE.Texture; screenRef: RefObject<THREE.Mesh | null> }) {
+function Desk({
+  m,
+  screen,
+  screenRef,
+  screenLight,
+}: {
+  m: Mats;
+  screen: THREE.Texture;
+  screenRef: RefObject<THREE.Mesh | null>;
+  /** Colour of the light the screen throws on the engineer. */
+  screenLight: string;
+}) {
   return (
     <group>
       <mesh geometry={DESK_GEO} position={[0, 1.43, 1.0]} material={m.wood} />
@@ -537,8 +551,8 @@ function Desk({ m, screen, screenRef }: { m: Mats; screen: THREE.Texture; screen
         <mesh position={[0, 0.34, 0.014]} material={m.logo}>
           <circleGeometry args={[0.05, 24]} />
         </mesh>
-        {/* Screen light on the engineer's face */}
-        <pointLight position={[0, 0.35, -0.4]} color={m.logo.color} intensity={2.2} distance={2.2} />
+        {/* Cool screen light on the engineer's face (neutral, so the keys keep their colour) */}
+        <pointLight position={[0, 0.35, -0.4]} color={screenLight} intensity={1.4} distance={2.2} />
       </group>
       </group>
       </group>
@@ -786,7 +800,7 @@ function Scene({ progressRef, covers }: { progressRef: RefObject<number>; covers
         </mesh>
         <Chair m={m} />
         <Engineer m={m} />
-        <Desk m={m} screen={screen} screenRef={screenRef} />
+        <Desk m={m} screen={screen} screenRef={screenRef} screenLight={colors.screenLight} />
       </group>
 
       {/* The circular track the desk rides on */}
