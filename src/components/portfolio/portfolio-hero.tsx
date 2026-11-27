@@ -36,7 +36,7 @@ export function PortfolioHero({
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const cueRef = useRef<HTMLDivElement>(null);
   const phraseRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const progressRef = useRef(0);
   const [orbit, setOrbit] = useState(false);
@@ -90,6 +90,7 @@ export function PortfolioHero({
         copy.style.transform = `translate3d(0, ${-out * 80}px, 0) scale(${1 - out * 0.06})`;
         copy.style.visibility = out >= 1 ? "hidden" : "";
       }
+      if (cueRef.current) cueRef.current.style.opacity = String(1 - smooth(clamp(p / 0.05)));
       PHRASES.forEach(([, a, b, c, d], i) => {
         const node = phrases[i];
         if (!node) return;
@@ -99,7 +100,6 @@ export function PortfolioHero({
         node.style.transform = `translate3d(0, ${(1 - fin) * 60 - fout * 60}px, 0) scale(${0.92 + fin * 0.08 + fout * 0.06})`;
         node.style.filter = `blur(${(1 - fin) * 10 + fout * 10}px)`;
       });
-      if (canvasRef.current) canvasRef.current.style.opacity = String(1 - smooth(clamp((p - 0.92) / 0.08)));
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
@@ -115,7 +115,8 @@ export function PortfolioHero({
   }, [orbit]);
 
   return (
-    <section ref={sectionRef} aria-label="Portfolio introduction" className="ph-orbit relative">
+    // z-20: above the showcase's 3D laptop layer (z-10), so the laptop comes out from under this scene
+    <section ref={sectionRef} aria-label="Portfolio introduction" className="ph-orbit relative z-20">
       <div className="ph-pin">
         {orbit && (
           <>
@@ -132,8 +133,13 @@ export function PortfolioHero({
                 </p>
               ))}
             </div>
-            <div ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0">
+            <div aria-hidden className="pointer-events-none absolute inset-0">
               <OrbitScene key={themeKey} active={active} progressRef={progressRef} covers={covers} />
+            </div>
+            {/* Tells visitors the hero moves with the scroll; fades as soon as they start */}
+            <div ref={cueRef} aria-hidden className="ph-cue">
+              <span className="ph-cue-mouse" />
+              Scroll
             </div>
           </>
         )}
